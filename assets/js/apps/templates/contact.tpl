@@ -1,0 +1,1 @@
+<img src="img/person.png" alt="img" class="img"><b><%= name %></b><span class="desc"><%= phone %></span>
