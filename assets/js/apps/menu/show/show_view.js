@@ -14,8 +14,9 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
           $("#top").unwrap();
           this.setup();
           require.undef('plugins');
-          require(["plugins"], function(){
-            System.trigger("dash:show");
+          require.undef('dash');
+          require(["dash", "plugins"], function(){
+            
           });
         },
 
@@ -41,11 +42,11 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
               itpl.appendTo(idom);
             });
           });
-          $('#uname').text(System.user);
+          $('#username').text(System.user);
           var THAT = this;
           setTimeout(function() {
             THAT.activateMenu();
-          }, 300)
+          }, 300);
         },
 
         activateMenu: function(){
@@ -112,6 +113,11 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
                   }, 250);    
               }
           });
+
+          setTimeout(function() {
+            $('.loading').hide();
+            $('ul#presentation > li:first-child > ul > li > a').first().get(0).click();
+          }, 300);
         },
     });
 

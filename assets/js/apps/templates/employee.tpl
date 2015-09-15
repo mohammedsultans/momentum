@@ -24,7 +24,7 @@
         <div class="panel panel-default">
 
           <div class="panel-title">
-            Create User
+            New Employee Details
             <ul class="panel-tools">
               <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
               <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
@@ -35,33 +35,33 @@
               <div class="panel-body">
                 <form class="form-horizontal">
                   <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Search</label>
+                    <label class="col-sm-2 control-label form-label">Name</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" id="employees" name="employees" data-live-search="true" >
-                        <option data-icon="fa fa-user">Select Employee...</option>
-                        <option data-icon="fa fa-user">Alex Mbaka</option>
-                        <option data-icon="fa fa-user">Prince Munene</option>
-                      </select>  
-                    </div>              
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Username<span class="color10">*</span></label>
-                    <div class="col-sm-10">
-                      <input type="text" name="uname" class="form-control" id="">
-                      <i class="fa fa-user"></i>
+                      <input type="text" name="name" class="form-control">
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Password<span class="color10">*</span></label>
+                    <label class="col-sm-2 control-label form-label">Mobile</label>
                     <div class="col-sm-10">
-                      <input type="password" name="pass" class="form-control" id="">
-                      <i class="fa fa-key"></i>
+                      <input type="text" name="tel" class="form-control">
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Role<span class="color10">*</span></label>
+                    <label class="col-sm-2 control-label form-label">E-Mail</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="gender" id="roles">
+                      <input type="text" name="email" class="form-control">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Address</label>
+                    <div class="col-sm-10">
+                      <textarea class="form-control" name="address" rows="3"></textarea>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Gender<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <select class="selectpicker form-control" name="gender">
                         <option data-icon="fa fa-user">Select Gender...</option>
                         <option data-icon="fa fa-male" value="Male">Male</option>
                         <option data-icon="fa fa-female" value="Female">Female</option>
@@ -115,7 +115,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Search</label>
                 <div class="col-sm-10">
-                  <select class="selectpicker form-control" id="employees2" name="employees2" data-live-search="true" >
+                  <select class="selectpicker form-control" id="employees" name="employees" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Employee...</option>
                     <option data-icon="fa fa-user">Alex Mbaka</option>
                     <option data-icon="fa fa-user">Prince Munene</option>

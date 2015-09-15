@@ -51,7 +51,7 @@
 						$salary = $_POST['salary'];
 						$this->createEmployee($name, $mobile, $email, $address, $gender, $department, $position, $salary);
 					}else{
-						echo 0;
+						echo 3;
 					}
 						
 				}elseif($operation == 'editEmployee'){

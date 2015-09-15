@@ -13,7 +13,7 @@
     <ul class="top-right">
 
     <li class="dropdown link">
-      <a href="#" data-toggle="dropdown" class="dropdown-toggle profilebox"><img src="img/user.png" alt="img"><b id="uname">User Name</b><span class="caret"></span></a>
+      <a href="#" data-toggle="dropdown" class="dropdown-toggle profilebox"><img src="img/user.png" alt="img"><b id="username">User Name</b><span class="caret"></span></a>
         <ul class="dropdown-menu dropdown-menu-list dropdown-menu-right">
           <li role="presentation" class="dropdown-header">Quick Links</li>
           <li><a href="#dash"><i class="fa falist fa-home"></i>Dashboard</a></li>

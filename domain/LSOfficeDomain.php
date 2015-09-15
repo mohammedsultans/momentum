@@ -540,10 +540,6 @@ class Employee extends Party
 
     private static function initializeEmployee($args)
     {
-      //parent::__construct();
-      if (!isset($args['id'])) {
-        $args['id'] = 65824;//use random number, more especially a uuid
-      }
 
       $party = new Employee($args['id'], $args['name'], $args['telephone'], $args['email'], $args['address'], $args['gender'], $args['department'], $args['position'], $args['salary'], $args['balance']);
       
