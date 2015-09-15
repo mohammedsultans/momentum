@@ -12,10 +12,46 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
 
         onShow: function(){
           $("#top").unwrap();
+          this.setup();
+          require.undef('plugins');
+          require(["plugins"], function(){
+            System.trigger("dash:show");
+          });
+        },
+
+        onDomRefresh: function(){
+          require.undef('plugins');
+          require(["plugins"], function(){});
+        },
+
+        setup: function() { 
+          var dom = $('#presentation');
+          dom.empty();
+          var name = this.model.get('user');
+          System.user = name['record']['name'];
+          System.interfaces = name['role']['presentation'];
+          //alert(JSON.stringify(System.views));          
+          $.each(System.interfaces, function(i, module){
+            var tpl = $('<li><a href="#"><span class="icon color11-bg"><i class="fa '+module['logo']+'"></i></span>'+module['name']+'<span class="caret"></span></a><ul id="mod'+i+'"><ul></li>');
+            tpl.appendTo(dom);
+            var views = module['views'];
+            var idom = $('#mod'+i);
+            views.forEach(function(view) {
+              var itpl = $('<li><a href="#'+view['link']+'"><span class="icon"><i class="fa '+view['logo']+'"></i></span>'+view['name']+'</a></li>');
+              itpl.appendTo(idom);
+            });
+          });
+          $('#uname').text(System.user);
+          var THAT = this;
+          setTimeout(function() {
+            THAT.activateMenu();
+          }, 300)
+        },
+
+        activateMenu: function(){
           var wide
           var width;
           var widthneg;
-
           //setup menu elements based on the user role
 
           $('#content').off('click');
@@ -76,24 +112,7 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
                   }, 250);    
               }
           });
-          require.undef('plugins');
-          require(["plugins"], function(){
-            System.trigger("dash:show");
-          });
         },
-
-        onDomRefresh: function(){
-          require.undef('plugins');
-          require(["plugins"], function(){});
-        },
-
-        editIssue: function(e) { 
-          e.preventDefault();
-          e.stopPropagation();
-          this.trigger("edit", this.model);
-          //alert("Head to latest article");
-          //this.trigger("edit:division", this);
-        }
     });
 
     View.Empty = Marionette.ItemView.extend({      

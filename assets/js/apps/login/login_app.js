@@ -3,7 +3,8 @@ define(["app"], function(System){
 
     LoginApp.Router = Marionette.AppRouter.extend({
       appRoutes: {
-        "login" : "showLogin"
+        "login" : "showLogin",
+        "logout" : "logout"
       }
     });
 
@@ -11,9 +12,24 @@ define(["app"], function(System){
       showLogin: function(){
         require(["apps/login/show/show_controller"], function(ShowController){
           ShowController.showLogin();
-          $('.loading').css({
-                'display' : 'none'
-            });  
+          $('.loading').css({'display' : 'none'});  
+          //System.execute("set:active:header", "login");
+        });
+      },
+
+      logout: function(){
+        require(["apps/login/show/show_controller"], function(ShowController){
+          var data = {};
+          data['operation'] = 'logout';
+          $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
+            if (result == 1) {
+                swal("Logout Successful!", "Tip: Your password is a secret", "success");                  
+            }else{
+               swal("Logout Successful!", "Tip: Your password is a secret", "success");
+            }
+          });
+          ShowController.showLogin();
+          //$('.loading').css({'display' : 'none'});  
           //System.execute("set:active:header", "login");
         });
       }

@@ -7,35 +7,74 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
         template: usersTpl,
 
         events: {
-          "click .psubmit": "submitPayment",
-          "click .pcancel": "cancelPayment",
-          "change #clients": "fetchProjects"
+          "click .ucreate": "createUser",
+          "click .usave": "modifyUser",
+          "click .udel": "deleteUser",
+          "change #users": "setCredentials"
         },
 
         onShow: function(){                  
           $('.loading').hide();
           this.setup();
+          this['users'] = {};
         },
 
         setup: function(){
+          var THAT = this;
           var ul = $('#employees');
           ul.empty();
-          var ula = $('#employees2');
+          var ula = $('#users');
           ula.empty();
-          var ulb = $('#banks');
+
+          var ulb = $('#roles');
           ulb.empty();
+          var ulc = $('#uroles');
+          ulc.empty();
           $.get(System.coreRoot + '/service/hrm/index.php?employees', function(result) {
             var m = JSON.parse(result);
             var tp = $('<option data-icon="fa fa-user">Select Employee...</option>');
-            var tpa = $('<option data-icon="fa fa-user">Select Employee...</option>');
             tp.appendTo(ul);
-            tpa.appendTo(ula);
             
             m.forEach(function(elem){
               var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
-              tpl.appendTo(ul);
-              var tpla = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);              
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/tools/index.php?users', function(result) {
+            var m = JSON.parse(result);
+            var tpa = $('<option data-icon="fa fa-user">Select User...</option>');
+            tpa.appendTo(ula);
+            
+            m.forEach(function(elem){
+              var tpla = $('<option data-icon="fa fa-user" value="'+parseInt(elem['id'], 10)+'">'+elem['record']['name']+'</option>');
               tpla.appendTo(ula);
+              THAT['users'][parseInt(elem['id'], 10)] = elem;
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/tools/index.php?roles', function(result) {
+            var m = JSON.parse(result);
+            var tpa = $('<option data-icon="fa fa-briefcase">Select Role...</option>');
+            tpa.appendTo(ulb);
+            var tpb = $('<option data-icon="fa fa-briefcase">Select Role...</option>');
+            tpb.appendTo(ulc);
+            
+            m.forEach(function(elem){
+              var tpla = $('<option data-icon="fa fa-briefcase" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpla.appendTo(ulb);
+              var tplb = $('<option data-icon="fa fa-briefcase" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tplb.appendTo(ulc);
             });
             
             setTimeout(function() {
@@ -46,76 +85,75 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
 
           $('form input').val('');
         },
-      
-        fetchProjects: function(e) { 
+
+        setCredentials: function(e) { 
           e.preventDefault();
           e.stopPropagation();
-          var data = Backbone.Syphon.serialize(this);
-          data['client'] = parseInt(data['client'], 10);
-          
-          if (data['client']) {
-            var ul = $('#projects');
-            ul.empty();
-            $.get(System.coreRoot + '/service/operations/index.php?projects&clientid='+data['client'], function(result) {
-              var m = JSON.parse(result);
-              var tp = $('<option data-icon="fa fa-suitcase" value="G">General Payment</option>');
-              tp.appendTo(ul);
-              
-              m.forEach(function(elem){
-                var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">PRJ-'+elem['name']+'</option>');
-                tpl.appendTo(ul);
-              });
-              
-              setTimeout(function() {
-                  $('.selectpicker').selectpicker('refresh');
-              }, 300);
-            });
+          var data = Backbone.Syphon.serialize($("#frmu2")[0]);
+          if (data['user']) {
+            var obj = this['users'][data['user']];
+            //alert(JSON.stringify(obj));
+            $('#uname').val(obj['username']);
+            $('#uroles option[value="'+obj['role']['id']+'"]').prop('selected', true);
+            $('#uaccess option[value="'+obj['access']+'"]').prop('selected', true);
+
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 300);
 
           }else{
-            swal("Error!", "Select a client first!", "error");
+            swal("Error!", "Select a user first!", "error");
           }
         },
 
-        submitPayment: function(e) { 
+        createUser: function(e) { 
           e.preventDefault();
           e.stopPropagation();
-          var data = Backbone.Syphon.serialize(this);
-          data['client'] = parseInt(data['client'], 10);
-          if (data['client'] && data['category'] && data['mode'] && data['amount']) {
-            //alert(JSON.stringify(data));
-            this.trigger("submit", data);
+          var data = Backbone.Syphon.serialize($("#frmu1")[0]);
+          data['empid'] = parseInt(data['employee'], 10);
+
+          if (data['empid'] && data['uname'] && data['pass'] && data['role']) {
+            this.trigger("create", data);
           }else{
-            swal("Error!", "Enter All Payment Details!", "error");
+            swal("Error!", "Enter All Details!", "error");
+          }
+        },
+
+        modifyUser: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmu2")[0]);
+          data['empid'] = data['user'];
+          //alert(JSON.stringify(data));
+          if (data['empid'] && data['uname2'] && data['role2'] && (data['access'] || 1)) {
+            //alert(JSON.stringify(data));
+            this.trigger("modify", data);
+          }else{
+            swal("Error!", "Enter All Details!", "error");
+          }
+        },
+
+        deleteUser: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmu2")[0]);
+          data['id'] = parseInt(data['user'], 10);
+
+          if (data['id']) {
+            //alert(JSON.stringify(data));
+            this.trigger("erase", data);
+          }else{
+            swal("Error!", "Enter All Details!", "error");
           }
         },
 
         onSuccess: function(voucher) { 
-          swal("Success!", "The payment has been received.", "success");
-          var rform = document.createElement("form");
-          rform.target = "_blank";
-          rform.method = "POST"; // or "post" if appropriate
-          rform.action = "receipt.php";
-
-          var vouch = document.createElement("input");
-          vouch.name = "voucher";
-          vouch.value = JSON.stringify(voucher);
-          rform.appendChild(vouch);
-
-          /*var id = document.createElement("input");
-          id.name = "id";
-          id.value = 2;
-          rform.appendChild(id);*/
-
-          document.body.appendChild(rform);
-
-          rform.submit();
-          rform.parentNode.removeChild(rform);
-          //window.open("report.php?id=1&voucher=" + voucher);
+          swal("Success!", "The user has been saved.", "success");
           this.setup();
         },
 
         onError: function(e) { 
-          swal("Error!", "Payment could not be received! Try again.", "error");
+          swal("Error!", "User record could not be saved! Try again.", "error");
         }
     });
 
@@ -124,32 +162,35 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
         template: rolesTpl,
 
         events: {
-          "click .ipost": "postInvoice",
-          "click .idiscard": "discardInvoice",
-          "change #clients": "fetchProjects",
-          "change #projects": "fetchQuotes",
-          "change #quotes": "addToInvoice",
-          "keyup #disc": "discountInvoice"
+          "click .rcreate": "createRole",
+          "click .rsave": "modifyRole",
+          "click .rdel": "deleteRole",
+          "click .reset": "resetList",
+          "change #roles": "setViews"
         },
 
         onShow: function(){                  
           $('.loading').hide();
-          //this.setup();
+          this.setup();
           this['roles'] = [];
-          $('.checkbox').button();
         },
 
         setup: function(){
-          var ul = $('#clients');
+          var THAT = this;
+
+          var ul = $('#roles');
           ul.empty();
-          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+
+          $.get(System.coreRoot + '/service/tools/index.php?roles', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            var tp = $('<option data-icon="fa fa-briefcase">Select Role...</option>');
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-briefcase" value="'+elem['id']+'">'+elem['name']+'</option>');
               tpl.appendTo(ul);
+
+              THAT['roles'][elem['id']] = elem;
             });
             
             setTimeout(function() {
@@ -157,216 +198,123 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
           });
-          var uly = $('#projects');
-          uly.empty();
-          var ult = $('#quotes');
-          ult.empty();
-          var ulx = $('tbody');
+
+          var ulx = $('#ux');
           ulx.empty();
+
+          $.get(System.coreRoot + '/service/tools/index.php?modules', function(result) {
+            var res = JSON.parse(result);
+            var tp = $('<thead><tr><td>Interface</td><td>Access</td></tr></thead>');
+            tp.appendTo(ulx);
+
+            res.forEach(function(module){
+              var tpl = $('<tr class="success"><td colspan="2" class="text-left" style="font-size:12px;text-transform:uppercase;font-weight:bolder;padding:5px 15px;">'+module['name']+'</td></tr>');
+              tpl.appendTo(ulx);
+              var views = module['views'];
+              views.forEach(function(view) {
+                var tplb = $('<tr><td>'+view['name']+'</td><td><div class="checkbox checkbox-primary" style="margin:0"><input id="'+view['id']+'" name="view" type="checkbox"><label for="'+view['id']+'"></label></div></td></tr>');
+                tplb.appendTo(ulx);
+              });
+            });
+            
+          });
+
+
           $('form input').val('');
-          $('form textarea').val('');
+        },
+
+        resetList: function() { 
+          $('#ux :checkbox').each(function(i,item){
+            $(item).prop('checked', false);
+          });
         },
       
-        fetchProjects: function(e) { 
+        setViews: function(e) { 
           e.preventDefault();
           e.stopPropagation();
-          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
-          data['client'] = parseInt(data['client'], 10);
+          var data = Backbone.Syphon.serialize($("#frmr2")[0]);
+          data['role2'] = parseInt(data['role2'], 10);
           
-          if (data['client']) {
-            var ul = $('#projects');
-            ul.empty();
-            $.get(System.coreRoot + '/service/operations/index.php?projects&clientid='+data['client'], function(result) {
-              var m = JSON.parse(result);
-              var tp = $('<option data-icon="fa fa-suitcase">Select purpose...</option>');
-              tp.appendTo(ul);
+          if (data['role2']) {
 
-              tp = $('<option data-icon="fa fa-suitcase" value="G">General Invoice</option>');
-              tp.appendTo(ul);
-              
-              m.forEach(function(elem){
-                var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">PRJ-'+elem['name']+'</option>');
-                tpl.appendTo(ul);
+            this.resetList();
+            $('#role2').prop('rid', this['roles'][data['role2']]['id']);
+            $('#role2').val(this['roles'][data['role2']]['name']);
+
+            var mod =  this['roles'][data['role2']]['presentation'];
+
+            setTimeout(function() {
+              $.each(mod, function(i, module){
+                var views = module['views'];
+                views.forEach(function(view) {
+                  $('#'+view['id']).prop('checked', true);
+                });
               });
-              
-              setTimeout(function() {
-                  $('.selectpicker').selectpicker('refresh');
-              }, 300);
-            });
+            }, 300);
 
           }else{
-            swal("Error!", "Select a client first!", "error");
+            swal("Error!", "Select a role first!", "error");
           }
         },
 
-        fetchQuotes: function(e) { 
+        createRole: function(e) { 
           e.preventDefault();
           e.stopPropagation();
-          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
-          //alert(JSON.stringify(data));
-          //data['project'] = parseInt(data['project'], 10);
-          //alert(JSON.stringify(data));
-          if (parseInt(data['purpose'], 10) || data['purpose'] == 'G') {
-            this['tax'] = 0;
-            this['amount'] = 0;
-            this['total'] = 0;
-            $('#taxes').val('');
-            $('#total').val(''); 
-            $('#amount').val('');
-            this['quotes'] = [];
-            var ulx = $('tbody');
-            ulx.empty();
-            var ul = $('#quotes');
-            ul.empty();
-            if (parseInt(data['purpose'], 10)) {
-              $.get(System.coreRoot + '/service/operations/index.php?quotes&project='+data['purpose'], function(result) {
-                var quotes = JSON.parse(result);
-                //alert(JSON.stringify(res));
-                var tp = $('<option data-icon="fa fa-calculator" value="0">Select Quotation...</option>');
-                tp.appendTo(ul);
-                
-                quotes.forEach(function(elem){
-                  if (elem['status'] < 3) {
-                    var tpl = $('<option data-icon="fa fa-calculator" value="'+elem['id']+'">QUOT-'+elem['id']+'</option>');
-                    tpl.appendTo(ul);
-                  };                  
-                });
-                
-                setTimeout(function() {
-                  $('.selectpicker').selectpicker('refresh');
-                }, 300);
-              });
-            }else if(data['purpose'] == 'G'){
-              $.get(System.coreRoot + '/service/operations/index.php?genquotes='+parseInt(data['client'], 10), function(result) {
-                var quotes = JSON.parse(result);
-                //alert(JSON.stringify(res));
-                var tp = $('<option data-icon="fa fa-calculator" value="0">Select Quotation...</option>');
-                tp.appendTo(ul);
-                
-                quotes.forEach(function(elem){
-                  if (elem['status'] < 3) {
-                    var tpl = $('<option data-icon="fa fa-calculator" value="'+elem['id']+'">QUOT-'+elem['id']+'</option>');
-                    tpl.appendTo(ul);
-                  };
-                });
-                
-                setTimeout(function() {
-                  $('.selectpicker').selectpicker('refresh');
-                }, 300);
-              });
-            }
-            
-
-            
-          }else{
-            swal("Error!", "Select a purpose first!", "error");
-          }
-        },
-
-        addToInvoice: function(e) { 
-          e.preventDefault();
-          e.stopPropagation();
-          //var data = Backbone.Syphon.serialize($("#frmq1")[0]);
-          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
-          //_.extend(data, data2);
-          //alert(JSON.stringify(data));
-          data['quote'] = parseInt(data['quote'], 10);
-
-          if (data['quote']) {
-            var qt = [];
-            qt = this['quotes'];
-            
-            if (!(_.contains(qt, data['quote']))) {
-              qt.push(data['quote']);
-              this['quotes'] = qt;
-              var THAT = this;
-              var ul = $('tbody');
-              $.get(System.coreRoot + '/service/operations/index.php?quote='+data['quote'], function(result) {                
-                var res = JSON.parse(result);
-
-                var items = res['lineItems'];
-                
-                items.forEach(function(elem){
-                  var total = parseInt(elem['quantity']) * parseFloat(elem['unitPrice']);
-                  var tpl = $('<tr><td>'+elem['itemName']+'<br><span style="font-style:italic; font-size:11px">'+elem['itemDesc']+'</span></td>'+
-                    '<td>'+elem['unitPrice']+'</td><td>'+elem['quantity']+'</td><td>Ksh. '+total+'</td></tr>');
-                  tpl.appendTo(ul);
-                });
-
-                THAT['amount'] +=  parseFloat(res['amount']);
-                THAT['total'] += parseFloat(res['total']);
-                THAT['tax'] += parseFloat(res['taxamt']);
-
-                $('#taxes').val(THAT['tax']);
-                $('#total').val(THAT['total']); 
-                $('#amount').val(THAT['amount']);
- 
-                setTimeout(function() {
-                  $("select[name=quote] option[value='"+data['quote']+"']").css('display', 'none'); 
-                  $("select[name=quote]").val(0);  
-                  $('.selectpicker').selectpicker('refresh');
-                }, 100);  
-              });
-            };
-          }else{
-            swal("Error!", "Select a quotation to add!", "error");
-          }
-        },
-
-        discountInvoice: function(e) { 
-          e.preventDefault();
-          e.stopPropagation();
-          var disc = parseFloat($('#disc').val()) || 0;
-          var tot = parseFloat(this['total']) * (100 - disc)/100;
-          $('#total').val(tot); 
-          //Open printable quote in separate window
-        },
-
-
-        postInvoice: function(e) { 
-          e.preventDefault();
-          e.stopPropagation();
-          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
-          var data3 = Backbone.Syphon.serialize($("#frmi3")[0]);
-          _.extend(data, data3);
-          data['client'] = parseInt(data['client'], 10);
-          if (data['client'] && data['purpose']) {
-            data['quotes'] = this['quotes'];
-            if (data['discount'] == "") {
-              data['discount'] = 0;
-            };
+          var data = {};
+          var views = [];
+          $("#frmr3").find('input[name=view]:checked').each(function (chkbx) {
+            views.push($(this).attr('id'));
+          });
+          data['views'] = views;
+          data['name'] = $('#role').val();
+          if (data['name'] && views.length > 0) {
             //alert(JSON.stringify(data));
-            this.trigger("post", data);
+            this.trigger("create", data);
           }else{
             swal("Error!", "Enter All Details!", "error");
           }
         },
 
-        onSuccess: function(voucher) { 
+        modifyRole: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = {};
+          var views = [];
+          $("#frmr3").find('input[name=view]:checked').each(function (chkbx) {
+            views.push($(this).attr('id'));
+          });
+          data['views'] = views;
+          data['name'] = $('#role2').val();
+          data['id'] = $('#role2').prop('rid');
+          if (data['id'] && data['name'] && views.length > 0) {
+            //alert(JSON.stringify(data));
+            this.trigger("modify", data);
+          }else{
+            swal("Error!", "Enter All Details!", "error");
+          }
+        },
 
-          swal("Success!", "The invoice has been posted.", "success");
-          //window.open("report.php?id=2&voucher=" + voucher);
-          var rform = document.createElement("form");
-          rform.target = "_blank";
-          rform.method = "POST"; // or "post" if appropriate
-          rform.action = "invoice.php";
+        deleteRole: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmr2")[0]);
+          data['id'] = parseInt(data['role2'], 10);
 
-          var vouch = document.createElement("input");
-          vouch.name = "voucher";
-          vouch.value = JSON.stringify(voucher);
-          rform.appendChild(vouch);
+          if (data['id']) {
+            //alert(JSON.stringify(data));
+            this.trigger("erase", data);
+          }else{
+            swal("Error!", "Enter All Details!", "error");
+          }
+        },
 
-          document.body.appendChild(rform);
-
-          rform.submit();
-
+        onSuccess: function() {
+          swal("Success!", "The role has been saved.", "success");
           this.setup();
-          rform.parentNode.removeChild(rform);
-          //Open printable quote in separate window
         },
 
         onError: function(e) { 
-          swal("Error!", "Invoice could not be posted! Try again later.", "error");
+          swal("Error!", "Role could not be saved! Try again later.", "error");
           this.setup();
         }
     });

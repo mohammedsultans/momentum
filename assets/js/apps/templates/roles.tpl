@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">User Roles - Access Rights Manager</h1>
+    <h1 class="title">Role Based Access Control Manager</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -24,20 +24,18 @@
           <div class="panel-title">
             Create Role
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
+              <li><a class="icon btn-info reset" style="color:#fff;"><i class="fa fa-rotate-right"></i> RESET RIGHTS</a></li>
             </ul>
           </div>
 
           <div class="panel-body">
-            <form class="form-horizontal" id="frmq1">
+            <form class="form-horizontal" id="frmr1">
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Role</label>
                 <div class="col-sm-10">
                   <div class="input-group">
                     <div class="input-group-addon"><i class="fa fa-briefcase"></i></div>
-                    <input type="text" class="form-control" name="role" id="">
+                    <input type="text" class="form-control" name="role" id="role">
                   </div>
                 </div>
               </div>
@@ -49,14 +47,11 @@
           <div class="panel-title">
             Edit Role
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
 
           <div class="panel-body">
-            <form class="form-horizontal" id="frmq2">  
+            <form class="form-horizontal" id="frmr2">  
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Role</label>
                 <div class="col-sm-10">
@@ -65,6 +60,15 @@
                     <option data-icon="fa fa-briefcase">System Admin</option>
                   </select>  
                 </div>              
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Title</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div class="input-group-addon"><i class="fa fa-briefcase"></i></div>
+                    <input type="text" class="form-control" name="title" id="role2">
+                  </div>
+                </div>
               </div>
               <button type="submit" class="btn btn-default rsave">Save</button>
               <button type="submit" class="btn btn-warning rdel">Delete</button>
@@ -78,16 +82,15 @@
         <div class="panel panel-default">
 
           <div class="panel-title">
-            User Access Interfaces
+            Access Rights
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
+              <li><a class="icon btn-info reset" style="color:#fff;"><i class="fa fa-rotate-right"></i> RESET RIGHTS</a></li>
             </ul>
           </div>
 
           <div class="panel-body table-responsive">
-            <table class="table table-hover table-striped">
+          <form class="form-horizontal" id="frmr3">  
+            <table class="table table-hover table-striped" id="ux">
               <thead>
                 <tr>
                   <td>Interface</td>
@@ -138,6 +141,7 @@
                 </tr>
               </tbody>
             </table>
+          </form>
           </div>
         </div>
       </div>

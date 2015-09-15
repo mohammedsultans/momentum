@@ -1,6 +1,6 @@
 define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/templates/recover.tpl", "backbone.syphon"], 
-	function(LightningAbstracts, loginTpl, recoverTpl){
-  LightningAbstracts.module('LoginApp.Show.View', function(View, LightningAbstracts, Backbone, Marionette, $, _){
+	function(System, loginTpl, recoverTpl){
+  System.module('LoginApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Login = Marionette.ItemView.extend({
 	    template: loginTpl,
@@ -15,50 +15,33 @@ define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/t
 
 	  	onRender: function(){	  		
 	  		$("#loading").hide();
-        	$("#error").hide();
+	  		$('.content.main').animate({'marginLeft' : 0}, 250); 
+        	//$("#error").hide();
         	$("input[name=username]").focus();
 	  	},
 
 	    onShow: function(){
-	    	//$(".login-form").unwrap();
 	    	//this.delegateEvents();
-	    	var $view = this.$el;
-	        var $form = $view.find("form");
-	    	$form.find("input").each(function(){
-	           $(this).val("");
-	        });
+	    	this.$el.find("form input").val("");
 	        $("input[name=name]").focus();
 	    },
 
 	    submitClicked: function(e){
 	        e.preventDefault();
+	        e.stopPropagation();
 	        var data = Backbone.Syphon.serialize(this);
 	        this.trigger("login", data);	     
 	    },
 
 	    forgotClicked: function(e){
 	        e.preventDefault();
+	        e.stopPropagation();
 	        this.trigger("forgot");
 	    },
 
 	    onFormClear: function(){
-	      	var $view = this.$el;
-	        //$("input[name=password]").val("");
-	       	//$("input[name=password]").focus();
-	       	var $name = $("input[name=name]").val();
-	        var $form = $view.find("form");
-	        $form.find("input").each(function(){
-	           $(this).val("");
-	        });
+	      	this.$el.find("form input").val("");
 	        $("input[name=name]").focus();
-	        //window.location.replace('http://lightningabstract.com/user');
-	    },
-
-	    onAuthError: function(){
-	      	//var $view = this.$el;
-	        $("input[name=password]").val("");
-	       	$("input[name=password]").focus();
-	       	alert('Login failed: Check your details and try again');
 	    },
 
 	    retryClicked: function(e){
@@ -76,7 +59,18 @@ define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/t
 
 	    onFormLoginLoading: function(){
 	        $("#loading").slideDown();
-	    }
+	    },
+
+	    onSuccess: function(data) { 
+          swal("Welcome!", "Login successful.", "success");
+          System.trigger("menu:show", data);
+        },
+
+        onError: function(e) { 
+          $("input[name=password]").val("");
+	      $("input[name=password]").focus();
+          swal("Access Denied!", "Login failed: Check your details and try again", "error");
+        }
     });
 
 	View.Recover = Marionette.ItemView.extend({
@@ -154,5 +148,5 @@ define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/t
     });
   });
 
-  return LightningAbstracts.LoginApp.Show.View;
+  return System.LoginApp.Show.View;
 });

@@ -32,11 +32,11 @@
           </div>
 
               <div class="panel-body">
-                <form class="form-horizontal">
+                <form class="form-horizontal" id="frmu1">
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Employee</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" id="employees" name="employees" data-live-search="true" >
+                      <select class="selectpicker form-control" id="employees" name="employee" data-live-search="true" >
                         <option data-icon="fa fa-user">Select Employee...</option>
                         <option data-icon="fa fa-user">Alex Mbaka</option>
                         <option data-icon="fa fa-user">Prince Munene</option>
@@ -65,13 +65,13 @@
                     <label class="col-sm-2 control-label form-label">Role<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="role" id="roles">
-                        <option data-icon="fa fa-briefcase">Select Gender...</option>
+                        <option data-icon="fa fa-briefcase">Select Role...</option>
                         <option data-icon="fa fa-briefcase" value="Male">Male</option>
                         <option data-icon="fa fa-briefcase" value="Female">Female</option>
                       </select>
                     </div>
                   </div>
-                  <button type="submit" class="btn btn-default usave">Submit</button>
+                  <button type="submit" class="btn btn-default ucreate">Submit</button>
                   <button type="submit" class="btn btn-warning ucancel">Cancel</button>
                 </form>
 
@@ -92,11 +92,11 @@
           </div>
 
           <div class="panel-body" id='eform'>
-            <form class="form-horizontal">
+            <form class="form-horizontal" id="frmu2">
               <div class="form-group">
-                <label class="col-sm-2 control-label form-label">Employee</label>
+                <label class="col-sm-2 control-label form-label">Users</label>
                 <div class="col-sm-10">
-                  <select class="selectpicker form-control" id="employees2" name="employees2" data-live-search="true" >
+                  <select class="selectpicker form-control" id="users" name="user" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Employee...</option>
                     <option data-icon="fa fa-user">Alex Mbaka</option>
                     <option data-icon="fa fa-user">Prince Munene</option>
@@ -131,8 +131,8 @@
                   </select>
                 </div>
               </div>
-              <button type="submit" class="btn btn-default esave">Save</button>
-              <button type="submit" class="btn btn-warning edelete">Delete</button>
+              <button type="submit" class="btn btn-default usave">Save</button>
+              <button type="submit" class="btn btn-warning udel">Delete</button>
             </form>
 
           </div>

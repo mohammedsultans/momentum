@@ -1,6 +1,34 @@
 define(["marionette", "plugins", "sweetalert"], function(Marionette){
   var System = new Marionette.Application();
 
+  System.coreRoot = "http://code.dev/momentum";
+
+  var checkLogin = function(callback) {
+    $.get(System.coreRoot + '/service/tools/index.php?session', function(result) {
+      if (result != 0) {
+        var data = JSON.parse(result);
+        if (data['user']['id']) {
+          //alert(JSON.stringify(data));
+          return callback(data);
+        }else{
+          return callback(false);
+        }
+      }else{
+        return callback(false);
+      }   
+    });
+  };
+
+  var runApplication = function(data, options) {
+    if (data) {
+      //alert(JSON.stringify(data));
+      System.trigger("menu:show", data);
+    } else {
+      System.trigger("login:show");
+    }
+    Backbone.history.start();
+  };
+
   System.addRegions({
     menuRegion: "#menu",
     contentRegion: "#content"
@@ -9,9 +37,7 @@ define(["marionette", "plugins", "sweetalert"], function(Marionette){
   System.navigate = function(route,  options){
     options || (options = {});
     Backbone.history.navigate(route, options);
-  };
-
-  System.coreRoot = "http://code.dev/momentum";
+  };  
 
   System.getCurrentRoute = function(){
     return Backbone.history.fragment
@@ -34,11 +60,12 @@ define(["marionette", "plugins", "sweetalert"], function(Marionette){
         //"apps/profile/profile_app",
         //"apps/about/about_app"
         ], function () {
-        Backbone.history.start();//{ pushState: true, root: "/ecomadmin/frontend/" }
-        System.trigger("menu:show");
-        if(System.getCurrentRoute() === ""){
-          System.trigger("dash:show");
-        }
+        //Backbone.history.start();//{ pushState: true, root: "/ecomadmin/frontend/" }
+        checkLogin(runApplication);
+        //System.trigger("menu:show");
+        //if(System.getCurrentRoute() === ""){
+          //System.trigger("dash:show");
+        //}
       });
     }
   });

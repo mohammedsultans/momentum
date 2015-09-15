@@ -20,16 +20,16 @@ define(["app", "apps/menu/show/show_controller", "tpl!apps/templates/menu.tpl"],
     var layout = new MenuLayout();*/
 
     var API = {
-      showMenu: function(){
+      showMenu: function(data){
         //System.contentRegion.show();
         //System.menuRegion.close();
-        showController.showMenu();
+        showController.showMenu(data);
         //System.execute("set:active:header", "Menu");
       }
     };
 
-    System.on("menu:show", function(){
-      API.showMenu();
+    System.on("menu:show", function(data){
+      API.showMenu(data);
     });
 
     System.addInitializer(function(){

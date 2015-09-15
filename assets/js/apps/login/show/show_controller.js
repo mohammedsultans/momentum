@@ -6,44 +6,35 @@ define(["app", "apps/login/show/show_view"], function(System, View){
         var empty = new System.MenuApp.Show.View.Empty();
         System.menuRegion.show(empty);
         System.contentRegion.show(view);
+
         view.on('login', function(data) {
-            System.trigger("menu:show");
-            
-        	/*if (data['cookie']) {
-        		data['operation'] = 'logincookie';
-        	}else{
-        		data['operation'] = 'login';
-        	}
-        	
-            $.post('http://192.168.0.103:3030/chase/service/users/index.php', data, function(result) {
-                if (result == 1) {
-                    var dat = {'operation':'checkauth'};
-                    $.post('http://192.168.0.103:3030/chase/service/users/index.php', dat, function(result) {
-                        if (result == 1) {                  
-                            view.triggerMethod("form:clear");
-                        }else{
-                            view.triggerMethod("auth:error");
-                        }
-                    })
+            data['operation'] = 'login';
+            $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
+                if (result != 0) {
+                    var data = JSON.parse(result);
+                    if (data['user']['id']) {
+                        view.triggerMethod("success", data);
+                    };                    
                 }else{
-                	view.triggerMethod("auth:error");
+                  view.triggerMethod("error");
                 }
-            });*/
+            });
         });
 
         view.on('forgot', function(data) {
-
             var recoverview = new View.Recover();
             System.contentRegion.show(recoverview);
 
             recoverview.on('submit', function(data) {
-                data['operation'] = 'recoverPassword';
-                                
-                $.post('http://192.168.0.103:3030/chase/service/users/index.php', data, function(result) {
-                    if (result == 1) {
-                        recoverview.triggerMethod("form:clear");
+                data['operation'] = 'login';
+                $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
+                    if (result != 0) {
+                        var data = JSON.parse(result);
+                        if (data['id']) {
+                            view.triggerMethod("success");
+                        };                    
                     }else{
-                        recoverview.triggerMethod("auth:error");
+                      view.triggerMethod("error");
                     }
                 });
             });
