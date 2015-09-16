@@ -1,11 +1,12 @@
-var seriesData = [ [], [], [] ];
+var seriesData = [ [], []];
 var random = new Rickshaw.Fixtures.RandomData(20);
 
-for (var i = 0; i < 110; i++) {
+for (var i = 0; i < 30; i++) {
   random.addData(seriesData);
 }
 
 // instantiate our graph!
+//alert(JSON.stringify(seriesData[0]));
 
 var graph = new Rickshaw.Graph( {
   element: document.getElementById("todaysales"),
@@ -16,12 +17,8 @@ var graph = new Rickshaw.Graph( {
       data: seriesData[0],
       name: 'Photodune'
     }, {
-      color: "#77BBFF",
-      data: seriesData[1],
-      name: 'Themeforest'
-    }, {
       color: "#C1E0FF",
-      data: seriesData[2],
+      data: seriesData[1],
       name: 'Codecanyon'
     }
   ]
@@ -42,7 +39,7 @@ var hoverDetail = new Rickshaw.Graph.HoverDetail( {
 //Today Activity
 // set up our data series with 50 random data points
 
-var seriesData = [ [], [], [] ];
+var seriesData = [ [], []];
 var random = new Rickshaw.Fixtures.RandomData(20);
 
 for (var i = 0; i < 50; i++) {

@@ -14,8 +14,7 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
           $("#top").unwrap();
           this.setup();
           require.undef('plugins');
-          require.undef('dash');
-          require(["dash", "plugins"], function(){
+          require(["plugins"], function(){
             
           });
         },

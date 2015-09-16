@@ -29,19 +29,20 @@
         <div class=" panel-widget widget chart-with-stats clearfix" style="height:450px;">
 
           <div class="col-sm-12" style="height:450px;">
-            <h4 class="title">SALES<small>Last update: 1 Hours ago</small></h4>
-            <div class="top-label"><h2>11.291</h2><h4>Today Total</h4></div>
+            <h4 class="title">REVENUE VS EXPENSES<small>Last update: 1 hour ago</small></h4>
+            <div class="top-label"><h2 id="tdyrev">11.291</h2><h4>Total Revenues Today</h4></div>
             <div class="bigchart" id="todaysales"></div>
           </div>
+
           <div class="right" style="height:450px;">
-            <h4 class="title">OVERVIEW</h4>
+            <h4 class="title">MARGINS</h4>
             <!-- start stats -->
             <ul class="widget-inline-list clearfix">
-              <li class="col-12"><span>962</span>This Week<i class="chart sparkline-green"></i></li>
-              <li class="col-12"><span>367</span>This Month<i class="chart sparkline-blue"></i></li>
-              <li class="col-12"><span>92</span>Projected<i class="chart sparkline-red"></i></li>
+              <li class="col-12" id="thr"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>from previous month<i class="chart sparkline-green"></i></li>
+              <li class="col-12" id="svn"><span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i> 26%</b><br></span>from previous week<i class="chart sparkline-blue"></i></li>
+              <li class="col-12" id="yst"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>from yesterday<i class="chart sparkline-red"></i></li>
             </ul>
-            <!-- end stats -->
+            
           </div>
 
 
@@ -52,11 +53,8 @@
       <div class="col-md-12 col-lg-6">
         <div class="panel panel-widget">
           <div class="panel-title">
-            Projects Overview <span class="label label-info">?</span>
+            Projects Overview <span class="label label-info" id="prjtot">?</span>
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
 
@@ -73,15 +71,13 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <td>ID</td>
                   <td>Project</td>
                   <td>Client</td>
                   <td>Status</td>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="projects">
                 <tr>
-                  <td>965</td>
                   <td>Kode Dashboard Template</td>
                   <td>Kode Dashboard Template</td>
                   <td><span class="label label-info">Developing</span></td>
@@ -132,12 +128,8 @@
       <div class="col-md-12 col-lg-6">
         <div class="panel panel-widget">
           <div class="panel-title">
-            LAST INVOICES <span class="label label-warning">?</span>
+            LATEST INVOICES <span class="label label-warning" id="invtot">?</span>
             <ul class="panel-tools">
-              <li><a class="icon search-tool"><i class="fa fa-search"></i></a></li>
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
 
@@ -154,17 +146,15 @@
             <table class="table table-hover table-striped">
               <thead>
                 <tr>
-                  <td class="text-center"><i class="fa fa-trash"></i></td>
-                  <td>Invoice ID</td>
+                  <td>Invoice No</td>
                   <td>Scope</td>
                   <td>Client</td>
                   <td>Date</td>
                   <td>Amount</td>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="invoices">
                 <tr>
-                  <td class="text-center"><div class="checkbox margin-t-0"><input id="checkbox1" type="checkbox"><label for="checkbox1"></label></div></td>
                   <td># <b>9652</b></td>
                   <td>Kode Gaming Laptop</td>
                   <td>John Doe</td>
@@ -172,7 +162,6 @@
                   <td>Credit Card</td>
                 </tr>
                 <tr>
-                  <td class="text-center"><div class="checkbox margin-t-0"><input id="checkbox2" type="checkbox"><label for="checkbox2"></label></div></td>
                   <td># <b>1963</b></td>
                   <td>New Season Jacket</td>
                   <td>Jane Doe</td>
@@ -180,7 +169,6 @@
                   <td>Paypal</td>
                 </tr>
                 <tr>
-                  <td class="text-center"><div class="checkbox margin-t-0"><input id="checkbox3" type="checkbox"><label for="checkbox3"></label></div></td>
                   <td># <b>9652</b></td>
                   <td>IO Mouse</td>
                   <td>Jonathan Doe</td>
@@ -188,7 +176,6 @@
                   <td>Credit Card</td>
                 </tr>
                 <tr>
-                  <td class="text-center"><div class="checkbox margin-t-0"><input id="checkbox4" type="checkbox"><label for="checkbox4"></label></div></td>
                   <td># <b>9651</b></td>
                   <td>Doe Bike</td>
                   <td>Jonathan Doe</td>
@@ -206,16 +193,13 @@
       <div class="col-md-12 col-lg-3">
         <div class="panel panel-widget">
           <div class="panel-title">
-            Pending Enquiries <span class="label label-danger">4</span>
+            Pending Enquiries <span class="label label-danger" id="enqtot">4</span>
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
           <div class="panel-body">
 
-          <ul class="mailbox-inbox">
+          <ul class="mailbox-inbox" id="enquiries">
 
               <li>
                 <a href="#" class="item clearfix">
@@ -260,16 +244,13 @@
       <div class="col-md-12 col-lg-3">
         <div class="panel panel-widget">
           <div class="panel-title">
-            Messages <span class="label label-danger">9</span>
+            Messages <span class="label label-danger">?</span>
             <ul class="panel-tools">
-              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
-              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
-              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
           <div class="panel-body">
 
-          <ul class="mailbox-inbox">
+          <ul class="mailbox-inbox" id="messages">
 
               <li>
                 <a href="#" class="item clearfix">

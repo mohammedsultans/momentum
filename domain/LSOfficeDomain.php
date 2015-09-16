@@ -17,19 +17,19 @@ require_once('DomainProjects.php');
 class Logger
 {
  	//System logging facility
- 	function __construct($message)
+ 	function __construct($class, $category, $message)
  	{
  		$datetime = new DateTime();
 		$stamp = $datetime->format('YmdHis');
- 		$sql = 'INSERT INTO logs (message, stamp) VALUES ("'.$message.'", '.$stamp.')';
+ 		$sql = 'INSERT INTO logs (class, category, message, stamp) VALUES ("'.$class.'", "'.$category.'", "'.$message.'", '.$stamp.')';
 		DatabaseHandler::Execute($sql);
  	}
 
- 	public static function Log($message)
+ 	public static function Log($class, $category, $message)
  	{
  		$datetime = new DateTime();
 		$stamp = $datetime->format('YmdHis');
- 		$sql = 'INSERT INTO logs (message, stamp) VALUES ("'.$message.'", '.$stamp.')';
+ 		$sql = 'INSERT INTO logs (class, category, message, stamp) VALUES ("'.$class.'", "'.$category.'", "'.$message.'", '.$stamp.')';
 		DatabaseHandler::Execute($sql);
  	}
 }
@@ -51,14 +51,14 @@ class UserSession
   	{
       	$datetime = new DateTime();
 		$this->loginTime = $datetime->format('Y/m/d H:i:s a');
- 		Logger::Log($this->user->username.' logs in at '.$this->loginTime.' from terminal XXX');
+ 		Logger::Log(get_class($this), 'OK', $this->user->username.' logs in at '.$this->loginTime.' from terminal XXX');
   	}
 
  	public function logout()
   	{
       	$datetime = new DateTime();
 		$this->logoutTime = $datetime->format('Y/m/d H:i:s a');
-		Logger::Log($this->user->username.' logs out at '.$this->logoutTime.' from terminal XXX');
+		Logger::Log(get_class($this), 'OK', $this->user->username.' logs out at '.$this->logoutTime.' from terminal XXX');
 		//$this::__destroy();
   	}
 }
@@ -316,7 +316,7 @@ class Enquiry extends Artifact
   	public static function GetEnquiry($stamp)
   	{      	
   		$sql = 'SELECT * FROM enquiries WHERE stamp = '.$stamp;
-        $res =  DatabaseHandler::GetRow($sql);        
+        $res =  DatabaseHandler::GetRow($sql);    
         return self::initialize($res);
   	}
 
@@ -830,7 +830,7 @@ class User
 	        //$sql = 'UPDATE users SET username = "'.$username.'", password = sha1("'.$password.'"), role_id = '.$role.', access = 1 WHERE id = '.$pid;
 	        DatabaseHandler::Execute($sql);
 
-	        Logger::Log('User - '.$username.' created from the employees category');
+	        Logger::Log(get_class(self), 'OK', 'User created with username : '.$username.'; Party type: Employees');
 	        
 	        $sql2 = 'SELECT * FROM users WHERE party_id = '.$pid.' AND category = "Employee"';
 			// Execute the query and return the results
@@ -977,6 +977,318 @@ class Role
 			return false;
 		}		
 	}
+}
+
+class Dashboard
+{
+ 	public $name;
+
+ 	function __construct($name)
+ 	{
+ 		$this->name = $name;
+ 	}
+}
+
+class DirectorsDashboard extends Dashboard
+{
+ 	public static $todayStamp;
+ 	public static $lastStamp;
+
+ 	public static $updateDayStamp;
+ 	public static $updateTimeStamp;
+ 	public static $status = false;
+
+ 	public $thirtydaydata;
+ 	public $sevendaydata;
+ 	public $yesterdaydata;
+ 	public $todaydata;
+ 	public $latestProjects = [];//6
+ 	public $latestInvoices = [];//4
+ 	public $latestEnquiries = [];//4
+ 	public $latestMessages = [];//4
+
+ 	function __construct()
+ 	{
+ 		parent::__construct('DirectorsDashboard');
+ 		$datetime = new DateTime();
+      	self::$todayStamp = $datetime->format('Ymd');
+
+      	try {
+      		$sql = 'SELECT * FROM daily_totals ORDER BY daystamp DESC LIMIT 0,1';
+			$res =  DatabaseHandler::GetRow($sql);
+			self::$lastStamp = intval($res['daystamp']);
+      	} catch (Exception $e) {
+      		
+      	}
+      	$this->postUnpostedDays();
+ 		$this->thirtydaydata = $this->processDays(30);
+ 		$this->sevendaydata = $this->processDays(7);
+ 		$this->yesterdaydata = $this->processDays(1);
+ 		$this->todaydata = $this->processToday();
+ 		$this->processLatestProjects();
+ 		$this->processLatestInvoices();
+ 		$this->processLatestEnquiries();
+ 		//$this->processLatestMessages();
+ 		return $this;
+ 	}
+
+ 	private function daystamptodate($daystamp)
+  	{
+      	$arr = str_split($daystamp);
+      	$date = $arr[0].$arr[1].$arr[2].$arr[3].'-'.$arr[4].$arr[5].'-'.$arr[6].$arr[7];
+      	return DateTime::createFromFormat('Y-m-d', $date);
+  	}
+
+  	private function calculateTotal($stamp, $lids_query, $effect)
+  	{
+      	$sum = 0.00;
+
+		try {
+			$lower = $stamp.'000000' + 0;
+		    $upper = $stamp.'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id IN("'.$lids_query.'") AND effect = "'.$effect.'" AND stamp BETWEEN '.$lower.' AND '.$upper;
+			$res =  DatabaseHandler::GetAll($sql);
+			foreach ($res as $entry) {
+				$sum = floatval($sum + floatval($entry['amount']));
+			}
+		} catch (Exception $e) {
+				
+		}
+
+		return $sum;
+  	}
+
+ 	private function postUnpostedDays()
+  	{
+   		$lastdate = $this->daystamptodate(self::$lastStamp);
+   		$lastdate->modify('+1 day');
+   		$stamp = $lastdate->format('Ymd');
+   		//All revenues
+   		try {
+			$sql = 'SELECT * FROM ledgers WHERE type = "Revenue"';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ids = [];
+			foreach ($res as $ledger) {
+				$ids[] = intval($ledger['id']);
+			}
+		    $rquery = implode('","', $ids);
+		} catch (Exception $e) {
+				
+		}			
+		//All expenses
+		try {
+			$sql = 'SELECT * FROM ledgers WHERE (type = "Expense") OR (type = "Asset" AND class ="Fixed Asset")';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ids = [];
+			foreach ($res as $ledger) {
+				$ids[] = intval($ledger['id']);
+		    }
+		    $equery = implode('","', $ids);
+		} catch (Exception $e) {
+				
+		};
+      	
+   		while ($stamp < self::$todayStamp) {//post till yesterday
+   			//All revenues
+   			$revenues = $this->calculateTotal($stamp, $rquery, 'cr');
+			
+			$expenses = $this->calculateTotal($stamp, $equery, 'dr');
+
+			try {
+				$sql = 'INSERT INTO daily_totals (revenues, expenses, daystamp) VALUES ('.$revenues.', '.$expenses.', '.$stamp.')';
+				DatabaseHandler::Execute($sql);
+			} catch (Exception $e) {
+				
+			}
+			
+   			$lastdate->modify('+1 day');
+   			$stamp = $lastdate->format('Ymd');
+   			self::$lastStamp = $stamp;
+   		}
+  	}
+
+  	private function processDays($days)
+  	{
+      	try {
+	        $sql = 'SELECT * FROM daily_totals ORDER BY daystamp DESC LIMIT 0,'.intval($days);
+			$res =  DatabaseHandler::GetAll($sql);
+			
+			$rsum = 0.00;
+			$esum = 0.00;
+			$revs = array();
+			$exps = array();
+	        foreach ($res as $entry) {
+	        	$rsum = floatval($rsum + floatval($entry['revenues']));
+	        	$esum = floatval($esum + floatval($entry['expenses']));
+	        	$revs[] = floatval($entry['revenues']);
+	        	$exps[] = floatval($entry['expenses']);
+	        }
+
+	        $sql = 'SELECT * FROM daily_totals ORDER BY daystamp DESC LIMIT '.intval($days).','.(intval($days) * 2);
+			$res =  DatabaseHandler::GetAll($sql);
+
+			$rrsum = 0.00;
+			$eesum = 0.00;
+	        foreach ($res as $entry) {
+	        	$rrsum = floatval($rrsum + floatval($entry['revenues']));
+	        	$eesum = floatval($eesum + floatval($entry['expenses']));
+	        }
+	        $a = $rsum - $esum;
+	        $b = $rrsum - $eesum;
+
+	        $obj = new stdClass();
+   			$obj->rsum = $rsum;
+   			$obj->esum = $esum;
+   			$obj->revs = $revs;
+   			$obj->exps = $exps;
+   			$obj->margin = floatval($a - $b);
+
+	        return $obj;
+
+	    } catch (Exception $e) {
+	        
+	    }
+  	}
+
+  	private function processToday()
+  	{
+   		$stamp = self::$todayStamp;
+      	
+   		if ($stamp) {
+   			//All revenues
+   			$query;
+   			try {
+				$sql = 'SELECT * FROM ledgers WHERE type = "Revenue"';
+				$res =  DatabaseHandler::GetAll($sql);
+				$ids = [];
+				foreach ($res as $ledger) {
+					$ids[] = intval($ledger['id']);
+			    }
+		        $query = implode('","', $ids);
+			} catch (Exception $e) {
+				
+			}
+
+			$revenues = 0.00;
+			$revs = [];
+			try {
+				$lower = $stamp.'000000' + 0;
+			    $upper = $stamp.'999999' + 0;
+			    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id IN("'.$query.'") AND effect = "cr" AND stamp BETWEEN '.$lower.' AND '.$upper;
+				$res =  DatabaseHandler::GetAll($sql);
+					
+				foreach ($res as $entry) {
+					$revenues = floatval($revenues + floatval($entry['amount']));
+					$revs[] = $entry['amount'];
+				}
+			} catch (Exception $e) {
+					
+			}
+
+
+			//All expenses
+			try {
+				$sql = 'SELECT * FROM ledgers WHERE (type = "Expense") OR (type = "Asset" AND class ="Fixed Asset")';
+				$res =  DatabaseHandler::GetAll($sql);
+				$ids = [];
+				foreach ($res as $ledger) {
+					$ids[] = intval($ledger['id']);
+			    }
+		        $query = implode('","', $ids);
+			} catch (Exception $e) {
+				
+			};	
+
+			$expenses = 0.00;
+			$exps = [];
+			try {
+				$lower = $stamp.'000000' + 0;
+			    $upper = $stamp.'999999' + 0;
+			    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id IN("'.$query.'") AND effect = "dr" AND stamp BETWEEN '.$lower.' AND '.$upper;
+				$res =  DatabaseHandler::GetAll($sql);
+					
+				foreach ($res as $entry) {
+					$expenses = floatval($expenses + floatval($entry['amount']));
+					$exps[] = $entry['amount'];
+				}
+			} catch (Exception $e) {
+					
+			}
+			
+			$obj = new stdClass();
+   			$obj->rsum = $revenues;
+   			$obj->esum = $expenses;
+   			$obj->revs = $revs;
+   			$obj->exps = $exps;
+
+   			return $obj;
+   		}
+  	}
+
+  	private function processLatestProjects()
+  	{
+      	try {
+	        $sql = 'SELECT id FROM projects ORDER BY modified DESC LIMIT 0,6';
+	        $res =  DatabaseHandler::GetAll($sql);
+	        $sql2 = 'SELECT count(id) FROM projects';
+	        $res2 =  DatabaseHandler::GetOne($sql2);
+	        $projects = [];
+	        foreach ($res as $project) {
+	        	$projects[] = Project::GetProject(intval($project['id']));
+	        }
+	        $obj = new stdClass();
+   			$obj->projects = $projects;
+   			$obj->total = $res2;
+	        $this->latestProjects = $obj;
+	    } catch (Exception $e) {
+	        
+	    }
+  	}
+
+  	private function processLatestInvoices()
+  	{
+      	try {
+	        $sql = 'SELECT id FROM invoices ORDER BY stamp DESC LIMIT 0,5';
+	        $res =  DatabaseHandler::GetAll($sql);
+	        $sql2 = 'SELECT count(id) FROM invoices';
+	        $res2 =  DatabaseHandler::GetOne($sql2);
+	        $invoices = [];
+	        foreach ($res as $invoice) {
+	        	$invoices[] = InvoiceVoucher::GetInvoice(intval($invoice['id']));
+	        }
+	        $obj = new stdClass();
+   			$obj->invoices = $invoices;
+   			$obj->total = $res2;
+	        $this->latestInvoices = $obj;
+	    } catch (Exception $e) {
+	        
+	    }
+  	}
+
+  	private function processLatestEnquiries()
+  	{
+      	try {
+	        $sql = 'SELECT stamp FROM enquiries WHERE status = 0 ORDER BY stamp DESC LIMIT 0,5';
+	        $res =  DatabaseHandler::GetAll($sql);
+	        $sql2 = 'SELECT count(*) FROM enquiries WHERE status = 0';
+	        $res2 =  DatabaseHandler::GetOne($sql2);
+	        $enquiries = [];
+	        foreach ($res as $enquiry) {
+	        	$enquiries[] = Enquiry::GetEnquiry($enquiry['stamp']);
+	        }
+	        $obj = new stdClass();
+   			$obj->enquiries = $enquiries;
+   			$obj->total = $res2;
+	        $this->latestEnquiries = $obj;
+	    } catch (Exception $e) {
+	        
+	    }
+  	}
+
+  	private function processLatestMessages()
+  	{
+      	
+  	}
 }
 
 ?>

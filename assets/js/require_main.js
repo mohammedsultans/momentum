@@ -93,8 +93,7 @@ requirejs.config({
     localstorage: ["backbone"],
     bootstrap: ["jquery"],
     plugins: ["bootstrap"],
-    dash: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "flotchart", "flottime", "flotstack", "flotpie", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"],
-    graphs: ["dash"]
+    graphs: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "flotchart", "flottime", "flotstack", "flotpie", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"]
   }
 });
 
