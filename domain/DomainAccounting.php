@@ -744,7 +744,7 @@ class Voucher extends Artifact
 		$this->amount = $amount;
 		$this->description = $description;
 		$this->date = $date;
-		$this->stamp = $stamp;
+		$this->stamp = $stamp; 
 	}
 
 	public function persist(){
@@ -755,9 +755,9 @@ class Voucher extends Artifact
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql2 = 'SELECT * FROM vouchers WHERE transaction_id = '.$this->transactionId;
-			$res =  DatabaseHandler::GetOne($sql2);
+			$res =  DatabaseHandler::GetRow($sql2);
 
-			$this->id = $res;
+			$this->id = $res['voucher_id'];
 
 		} catch (Exception $e) {
 			
@@ -791,61 +791,238 @@ class Voucher extends Artifact
 		}
 	}
 
-	public static function GetVouchers($type)
+
+}
+
+class InvoiceVoucher
+{
+	public $id;
+	public $type;
+	public $txid;
+	public $party;
+	public $client;
+	public $date;
+	public $quotations = [];
+	public $description;
+	public $tax;
+	public $discount;
+	public $amount;
+	public $total;
+	public $status;
+	public $extras;
+
+	function __construct($id, $clientId, $date, $description, $amount, $tax, $discount, $total, $status, $quotes)
 	{
-		try {
-	 		
-	 		$sql = 'SELECT * FROM vouchers WHERE tx_type = "'.$type.'"';
-			$res =  DatabaseHandler::GetAll($sql);
+		$this->id = $id;
+		$this->type = 'Invoice';
+		$this->client = Client::GetClient($clientId);
+		$this->party = $this->client;
+		$this->date = $date;
+		$this->tax = new Money(floatval($tax), Currency::Get('KES'));
+		$this->discount = floatval($discount);
+		$this->total = new Money(floatval($total), Currency::Get('KES'));
+		$this->amount = floatval($amount);
+		$this->status = $status;
+		$this->description = $description;
 
-			$vouchers = [];
+		$quotes = explode(",", $quotes);
+		foreach ($quotes as $qid) {
+			$this->quotations[] = Quotation::GetQuotation($qid);
+		}
 
-			foreach ($res as $inv) {
-				$vouchers[] = self::initialize($inv);
-			}
-			
-			return $vouchers;
+		$extras = new stdClass();
+   		$extras->amount = $this->amount;
+   		$extras->tax = $this->tax->amount;
+   		$extras->discount = $this->discount;
+   		$extras->total = $this->total->amount;
+   		$extras->quotations = $this->quotations;
+   		$this->extras = $extras;
 
+   		try {
+			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type = "Invoice"';
+			$res =  DatabaseHandler::GetRow($sql);
+			$this->txid = $res['transaction_id'];
+
+			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
+			$res2 =  DatabaseHandler::GetRow($sql);
+			$this->party->balance = new Money(floatval($res2['balance']), Currency::Get('KES'));
 		} catch (Exception $e) {
 			
 		}
 	}
 
-	public static function CreateInvoiceVoucher($invoice){
-		$inv = new Voucher($invoice->id, $invoice->transactionType->name, $invoice->transactionId, $invoice->amount->amount, $invoice->description, $invoice->date, $invoice->stamp);
-		$inv->persist();
-		$inv->setClient($invoice->clientId);
-		return $inv;
+	private static function initialize($args){
+		$invoice =  new InvoiceVoucher($args['id'], $args['client_id'], $args['datetime'], $args['description'], $args['amount'], $args['tax'], $args['discount'], $args['total'], $args['status'], $args['quotes']);
+		return $invoice;
+	}
+
+	public static function GetInvoice($id)
+	{
+		$sql2 = 'SELECT * FROM invoices WHERE id = '.$id;
+		$res =  DatabaseHandler::GetRow($sql2);
+		return self::initialize($res);
+	}
+
+	public static function GetVoucher($txid)
+	{
+		$sql = 'SELECT * FROM vouchers WHERE transaction_id = '.$txid;
+		$res =  DatabaseHandler::GetRow($sql);
+		//echo json_encode($res);
+		$sql2 = 'SELECT * FROM invoices WHERE id = '.intval($res['voucher_id']);
+		$res2 =  DatabaseHandler::GetRow($sql2);
+		//echo json_encode($res);
+		return self::initialize($res2);
+	}
+}
+
+class ReceiptVoucher
+{
+	public $id;
+	public $type;
+	public $txid;
+	public $party;
+	public $date;
+	public $description;
+	public $amount;
+	public $status;
+
+	function __construct($id, $clientId, $date, $amount, $descr, $status)
+	{
+		$this->id = $id;
+		$this->type = 'Receipt';
+		$this->party = Client::GetClient($clientId);
+		$this->date = $date;
+		$this->amount = floatval($amount);
+		$this->description = $descr;
+		$this->status = $status;
+		try {
+			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type = "Receipt"';
+			$res =  DatabaseHandler::GetRow($sql);
+			$this->txid = $res['transaction_id'];
+
+			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
+			$res2 =  DatabaseHandler::GetRow($sql);
+			$this->party->balance = new Money(floatval($res2['balance']), Currency::Get('KES'));
+		} catch (Exception $e) {
+			
+		}		
+	}
+
+	private static function initialize($args){
+		$receipt =  new ReceiptVoucher($args['id'], $args['client_id'], $args['datetime'], $args['amount'], $args['description'], $args['status']);
+		return $receipt;
+	}
+
+	public static function GetReceipt($id)
+	{
+		$sql = 'SELECT * FROM receipts WHERE id = '.$id;
+		$res =  DatabaseHandler::GetRow($sql);
+		return self::initialize($res);
+	}
+
+	public static function GetVoucher($txid)
+	{
+		$sql = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.$txid;
+		$res =  DatabaseHandler::GetOne($sql);
+		$sql2 = 'SELECT * FROM receipts WHERE id = '.$res;
+		$res =  DatabaseHandler::GetRow($sql2);
+		return self::initialize($res);
+	}
+}
+
+class QuotationVoucher
+{
+	public $id;
+	public $type;
+	public $txid;
+	public $party;
+	public $date;
+	public $lineItems = [];
+	public $description;
+	public $amount;
+
+	function __construct($quoteId, $date, $clientId, $amount)
+	{
+		$this->id = $quoteId;
+		$this->txid = $quoteId;
+		$this->date = $date;
+		$this->type = 'Quotation';
+		$this->party = Client::GetClient($clientId);
+		$this->amount = floatval($amount);
+		$this->description = 'Quotation for client';
+
+		$this->lineItems = QuotationLine::GetQuoteItems($quoteId);
 	}	
 
-	public static function CreateReceiptVoucher($receipt){
-		$rcpt = new Voucher($receipt->id, $receipt->transactionType->name, $receipt->transactionId, $receipt->amount->amount, $receipt->description, $receipt->date, $receipt->stamp);
-		$rcpt->persist();
-		$rcpt->setClient($receipt->clientId);
-		return $rcpt;
+	public static function initialize($args){
+		$quote =  new QuotationVoucher($args['id'], $args['date'], $args['client_id'], $args['amount']);
+		return $quote;
 	}
 
-	public static function CreateClaimVoucher($claim){
-		$voucher = new Voucher($claim->transactionId, $claim->transactionType->name, $claim->transactionId, $claim->amount->amount, $claim->description, $claim->date, $claim->stamp);
-		return $voucher;
+	public static function GetQuotation($id)
+	{
+		$sql2 = 'SELECT * FROM quotations WHERE id = '.$id;
+		$res =  DatabaseHandler::GetRow($sql2);
+		return self::initialize($res);
 	}
+}
 
-	public static function PaymentVoucher($payment){
-		
-	}
+class TransactionVouchers extends Artifact
+{
+	public static function GetClientTransactions($cid, $category, $dates, $all)
+	{
+		if ($category == 1) {//Statement
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' ORDER BY id DESC';
+			}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
 
-	public static function GoodsReceivedVoucher($grn){
-		
-	}
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $tx) {
+					if ($tx['effect'] == 'cr') {
+						$vouchers[] = ReceiptVoucher::GetVoucher(intval($tx['transaction_id']));
+					}else{
+						$vouchers[] = InvoiceVoucher::GetVoucher(intval($tx['transaction_id']));
+					}
+				}
 
-	public static function PaySlipVoucher($payslip){
-		
-	}
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}else{
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' ORDER BY id DESC';
+			}else{
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
 
-	public static function ExpenseReimbursementVoucher($claim){
-		
-	}
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $quote) {
+					$vouchers[] = QuotationVoucher::initialize($quote);
+				}
 
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}
+	}	
 }
 
 class CreditInvoice extends TransactionType
@@ -1027,54 +1204,6 @@ class Invoice extends FinancialTransaction
 		} catch (Exception $e) {
 			
 		}
-	}
-}
-
-class InvoiceVoucher
-{
-	public $id;
-	public $client;
-	public $date;
-	public $quotations = [];
-	public $description;
-	public $tax;
-	public $discount;
-	public $amount;
-	public $total;
-	public $status;
-
-	function __construct($id, $clientId, $date, $description, $amount, $tax, $discount, $total, $status)
-	{
-		$this->id = $id;
-		$this->client = Client::GetClient($clientId);
-		$this->date = $date;
-		$this->tax = new Money(floatval($tax), Currency::Get('KES'));
-		$this->discount = floatval($discount);
-		$this->total = new Money(floatval($total), Currency::Get('KES'));
-		$this->amount = new Money(floatval($amount), Currency::Get('KES'));
-		$this->status = $status;
-		$this->description = $description;
-	}
-
-	public function loadQuotes($quotes)
-	{
-		$quotes = explode(",", $quotes);
-		foreach ($quotes as $qid) {
-			$this->quotations[] = Quotation::GetQuotation($qid);
-		}
-	}
-
-	private static function initialize($args){
-		$invoice =  new InvoiceVoucher($args['id'], $args['client_id'], $args['datetime'], $args['description'], $args['amount'], $args['tax'], $args['discount'], $args['total'], $args['status']);
-		//$invoice->loadQuotes($args['quotes']);
-		return $invoice;
-	}
-
-	public static function GetInvoice($id)
-	{
-		$sql2 = 'SELECT * FROM invoices WHERE id = '.$id;
-		$res =  DatabaseHandler::GetRow($sql2);
-		return self::initialize($res);
 	}
 }
 

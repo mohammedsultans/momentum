@@ -1,25 +1,6 @@
 <!-- START CONTENT -->
 <div id="dashcont" class="">
 
-  <!-- Start Page Header -->
-  <div class="page-header">
-    <h1 class="title">Dashboard</h1>
-      <ol class="breadcrumb">
-        <li class="active">Everything, at a glance</li>
-    </ol>
-
-    <!-- Start Page Header Right Div -->
-    <div class="right">
-      <div class="btn-group" role="group" aria-label="...">
-        <a href="#" class="btn btn-light"><i class="fa fa-mobile"></i></a>
-        <a href="#reports" class="btn btn-light" id="topstats"><i class="fa fa-line-chart"></i></a>
-      </div>
-    </div>
-    <!-- End Page Header Right Div -->
-
-  </div>
-  <!-- End Page Header -->
-
  <!-- //////////////////////////////////////////////////////////////////////////// --> 
   <!-- START CONTAINER -->
   <div class="container-widget">
@@ -35,12 +16,12 @@
           </div>
 
           <div class="right" style="height:450px;">
-            <h4 class="title">MARGINS</h4>
+            <h4 class="title">MARGINS<small>(Revenues - Expenses)</small></h4>
             <!-- start stats -->
             <ul class="widget-inline-list clearfix">
-              <li class="col-12" id="thr"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>from previous month<i class="chart sparkline-green"></i></li>
-              <li class="col-12" id="svn"><span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i> 26%</b><br></span>from previous week<i class="chart sparkline-blue"></i></li>
-              <li class="col-12" id="yst"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>from yesterday<i class="chart sparkline-red"></i></li>
+              <li class="col-12" id="thr"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>over last 30 days<i class="chart sparkline-green"></i></li>
+              <li class="col-12" id="svn"><span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i> 26%</b><br></span>over last 7 daysk<i class="chart sparkline-blue"></i></li>
+              <li class="col-12" id="yst"><span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i> 26%</b><br></span>yesterday<i class="chart sparkline-red"></i></li>
             </ul>
             
           </div>

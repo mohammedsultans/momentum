@@ -1,7 +1,7 @@
 define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl", "tpl!apps/templates/ledgers.tpl", "tpl!apps/templates/accountschart.tpl", 
   "tpl!apps/templates/ledgerentries.tpl", "tpl!apps/templates/searchtx.tpl", "tpl!apps/templates/claims.tpl",  "tpl!apps/templates/expenses.tpl", 
-  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "backbone.syphon"], 
-	function(System, invoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl){
+  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "backbone.syphon"], 
+	function(System, invoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl){
   System.module('FinanceApp.Show.View', function(View, System, Backbone, Marionette, $, _){   
 
     View.Payment = Marionette.ItemView.extend({      
@@ -112,6 +112,7 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "receipt.php";
 
+          voucher['user'] = System.user;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -370,6 +371,7 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "invoice.php";
 
+          voucher['user'] = System.user;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -1361,6 +1363,130 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
 
         onError: function(e) { 
           swal("Error!", "Transaction failed! Try again later.", "error");          
+        }
+    });
+
+    View.FindClientTransactions = Marionette.ItemView.extend({      
+
+        template: findClientTxTpl,
+
+        events: {
+          "click .fsearch": "search",
+          "change #date-range-picker": "resetScope"
+        },
+
+        onShow: function(){                  
+          $('.loading').hide();
+          var THAT = this;
+          require(["money"], function(){
+            THAT.setup();
+          });
+        },
+
+        setup: function(){
+          var THAT = this;
+          var ulx = $('#results');
+          ulx.empty();
+
+          var ul = $('#clients');
+          ul.empty();
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Customer...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $('form input').val('');
+
+          $('#date-range-picker').daterangepicker(null, function(start, end, label) {});
+        },
+
+        resetScope: function(e) {
+          $('#vall').prop('checked', false);
+        },
+
+        search: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+
+          var data = Backbone.Syphon.serialize(this);
+          data['client'] = parseInt(data['client'], 10);
+          
+          if (data['client'] && data['category'] && (data['dates'] != '' || data['vall'] != false)) {
+            //alert(JSON.stringify(data));
+            this.trigger("search", data);
+          }else{
+            swal("Error!", "Please set all search paramenters!", "error");
+          }
+        },
+
+        onSuccess: function(result) {
+          this['entries'] = result;
+          swal("Results!", result.length + " entries found.", "success");
+          var THAT = this;
+          var el = $('#results');
+          el.empty();
+
+          result.forEach(function(entry, i){
+           var tpl = $('<tr><td>'+entry['txid']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'</td><td>'+entry['party']['name']+'</td>'+
+                '<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td><td>'+entry['description']+'</td><td><p class="eid" style="display: none;">'+i+'</p><a class="btn btn-info vprint" href="#"><i class="fa fa-print" style="margin: 0px;"></i></a></td></tr>');
+           
+           tpl.appendTo(el);
+          });
+
+          setTimeout(function() {
+            $('.vprint').on('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var eid = $(this).parent().find('.eid').text();
+              THAT.printVoucher(eid);                  
+            });
+          }, 500);
+        },
+
+        printVoucher: function(eid) {
+          var voucher = this['entries'][eid]; 
+          voucher['user'] = System.user;
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = voucher.type.toLowerCase()+".php";
+
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          /*var id = document.createElement("input");
+          id.name = "id";
+          id.value = 2;
+          rform.appendChild(id);*/
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+          rform.parentNode.removeChild(rform);
+          //window.open("report.php?id=1&voucher=" + voucher);
+        },
+
+        onEmpty: function(e) { 
+          var el = $('#results');
+          el.empty();
+          swal("No Result!", "No transactions found matching your parameters!", "error");          
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Search failed! try again later.", "error");          
         }
     });
   });

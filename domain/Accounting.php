@@ -648,7 +648,7 @@ class AccountEntry extends Artifact
 		} catch (Exception $e) {
 			return false;
 		}
-	}		
+	}
 }
 //check out: Financial accounts by M. Fowler
 class Account extends Artifact

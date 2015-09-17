@@ -3822,7 +3822,7 @@ Widgets
 }
 .chart-with-stats .right {
   background: rgba(255, 255, 255, 0.8);
-  min-width: 150px;
+  min-width: 160px;
   position: absolute;
   text-align: center;
   right: 0;

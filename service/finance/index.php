@@ -117,8 +117,16 @@
 					}else{
 						echo 0;
 					}				
-				}elseif($operation == 'logout'){
-					$this->logout();
+				}elseif($operation == 'findClientEntries'){
+					if(isset($_POST['client']) && isset($_POST['category'])){
+						$client = $_POST['client'];
+						$category = $_POST['category'];
+						$dates = $_POST['dates'];
+						$all = $_POST['vall'];
+						$this->findClientEntries($client, $category, $dates, $all);
+					}else{
+						echo 0;
+					}				
 				}elseif($operation == 'checkauth'){
 					$this->check_auth();
 				}else{ 
@@ -290,6 +298,15 @@
 
 			if ($tx->post()) {
 				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function findClientEntries($client, $category, $dates, $all)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(TransactionVouchers::GetClientTransactions($client, $category, $dates, $all));
 			}else{
 				echo 0;
 			}

@@ -101,11 +101,11 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
                   renderer: 'bar',
                   series: [
                     {
-                      color: "#26a65b",
+                      color: "rgba(38,166,91,1)",
                       data: seriesData[0],
                       name: 'Revenue'
                     }, {
-                      color: "#ef4836",
+                      color: "rgba(239,72,54,1)",
                       data: seriesData[1],
                       name: 'Expenses'
                     }
@@ -167,10 +167,10 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
               thr.empty();
               thrmrg = parseInt(thrmrg, 10);
               if (thrmrg > 0) {
-                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i>'+thrmrg+'%</b><br></span>from previous month<i class="chart sparkline-green"></i>');
+                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600">Ksh. '+(data['thirtydaydata']['rsum'] - data['thirtydaydata']['esum']).formatMoney(2, '.', ',')+'</b><br></span>('+(data['thirtydaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['thirtydaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 30 days<i class="chart sparkline-green"></i>');
                 tpl.appendTo(thr);
               }else{
-                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i>'+(thrmrg * -1)+'%</b><br></span>from previous month<i class="chart sparkline-green"></i>');
+                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600">Ksh. '+((data['thirtydaydata']['rsum'] - data['thirtydaydata']['esum'])).formatMoney(2, '.', ',')+'</b><br></span>('+(data['thirtydaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['thirtydaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 30 days<i class="chart sparkline-green"></i>');
                 tpl.appendTo(thr);
               }
 
@@ -187,10 +187,10 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
               svn.empty();
               svnmrg = parseInt(svnmrg, 10);
               if (svnmrg > 0) {
-                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i>'+svnmrg+'%</b><br></span>from previous week<i class="chart sparkline-blue"></i>');
+                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"></i>Ksh. '+(data['sevendaydata']['rsum'] - data['sevendaydata']['esum']).formatMoney(2, '.', ',')+'</b><br></span>('+(data['sevendaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['sevendaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 7 days<i class="chart sparkline-blue"></i>');
                 tpl.appendTo(svn);
               }else{
-                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i>'+(svnmrg * -1)+'%</b><br></span>from previous week<i class="chart sparkline-blue"></i>');
+                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"></i>Ksh. '+((data['sevendaydata']['rsum'] - data['sevendaydata']['esum'])).formatMoney(2, '.', ',')+'</b><br></span>('+(data['sevendaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['sevendaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 7 days<i class="chart sparkline-blue"></i>');
                 tpl.appendTo(svn);
               }
 
@@ -208,11 +208,11 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
               var yst = $('#yst');
               yst.empty();
               ystmrg = parseInt(ystmrg, 10);
-              if (ystmrg > 0) {
-                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-up"></i>'+ystmrg+'%</b><br></span>from yesterday<i class="chart sparkline-red"></i>');
+              if (ymarg > 0) {
+                var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600">Ksh. '+(ymarg).formatMoney(2, '.', ',')+'</b><br></span>('+(data['yesterdaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['yesterdaydata']['esum']).formatMoney(2, '.', ',')+')<br>Yesterday<i class="chart sparkline-red"></i>');
                 tpl.appendTo(yst);
               }else{
-                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600"><i class="fa fa-caret-down"></i>'+(ystmrg * -1)+'%</b><br></span>from yesterday<i class="chart sparkline-red"></i>');
+                var tpl = $('<span class="diff"><b class="color-down" style="font-size: 18px;font-weight:600">Ksh. '+(ymarg).formatMoney(2, '.', ',')+'</b><br></span>('+(data['yesterdaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['yesterdaydata']['esum']).formatMoney(2, '.', ',')+')<br>Yesterday<i class="chart sparkline-red"></i>');
                 tpl.appendTo(yst);
               }
 

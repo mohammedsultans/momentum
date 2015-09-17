@@ -12,8 +12,7 @@ define(["app"], function(System){
       showLogin: function(){
         require(["apps/login/show/show_controller"], function(ShowController){
           ShowController.showLogin();
-          $('.loading').css({'display' : 'none'});  
-          //System.execute("set:active:header", "login");
+          $('.loading').css({'display' : 'none'});
         });
       },
 
@@ -22,15 +21,8 @@ define(["app"], function(System){
           var data = {};
           data['operation'] = 'logout';
           $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
-            if (result == 1) {
-                swal("Logout Successful!", "Tip: Your password is a secret", "success");                  
-            }else{
-               swal("Logout Successful!", "Tip: Your password is a secret", "success");
-            }
+            ShowController.showLogin();
           });
-          ShowController.showLogin();
-          //$('.loading').css({'display' : 'none'});  
-          //System.execute("set:active:header", "login");
         });
       }
     };

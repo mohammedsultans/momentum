@@ -115,7 +115,10 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
 
           setTimeout(function() {
             $('.loading').hide();
-            $('ul#presentation > li:first-child > ul > li > a').first().get(0).click();
+            if(System.getCurrentRoute() === ""){
+              $('ul#presentation > li:first-child > ul > li > a').first().get(0).click();
+            }
+            
           }, 300);
         },
     });

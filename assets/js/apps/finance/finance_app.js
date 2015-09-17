@@ -6,6 +6,7 @@ define(["app", "apps/finance/show/show_controller"], function(System, showContro
         "invoicing" : "raiseInvoice",
         "payments" : "receivePayment",
         "transactions" : "findTx",
+        "clientTx" : "findClientTx",
         "ledgers" : "accountLedgers",
         "chart" : "accountChart",
         "ledgerTx" : "ledgerTx",
@@ -32,6 +33,12 @@ define(["app", "apps/finance/show/show_controller"], function(System, showContro
       findTx: function(){
         //System.contentRegion.show();
         showController.findTx();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      findClientTx: function(){
+        //System.contentRegion.show();
+        showController.findClientTx();
         //System.execute("set:active:header", "Menu");
       },
 

@@ -134,6 +134,29 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         });
       },
 
+      findClientTx: function(){ 
+        var view = new View.FindClientTransactions();
+        
+        System.contentRegion.show(view);
+
+        view.on('search', function(data) {
+          data['operation'] = 'findClientEntries';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res.length) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("empty");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
       claims: function(){ 
         var view = new View.Claims();
 

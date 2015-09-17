@@ -61,7 +61,6 @@ $voucher = json_decode($_POST['voucher']);
     <div class="invoicename">INVOICE</div>
     <div class="logo">
       <img src="img/geoland.png" alt="logo"><br>
-      <b><?php echo $comname ?></b><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
       <b>Site:</b> <?php  echo $web ?> <b>Email:</b> <?php  echo $email ?>
     </div>
@@ -99,6 +98,7 @@ $voucher = json_decode($_POST['voucher']);
         </tr>
       </thead>
       <tbody>
+      <script>alert(JSON.stringify($voucher->extras->quotations));</script>
       <?php 
 
         foreach ($voucher->extras->quotations as $quotation) {
@@ -137,14 +137,14 @@ $voucher = json_decode($_POST['voucher']);
     </table>
     <p>PRICES INCLUSIVE OF VAT WHERE APPLICABLE</p>
       <p style="font-size:11px;text-transform:capitalize">ACCOUNT BALANCE: <?php if ($voucher->party->balance->amount < 0) { 
-        echo '(Ksh. '.$voucher->party->balance->amount.')';
-        }else { echo 'Ksh. <script>document.writeln(('.$voucher->party->balance->amount.').formatMoney(2, '.', ','));</script>'; }?>
+        echo "(Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>)";
+        }else { echo "Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>"; }?>
       </p>
     
     <div class="invfoot">
       <div class="signature">
         <p>Invoice Prepared By:</p>
-        <p><b><?php echo $username ?></b></p>
+        <p><b><?php echo echo $voucher->user ?></b></p>
       </div>
       <div class="row" style="line-height:13px;font-size:10px;border-top: 2px solid #e4e4e4;padding-top:5px">
         <div class="col-md-4 text-left">Copyright © <?php  echo date('Y') ?> Geoland Surveys</div>

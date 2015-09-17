@@ -7,7 +7,7 @@
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
-        <a href="#dash" class="btn btn-light"><i class="fa fa-remove"></i></a>
+        <a href="#start" class="btn btn-light"><i class="fa fa-remove"></i></a>
       </div>
     </div>
     <!-- End Page Header Right Div -->

@@ -3,7 +3,8 @@ define(["app", "apps/menu/show/show_controller", "tpl!apps/templates/menu.tpl"],
 
     MenuApp.Router = Marionette.AppRouter.extend({
       appRoutes: {
-        "menu" : "showMenu"
+        "menu" : "showMenu",
+        "start" : "showStart"
       }
     });
 
@@ -24,7 +25,10 @@ define(["app", "apps/menu/show/show_controller", "tpl!apps/templates/menu.tpl"],
         //System.contentRegion.show();
         //System.menuRegion.close();
         showController.showMenu(data);
-        //System.execute("set:active:header", "Menu");
+      },
+
+      showStart: function(){
+        $('ul#presentation > li:first-child > ul > li > a').first().get(0).click();
       }
     };
 

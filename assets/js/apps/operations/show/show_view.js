@@ -30,11 +30,11 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
           uls.empty();
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            var tp = $('<option data-icon="fa fa-user">Select Customer...</option>');
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
               tpl.appendTo(ul);
             });
             
@@ -104,7 +104,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmq1")[0]);
-          data['client'] = parseInt(data['client'], 10)
+          data['client'] = parseInt(data['client'], 10);
           if (data['client']) {
             data['items'] = this['qitems'];
             //alert(JSON.stringify(data));
@@ -152,11 +152,11 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
           ul.empty();
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            var tp = $('<option data-icon="fa fa-user">Select Customer...</option>');
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
               tpl.appendTo(ul);
             });
             
@@ -603,11 +603,11 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
 
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            var tp = $('<option data-icon="fa fa-user">Select Customer...</option>');
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
               tpl.appendTo(ul);
             });
             

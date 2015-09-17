@@ -1,10 +1,9 @@
 <?php 
-
+session_start();
 require_once 'include/config.php';
 require_once DATA_DIR . 'error_handler.php';
 ErrorHandler::SetHandler();
 require_once DATA_DIR . 'database_handler.php';
-$username = "System User";
 /*date_default_timezone_set('America/Los_Angeles'); 
 if(isset($_SESSION['valid_user'])){
 $username=$_SESSION['valid_user'];
@@ -61,7 +60,6 @@ $voucher = json_decode($_POST['voucher']);
     <div class="receiptname">RECEIPT</div>
     <div class="logo">
       <img alt="logo" src="img/geoland.png"><br>
-      <b><?php echo $comname ?></b><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
       <b>Site:</b> <?php  echo $web ?> <b>Email:</b> <?php  echo $email ?>
     </div>
@@ -118,7 +116,7 @@ $voucher = json_decode($_POST['voucher']);
 
     <div class="signature">
        <p>Received By</p>
-      <p><b><?php echo $username ?></b></p>
+      <p><b><?php echo $voucher->user ?></b></p>
     </div>
 <div class="row footer">
   <div class="col-md-12 text-left">
