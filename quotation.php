@@ -4,7 +4,6 @@ require_once 'include/config.php';
 require_once DATA_DIR . 'error_handler.php';
 ErrorHandler::SetHandler();
 require_once DATA_DIR . 'database_handler.php';
-$username = "System User";
 /*date_default_timezone_set('America/Los_Angeles'); 
 if(isset($_SESSION['valid_user'])){
 $username=$_SESSION['valid_user'];
@@ -61,7 +60,6 @@ $voucher = json_decode($_POST['voucher']);
     <div class="invoicename">QUOTATION</div>
     <div class="logo">
       <img src="img/geoland.png" alt="logo"><br>
-      <b><?php echo $comname ?></b><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
       <b>Site:</b> <?php  echo $web ?> <b>Email:</b> <?php  echo $email ?>
     </div>
@@ -98,7 +96,7 @@ $voucher = json_decode($_POST['voucher']);
       <tbody>
       <?php 
 
-        foreach ($voucher->extras->quotation->lineItems as $item) {
+        foreach ($voucher->lineItems as $item) {
             ?> 
             <tr>
               <td><?php echo $item->itemName; ?> <p><?php echo $item->itemDesc; ?></p></td>
@@ -116,16 +114,14 @@ $voucher = json_decode($_POST['voucher']);
       <tfoot>
         <tr>
           <td class="text-left" style="font-size:12px;">
-            <b>VATABLE AMOUNT:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->amount; ?>).formatMoney(2, '.', ','));</script><br>
-            <b>TOTAL VAT:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->tax; ?>).formatMoney(2, '.', ','));</script><br>
-            <?php if (floatval($voucher->extras->discount) != 0.00){ 
-              echo '<b>DISCOUNT:</b>'.$voucher->extras->discount.'%';
-            }else {  }?>
+            <b>VATABLE AMOUNT:</b> Ksh. <script>document.writeln((<?php echo $voucher->amount; ?>).formatMoney(2, '.', ','));</script><br>
+            <b>TOTAL VAT:</b> Ksh. <script>document.writeln((<?php echo $voucher->tax; ?>).formatMoney(2, '.', ','));</script><br>
+           
           </td>
           <td></td>
           <td></td>
           <td></td>          
-          <td class="text-right">GRAND TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->extras->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
+          <td class="text-right">GRAND TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
         </tr>
       </tfoot>
       
@@ -135,11 +131,11 @@ $voucher = json_decode($_POST['voucher']);
     <div class="invfoot">
       <div class="signature">
         <p>Quotation Prepared By:</p>
-        <p><b><?php echo $username ?></b></p>
+        <p><b><?php echo $voucher->user ?></b></p>
       </div>
       <div class="row" style="line-height:13px;font-size:10px;border-top: 2px solid #e4e4e4;padding-top:5px">
         <div class="col-md-4 text-left">Copyright © <?php  echo date('Y') ?> Geoland Surveys</div>
-        <div class="col-md-8 text-right">Momentum EIS by <br><a href="#">QET Systems Ltd</a> [www.qet.co.ke]
+        <div class="col-md-8 text-right">Momentum ERP by <br><a href="#">QET Systems Ltd</a> [www.qet.co.ke]
       </div> 
     </div>
     

@@ -791,7 +791,56 @@ class Voucher extends Artifact
 		}
 	}
 
+	public static function GetVouchers($type)
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM vouchers WHERE tx_type = "'.$type.'"';
+			$res =  DatabaseHandler::GetAll($sql);
+			$vouchers = [];
+			foreach ($res as $inv) {
+				$vouchers[] = self::initialize($inv);
+			}
+			
+			return $vouchers;
+		} catch (Exception $e) {
+			
+		}
+	}
+	public static function CreateInvoiceVoucher($invoice){
+		$inv = new Voucher($invoice->id, $invoice->transactionType->name, $invoice->transactionId, $invoice->amount->amount, $invoice->description, $invoice->date, $invoice->stamp);
+		$inv->persist();
+		$inv->setClient($invoice->clientId);
+		return $inv;
+	}
 
+	public static function CreateReceiptVoucher($receipt){
+		$rcpt = new Voucher($receipt->id, $receipt->transactionType->name, $receipt->transactionId, $receipt->amount->amount, $receipt->description, $receipt->date, $receipt->stamp);
+		$rcpt->persist();
+		$rcpt->setClient($receipt->clientId);
+		return $rcpt;
+	}
+
+	public static function CreateClaimVoucher($claim){
+		$voucher = new Voucher($claim->transactionId, $claim->transactionType->name, $claim->transactionId, $claim->amount->amount, $claim->description, $claim->date, $claim->stamp);
+		return $voucher;
+	}
+
+	public static function PaymentVoucher($payment){
+		
+	}
+
+	public static function GoodsReceivedVoucher($grn){
+		
+	}
+
+	public static function PaySlipVoucher($payslip){
+		
+	}
+	
+	public static function ExpenseReimbursementVoucher($claim){
+		
+	}
 }
 
 class InvoiceVoucher
@@ -941,7 +990,7 @@ class QuotationVoucher
 	public $description;
 	public $amount;
 
-	function __construct($quoteId, $date, $clientId, $amount)
+	function __construct($quoteId, $date, $clientId, $amount, $tax, $total)
 	{
 		$this->id = $quoteId;
 		$this->txid = $quoteId;
@@ -949,13 +998,15 @@ class QuotationVoucher
 		$this->type = 'Quotation';
 		$this->party = Client::GetClient($clientId);
 		$this->amount = floatval($amount);
+		$this->tax = floatval($tax);
+		$this->total = floatval($total);
 		$this->description = 'Quotation for client';
 
 		$this->lineItems = QuotationLine::GetQuoteItems($quoteId);
 	}	
 
 	public static function initialize($args){
-		$quote =  new QuotationVoucher($args['id'], $args['date'], $args['client_id'], $args['amount']);
+		$quote =  new QuotationVoucher($args['id'], $args['date'], $args['client_id'], $args['amount'], $args['tax'], $args['total']);
 		return $quote;
 	}
 

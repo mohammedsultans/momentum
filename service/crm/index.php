@@ -46,7 +46,8 @@
 						$email = $_POST['email'];
 						$address = $_POST['address'];
 						$bal = $_POST['bal'];
-						$this->createClient($name, $mobile, $email, $address, $bal);
+						$details = $_POST['details'];
+						$this->createClient($name, $mobile, $email, $address, $bal, $details);
 					}else{
 						echo 0;
 					}
@@ -58,7 +59,8 @@
 						$mobile = $_POST['tel'];
 						$email = $_POST['email'];
 						$address = $_POST['address'];
-						$this->updateClient($clientid, $name, $mobile, $email, $address);
+						$details = $_POST['details'];
+						$this->updateClient($clientid, $name, $mobile, $email, $address, $details);
 					}else{
 						echo 0;
 					}
@@ -119,18 +121,18 @@
 			}
 		}
 
-		public function createClient($name, $mobile, $email, $address, $bal)
+		public function createClient($name, $mobile, $email, $address, $bal, $details)
 		{
-			if (Client::Create($name, $mobile, $email, $address, $bal)) {
+			if (Client::Create($name, $mobile, $email, $address, $bal, $details)) {
 				echo 1;
 			}else{
 				echo 0;
 			}
 		}
 
-		public function updateClient($clientid, $name, $mobile, $email, $address)
+		public function updateClient($clientid, $name, $mobile, $email, $address, $details)
 		{
-			if (Client::Update($clientid, $name, $mobile, $email, $address)) {
+			if (Client::Update($clientid, $name, $mobile, $email, $address, $details)) {
 				echo 1;
 			}else{
 				echo 0;

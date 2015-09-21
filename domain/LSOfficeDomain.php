@@ -145,18 +145,20 @@ class Client extends Party
   	public $creditRating;
   	public $accounts = array();
   	public $balance;
+  	public $details;
   	//public $stockAccountNumber;
-  	function __construct($id, $name, $telephone, $email, $address, $bal)
+  	function __construct($id, $name, $telephone, $email, $address, $bal, $details)
 	{
 		$type = new PartyType('Client');
 		$this->balance = new Money(floatval($bal), Currency::Get('KES'));
+		$this->details = $details;
 		parent::__construct($type, $id, $name, $telephone, $email, $address);
 	}
 
-  	public static function Update($id, $name, $telephone, $email, $address)
+  	public static function Update($id, $name, $telephone, $email, $address, $details)
   	{      	
   		try {
-	        $sql = 'UPDATE clients SET name = "'.$name.'", telephone = "'.$telephone.'", email = "'.$email.'", address = "'.$address.'" WHERE id = '.$id;
+	        $sql = 'UPDATE clients SET name = "'.$name.'", telephone = "'.$telephone.'", email = "'.$email.'", address = "'.$address.'", details = "'.$details.'" WHERE id = '.$id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
@@ -173,10 +175,10 @@ class Client extends Party
   		//$latestReceipt = $invoice->payments[count($invoice->payments) - 1];
   	}
 
-  	public static function Create($name, $telephone, $email, $address, $bal)
+  	public static function Create($name, $telephone, $email, $address, $bal, $details)
   	{      	
   		$type = new PartyType('Client');
-		$client = new Client($type, $name, $telephone, $email, $address, $bal);
+		$client = new Client($type, $name, $telephone, $email, $address, $bal, $details);
 		
 		if ($client->save()) {
 			return $client;
@@ -221,7 +223,7 @@ class Client extends Party
         $args['id'] = 65824;//use random number, more especially a uuid
       }
 
-      $party = new Client($args['id'], $args['name'], $args['telephone'], $args['email'], $args['address'], $args['balance']);
+      $party = new Client($args['id'], $args['name'], $args['telephone'], $args['email'], $args['address'], $args['balance'], $args['details']);
       
       return $party;
     }
@@ -235,8 +237,8 @@ class Client extends Party
 	    if (!empty($res['id'])) {
 	    	return false;
 	    }else{
-	    	$sql = 'INSERT INTO clients (type, name, telephone, address, email) 
-	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->address.'", "'.$this->email.'")';
+	    	$sql = 'INSERT INTO clients (type, name, telephone, address, email, details) 
+	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->address.'", "'.$this->email.'", "'.$this->details.'")';
 	        DatabaseHandler::Execute($sql);
 	        if ($this->balance->amount != 0) {
 	        	$sql = 'SELECT * FROM clients WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';

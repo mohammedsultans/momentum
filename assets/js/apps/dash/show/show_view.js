@@ -150,6 +150,19 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
                   highlightLineColor: '#666666',
                   drawNormalOnTop: false});
 
+                $(".sparkline-red").sparkline(today, {
+                  type: 'line',
+                  width: '105',
+                  height: '30',
+                  lineColor: '#ef4836',
+                  fillColor: '',
+                  lineWidth: 2,
+                  spotColor: '#a3180b',
+                  minSpotColor: '#a3180b',
+                  maxSpotColor: '#a3180b',
+                  highlightLineColor: '#666666',
+                  drawNormalOnTop: false});
+
                 $('.loading').hide(); 
                 
               }, 300); 
@@ -186,7 +199,7 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
               var svn = $('#svn');
               svn.empty();
               svnmrg = parseInt(svnmrg, 10);
-              if (svnmrg > 0) {
+              if ((data['sevendaydata']['rsum'] - data['sevendaydata']['esum']) > 0) {
                 var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600"></i>Ksh. '+(data['sevendaydata']['rsum'] - data['sevendaydata']['esum']).formatMoney(2, '.', ',')+'</b><br></span>('+(data['sevendaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['sevendaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 7 days<i class="chart sparkline-blue"></i>');
                 tpl.appendTo(svn);
               }else{

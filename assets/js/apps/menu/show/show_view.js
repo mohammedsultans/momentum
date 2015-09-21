@@ -12,10 +12,11 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
 
         onShow: function(){
           $("#top").unwrap();
-          this.setup();
+          var THAT = this;
           require.undef('plugins');
-          require(["plugins"], function(){
-            
+          require.undef('basics');
+          require(["basics", "plugins"], function(){
+            THAT.setup();
           });
         },
 
@@ -115,7 +116,7 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
 
           setTimeout(function() {
             $('.loading').hide();
-            if(System.getCurrentRoute() === ""){
+            if(System.getCurrentRoute() === "" || System.getCurrentRoute() === "logout" || System.getCurrentRoute() === "login"){
               $('ul#presentation > li:first-child > ul > li > a').first().get(0).click();
             }
             

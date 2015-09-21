@@ -44,9 +44,9 @@ requirejs.config({
     plugins: "plugins/plugins",
     graphs: "plugins/graphing",
     money: "plugins/formatmoney",
+    basics: "plugins/basics",
     pieplug: "plugins/easypiechart/easypiechart-plugin",
-    dash: "dash",
-
+    dash: "dash"
   },
 
   shim: {
@@ -93,7 +93,8 @@ requirejs.config({
     localstorage: ["backbone"],
     bootstrap: ["jquery"],
     plugins: ["bootstrap"],
-    graphs: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "flotchart", "flottime", "flotstack", "flotpie", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"]
+    graphs: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "flotchart", "flottime", "flotstack", "flotpie", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"],
+    basics: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"]
   }
 });
 

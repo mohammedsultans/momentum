@@ -132,6 +132,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           data['tel'] = $('#etel').val();
           data['email'] = $('#eemail').val();
           data['address'] = $('#eadd').val();
+          data['details'] = $('#edetail').val();
           //alert(JSON.stringify(data));
           //swal("Success!", "The record has been created.", "success");
           this.trigger("edit", data);
@@ -189,6 +190,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
             $('#etel').val(m['telephone']);
             $('#eemail').val(m['email']);
             $('#eadd').val(m['address']);
+            $('#edetail').val(m['details']);
           });
           //swal("Success!", "The record has been created.", "success");
           //this.trigger("delete", data);

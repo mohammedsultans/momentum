@@ -144,11 +144,11 @@ $voucher = json_decode($_POST['voucher']);
     <div class="invfoot">
       <div class="signature">
         <p>Invoice Prepared By:</p>
-        <p><b><?php echo echo $voucher->user ?></b></p>
+        <p><b><?php echo $voucher->user ?></b></p>
       </div>
       <div class="row" style="line-height:13px;font-size:10px;border-top: 2px solid #e4e4e4;padding-top:5px">
         <div class="col-md-4 text-left">Copyright © <?php  echo date('Y') ?> Geoland Surveys</div>
-        <div class="col-md-8 text-right">Momentum EIS by <br><a href="#">QET Systems Ltd</a> [www.qet.co.ke]
+        <div class="col-md-8 text-right">Momentum ERP by <br><a href="#">QET Systems Ltd</a> [www.qet.co.ke]
       </div> 
     </div>
     

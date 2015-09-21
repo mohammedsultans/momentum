@@ -1,5 +1,5 @@
 <?php 
-session_start();
+
 require_once 'include/config.php';
 require_once DATA_DIR . 'error_handler.php';
 ErrorHandler::SetHandler();
@@ -123,7 +123,7 @@ $voucher = json_decode($_POST['voucher']);
   Copyright &copy; <?php  echo date('Y') ?> Geoland Surveys
   </div>
   <div class="col-md-12 text-left">
-    Momentum EIS by <a href="#">QET Systems Ltd</a> [www.qet.co.ke]
+    Momentum ERP by <a href="#">QET Systems Ltd</a> [www.qet.co.ke]
   </div> 
 </div>
     

@@ -55,13 +55,19 @@
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Address</label>
                     <div class="col-sm-10">
-                      <textarea class="form-control" name="address" rows="3" id="textarea1"></textarea>
+                      <textarea class="form-control" name="address" rows="3"></textarea>
                     </div>
                   </div>
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Balance B/F<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <input type="text" name="bal" class="form-control" value="0">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Other Details</label>
+                    <div class="col-sm-10">
+                      <textarea class="form-control" name="details" rows="3"></textarea>
                     </div>
                   </div>
                   <button type="submit" class="btn btn-default nsave">Save</button>
@@ -127,6 +133,13 @@
                   <textarea class="form-control" name="address2" rows="3" id="eadd"></textarea>
                 </div>
               </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Other Details</label>
+                <div class="col-sm-10">
+                  <textarea class="form-control" name="details2" rows="3" id="edetail"></textarea>
+                </div>
+              </div>
+
               <button type="submit" class="btn btn-default esave">Save</button>
               <button type="submit" class="btn btn-warning edelete">Delete</button>
             </form>
