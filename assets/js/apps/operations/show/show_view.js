@@ -34,7 +34,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -156,7 +156,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -318,7 +318,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -607,7 +607,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             

@@ -30,7 +30,7 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -168,7 +168,7 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -1396,7 +1396,7 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -1438,8 +1438,8 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
           el.empty();
 
           result.forEach(function(entry, i){
-           var tpl = $('<tr><td>'+entry['txid']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'</td><td>'+entry['party']['name']+'</td>'+
-                '<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td><td>'+entry['description']+'</td><td><p class="eid" style="display: none;">'+i+'</p><a class="btn btn-info vprint" href="#"><i class="fa fa-print" style="margin: 0px;"></i></a></td></tr>');
+           var tpl = $('<tr><td>'+entry['txid']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td>'+
+                '<td>'+entry['description']+'</td></td><td>'+entry['user']+'</td><td><p class="eid" style="display: none;">'+i+'</p><a class="btn btn-info vprint" href="#"><i class="fa fa-print" style="margin: 0px;"></i></a></td></tr>');
            
            tpl.appendTo(el);
           });

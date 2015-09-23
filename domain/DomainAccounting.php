@@ -735,6 +735,7 @@ class Voucher extends Artifact
 	public $stamp;
 	public $description;
 	public $extras;
+	public $user;
 
 	function __construct($id, $txTypeName, $txId, $amount, $description, $date, $stamp)
 	{		
@@ -745,13 +746,14 @@ class Voucher extends Artifact
 		$this->description = $description;
 		$this->date = $date;
 		$this->stamp = $stamp; 
+		$this->user = SessionManager::GetUsername(); 
 	}
 
 	public function persist(){
 		try {
 
-			$sql = 'INSERT INTO vouchers (voucher_id, tx_type, transaction_id, amount, description, datetime, stamp) 
-			VALUES ('.$this->id.', "'.$this->type.'", '.$this->transactionId.', '.$this->amount.', "'.$this->description.'", "'.$this->date.'", '.$this->stamp.')';
+			$sql = 'INSERT INTO vouchers (voucher_id, tx_type, transaction_id, amount, description, datetime, stamp, cashier) 
+			VALUES ('.$this->id.', "'.$this->type.'", '.$this->transactionId.', '.$this->amount.', "'.$this->description.'", "'.$this->date.'", '.$this->stamp.', "'.$this->user.'")';
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql2 = 'SELECT * FROM vouchers WHERE transaction_id = '.$this->transactionId;
@@ -773,7 +775,7 @@ class Voucher extends Artifact
 	}
 
 	private static function initialize($args){
-		return new Voucher($args['voucher_id'], $args['tx_type'], $args['transaction_id'], $args['amount'], $args['description'], $args['date'], $args['stamp']);
+		return new Voucher($args['voucher_id'], $args['tx_type'], $args['transaction_id'], $args['amount'], $args['description'], $args['date'], $args['stamp'], $args['cashier']);
 	}
 
 	public static function GetVoucher($id)
@@ -859,6 +861,7 @@ class InvoiceVoucher
 	public $total;
 	public $status;
 	public $extras;
+	public $user;
 
 	function __construct($id, $clientId, $date, $description, $amount, $tax, $discount, $total, $status, $quotes)
 	{
@@ -891,6 +894,7 @@ class InvoiceVoucher
 			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type = "Invoice"';
 			$res =  DatabaseHandler::GetRow($sql);
 			$this->txid = $res['transaction_id'];
+			$this->user = $res['cashier'];
 
 			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
 			$res2 =  DatabaseHandler::GetRow($sql);
@@ -934,6 +938,7 @@ class ReceiptVoucher
 	public $description;
 	public $amount;
 	public $status;
+	public $user;
 
 	function __construct($id, $clientId, $date, $amount, $descr, $status)
 	{
@@ -948,6 +953,7 @@ class ReceiptVoucher
 			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type = "Receipt"';
 			$res =  DatabaseHandler::GetRow($sql);
 			$this->txid = $res['transaction_id'];
+			$this->user = $res['cashier'];
 
 			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
 			$res2 =  DatabaseHandler::GetRow($sql);
@@ -1925,7 +1931,7 @@ class GeneralTransaction extends FinancialTransaction
 		$entries[] = $entry;
 
 		//Credit entry
-		$entry['lid'] = $crid;
+		$entry['lid'] = $crid; 
 		$entry['effect'] = 'cr';
 		$entry['amount'] = $amount;
 		$entries[] = $entry;

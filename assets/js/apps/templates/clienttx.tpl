@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Client Transactions Transaction</h1>
+    <h1 class="title">Client Transactions</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -92,10 +92,10 @@
                     <tr>
                       <td>Tx No.</td>
                       <td>Date & Time</td>
-                      <td>Type</td>
-                      <td>Client Name</td>
+                      <td>Type</td>                      
                       <td>Amount</td>
                       <td>Description</td>
+                      <td>Tx By</td>
                       <td>Print</td>
                     </tr>
                   </thead>
@@ -104,9 +104,9 @@
                       <td>Tx No.</td>
                       <td>Date & Time</td>
                       <td>Type</td>
-                      <td>Client Name</td>
                       <td>Amount</td>
                       <td>Description</td>
+                      <td>Tx By</td>
                       <td>Print</td>
                     </tr>
                   </tfoot>

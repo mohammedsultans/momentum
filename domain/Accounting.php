@@ -361,11 +361,12 @@ class TransactionType extends Protocol
 	}
 }
 
+//Subclass into single transaction and batch transaction
 class Transaction extends Action
 {
 	public $transactionId;
 	public $transactionType;// defines: Protocol/PaymentMethod/Transaction Type/Posting Rules	$this->transactionType->protocol
-	public $wasPosted = false;
+	public $posted;
 	public $description;
 	public $date;
 	public $stamp;
@@ -380,22 +381,32 @@ class Transaction extends Action
 		$this->stamp = $datetime->format('YmdHis');
 		$this->amount = $amount;
 		$this->description = $description;
-		try {
-			$sql = 'INSERT INTO transactions (type, amount, datetime, stamp, status) VALUES ("'.$this->transactionType->name.'", '.floatval($amount->amount).', "'.$this->date.'", '.$this->stamp.', 0)';
-	 		DatabaseHandler::Execute($sql);
+		$this->posted = false;
 
-	      	$sql2 = 'SELECT * FROM transactions WHERE stamp = '.$this->stamp;
+		try {
+			//Check for existing tx - refactor to micro/nano second timestamp [not applicable for batch transactions]
+			$sqlx = 'SELECT * FROM transactions WHERE stamp > '.($this->stamp - 2).' AND description = "'.$description.'"  ORDER BY stamp DESC LIMIT 0,1';
+			$resx = DatabaseHandler::GetRow($sqlx);
+
+			if ($resx['stamp']) {
+	 			throw new Exception('Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists '.json_encode($this));
+	 		}
+	 		//Initialize transaction
+			$sql = 'INSERT INTO transactions (type, amount, datetime, stamp, status, description) VALUES ("'.$this->transactionType->name.'", '.floatval($amount->amount).', "'.$this->date.'", '.$this->stamp.', 0, "'.$this->description.'")';
+	 		DatabaseHandler::Execute($sql);	 		
+
+	      	$sql2 = 'SELECT * FROM transactions WHERE stamp = '.$this->stamp.' AND description = "'.$description.'" ORDER BY stamp DESC LIMIT 0,1';
 			// Execute the query and return the results
 			$res =  DatabaseHandler::GetRow($sql2);
 			$this->transactionId = $res['id'];
 		} catch (Exception $e) {
-			
+			Logger::Log(get_class($this), 'Exception', $e->getMessage());
 		}
 	}
 
 	public function add(AccountEntry $entry)
 	{
-		if (!$this->wasPosted) {
+		if (!$this->posted) {
 			$this->entries[] = $entry;
 		}
 		
@@ -403,7 +414,7 @@ class Transaction extends Action
 
 	public function commit()
 	{
-		if (!$this->wasPosted) {
+		if (!$this->posted) {
 			$cr = 0.00; 
 			$dr = 0.00;
 			foreach ($this->entries as $entry) {
@@ -415,29 +426,27 @@ class Transaction extends Action
 			}
 
 			if (($cr - $dr) == 0.00) {
-
-				$datetime = new DateTime();
-				$this->date = $datetime->format('Y/m/d H:ia');
-				$this->stamp = $datetime->format('YmdHis');
-
 				foreach ($this->entries as $entry) {
 					$entry->post();
 				}
 				
 				try {
-					$sql = 'UPDATE transactions SET status = 1, datetime = "'.$this->date.'", stamp = '.$this->stamp.', entries = '.count($this->entries).' WHERE id = '.$this->transactionId;
+					$sql = 'UPDATE transactions SET status = 1, entries = '.count($this->entries).', user = "'.SessionManager::GetUsername().'" WHERE id = '.$this->transactionId;
 				 	DatabaseHandler::Execute($sql);
-				    $this->wasPosted = true;
+				    $this->posted = true;
+				    Logger::Log(get_class($this), 'Ok', 'Transaction id:'.$this->transactionId.' posted by '.SessionManager::GetUsername());
 					return true;
 				} catch (Exception $e) {
 						
 				}
 			}else{
-				throw new Exception("The entries are not conservative. Probable system leak!");
+				//throw new Exception("The entries are not conservative. Probable system leak!");
+				Logger::Log(get_class($this), 'Exception', 'The entries are not conservative. Probable system leak!');
 				return false;
 			}
 
 		}else{
+			Logger::Log(get_class($this), 'Exception', 'Trying to commit an already posted transaction');
 			return false;
 		}
 
@@ -671,13 +680,13 @@ class Account extends Artifact
 		$this->accountNo = $id;
 		$this->ledgerId = $ledgerId;
 		$this->ledgerName = $ledgerName;
-		$this->ledgerBal = $ledgerBal;
+		$this->ledgerBal = new Money(floatval($ledgerBal), Currency::Get('KES'));
 		$this->accountName = $acname;
 		$this->accountType = $type;
 		if (empty($balance)) {
 			$this->balance = new Money('0.00', $type->unit);
 		}else{
-			$this->balance = $balance;
+			$this->balance = new Money(floatval($balance), Currency::Get('KES'));
 		}
 
 		$this->updateTable = $table;
@@ -813,7 +822,7 @@ class Account extends Artifact
 			if (empty($res)) {
 				return false;
 			}
-			return new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, new Money($res['balance'], Currency::Get('KES')), new Money($res['balance'], Currency::Get('KES')), $res['type']);
+			return new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, $res['balance'], $res['balance'], $res['type']);
 		} catch (Exception $e) {
 			return false;
 		}
@@ -827,7 +836,7 @@ class Account extends Artifact
 			$res =  DatabaseHandler::GetAll($sql);
 			$ledgers = [];
 			foreach ($res as $ledger) {
-				$ledgers[] = new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, new Money($res['balance'], Currency::Get('KES')), new Money($res['balance'], Currency::Get('KES')), $res['type']);
+				$ledgers[] = new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, $res['balance'], $res['balance'], $res['type']);
 				//$ledgers[] = new Ledger($res['id'], $res['name'], $res['type'], $res['group'], $res['category'], $res['parent'], $res['balance']);
 			}
 			return $ledgers;
@@ -846,7 +855,7 @@ class Account extends Artifact
 			if (empty($res)) {
 				return false;
 			}
-			return new Account($res['id'], $res['id'], $res['name'], $res['name'], 'ledgers', new Money($res['balance'], Currency::Get('KES')), new Money($res['balance'], Currency::Get('KES')), $res['type']);
+			return new Account($res['id'], $res['id'], $res['name'], $res['name'], 'ledgers', $res['balance'], $res['balance'], $res['type']);
 		} catch (Exception $e) {
 			return false;
 		}
@@ -864,7 +873,7 @@ class Account extends Artifact
 			if (empty($res)) {
 				return false;
 			}
-			return new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, new Money($res['balance'], Currency::Get('KES')), new Money($res['balance'], Currency::Get('KES')), $res['type']);
+			return new Account($res['id'], $res['id'], $res['name'], $res['name'], $table, $res['balance'], $res['balance'], $res['type']);
 		} catch (Exception $e) {
 			return false;
 		}
@@ -878,7 +887,7 @@ class Account extends Artifact
 			$sql2 = 'SELECT * FROM ledgers WHERE name = "'.$ledgerName.'"';
 			$res2 =  DatabaseHandler::GetRow($sql2);
 			//If ledger is child account, get all parent ledgers so that their balances may be updated
-			return new Account($res['id'], $res2['id'], $res2['name'], $res['name'], $table, new Money($res['balance'], Currency::Get('KES')), new Money($res2['balance'], Currency::Get('KES')), $res2['type']);
+			return new Account($res['id'], $res2['id'], $res2['name'], $res['name'], $table, $res['balance'], $res2['balance'], $res2['type']);
 		} catch (Exception $e) {
 			
 		}
@@ -966,7 +975,7 @@ class Ledger extends Artifact
 		if ($balance == 0) {
 			$this->balance = new Money('0.00', Currency::Get('KES'));
 		}else{
-			$this->balance = new Money($balance, Currency::Get('KES'));
+			$this->balance = new Money(floatval($balance), Currency::Get('KES'));
 		}
 	}
 
