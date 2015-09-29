@@ -107,6 +107,8 @@ class Client extends Party
 
     private function save()
     {
+      //ClientStore::Save($this)
+      //ClientStore::SaveProperty('name', $this->name)
       try {
         $sql = 'SELECT * FROM clients WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';
 	    // Execute the query and return the results
@@ -135,7 +137,7 @@ class Client extends Party
 
     private function transferBalance($clientId, $amount)
     {      
-    	$transfer = new BalanceTransfer($clientId, $amount);
+    	$transfer = new SalesArrearsInvoiceTX($clientId, $amount);
     	return $transfer->execute();
     }
 }
@@ -473,21 +475,27 @@ class View
   	public $name;
   	public $logo;
   	public $link;
+  	public $position;
 
-  	function __construct($id, $moduleId, $name, $logo, $link)
+  	function __construct($id, $moduleId, $name, $logo, $link, $position)
 	{
 		$this->id = $id;
 		$this->moduleId = $moduleId;		
 		$this->name = $name;
 		$this->logo = $logo;
 		$this->link = $link;
+		$this->position = $position;
 	}
 
 	public static function Create($moduleId, $name, $logo, $link)
     {
       try {
-		$sql = 'INSERT IGNORE INTO views (module_id, name, logo, link) 
-		VALUES ('.$moduleId.', "'.$name.'", "'.$logo.'", "'.$link.'")';
+      	$sql = 'SELECT * FROM views WHERE module_id = '.$moduleId.' ORDER BY pos DESC LIMIT 0,1';
+      	$rs =  DatabaseHandler::GetRow($sql);
+      	$pos = intval($rs['pos']) + 1;
+
+		$sql = 'INSERT IGNORE INTO views (module_id, name, logo, link, pos) 
+		VALUES ('.$moduleId.', "'.$name.'", "'.$logo.'", "'.$link.'",  '.$pos.')';
 		DatabaseHandler::Execute($sql);
 
 		$sql = 'SELECT * FROM views WHERE module_id = '.$moduleId.' AND link = "'.$link.'"';
@@ -502,7 +510,7 @@ class View
     public static function GetModuleViews($mid)
     {
       	try {
-        	$sql = 'SELECT * FROM views WHERE module_id = '.$mid.' AND status = 1';
+        	$sql = 'SELECT * FROM views WHERE module_id = '.$mid.' AND status = 1 ORDER BY pos ASC';
 			$res =  DatabaseHandler::GetAll($sql);
 			$activities = array();
         	foreach ($res as $act) {
@@ -539,7 +547,7 @@ class View
 
     private static function initialize($args)
   	{
-     	$view = new View($args['id'], $args['module_id'], $args['name'], $args['logo'], $args['link']);
+     	$view = new View($args['id'], $args['module_id'], $args['name'], $args['logo'], $args['link'], $args['pos']);
       	return $view;
   	}
 }
@@ -1189,7 +1197,7 @@ class UserSession
   	{
       	$datetime = new DateTime();
 		$this->loginTime = $datetime->format('Y/m/d H:i:s a');
- 		Logger::Log(get_class($this), 'OK', $this->user->username.' logs in at '.$this->loginTime.' from terminal XXX');
+ 		Logger::Log(get_class($this), 'OK', $this->user->username.' logs in at '.$this->loginTime.' from terminal XXX and IP xxx');
   	}
 
  	public function logout()

@@ -27,7 +27,7 @@
                   <div class="form-group col-sm-6">
                     <label class="col-sm-2 control-label form-label">Client:</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="client" id="clients" data-live-search="true" >
+                      <select class="selectpicker form-control" name="client" id="clients" data-live-search="true">
                         <option data-icon="fa fa-flag" value="1">Transaction No</option>
                         <option data-icon="fa fa-flag" value="2">Description</option>
                         <option data-icon="fa fa-flag" value="3">Date</option>

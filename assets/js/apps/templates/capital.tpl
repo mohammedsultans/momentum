@@ -35,7 +35,7 @@
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Capital Account<span class="color10">*</span></label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="credit" id="owners" style="padding-left:5px">
+                      <select class="selectpicker form-control" name="credit" id="owners" style="padding-left:5px" data-live-search="true">
                         <option data-icon="fa fa-suitcase">Select ledger...</option>
                         <option data-icon="fa fa-suitcase" value="Asset">Asset</option>
                         <option data-icon="fa fa-suitcase" value="Liability">Liability</option>
@@ -48,7 +48,7 @@
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Asset Account<span class="color10">*</span></label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="debit" id="assets" style="padding-left:5px">
+                      <select class="selectpicker form-control" name="debit" id="assets" style="padding-left:5px" data-live-search="true">
                         <option data-icon="fa fa-suitcase">Select ledger...</option>
                         <option data-icon="fa fa-suitcase" value="Asset">Asset</option>
                         <option data-icon="fa fa-suitcase" value="Liability">Liability</option>

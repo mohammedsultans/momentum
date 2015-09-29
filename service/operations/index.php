@@ -1,10 +1,8 @@
 <?php
-// Manages the Journals list
   	require_once '../../include/config.php';
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
-  	//require_once DOMAIN_DIR . 'Product.php';
 	
-	class Operations
+	class OperationsApp
 	{
 		// Constructor reads query string parameter
 		public function __construct()
@@ -346,18 +344,5 @@
 		
 	}
 
-	/*$request_method = strtolower($_SERVER['REQUEST_METHOD']);
-	//echo $request_method;
-	$data = null;
-
-	switch ($request_method) {
-	    case 'post':
-	    case 'put':
-	        $data = json_decode(file_get_contents('php://input'));
-	    break;
-	}*/
-
-	$response = new Operations();
-	//$response->init();
-	//echo json_encode($response->mJournals);
+	$response = new OperationsApp();
 ?>

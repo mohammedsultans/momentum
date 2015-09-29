@@ -3,7 +3,8 @@ define(["app", "apps/finance/show/show_controller"], function(System, showContro
 
     FinanceApp.Router = Marionette.AppRouter.extend({
       appRoutes: {
-        "invoicing" : "raiseInvoice",
+        "qinvoicing" : "raiseQuoteInvoice",
+        "ginvoicing" : "raiseGeneralInvoice",
         "payments" : "receivePayment",
         "transactions" : "findTx",
         "clientTx" : "findClientTx",
@@ -18,9 +19,15 @@ define(["app", "apps/finance/show/show_controller"], function(System, showContro
     });
 
     var API = {
-      raiseInvoice: function(){
+      raiseQuoteInvoice: function(){
         //System.contentRegion.show();
-        showController.raiseInvoice();
+        showController.raiseQuoteInvoice();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      raiseGeneralInvoice: function(){
+        //System.contentRegion.show();
+        showController.raiseGeneralInvoice();
         //System.execute("set:active:header", "Menu");
       },
 

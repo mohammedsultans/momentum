@@ -4,7 +4,7 @@
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
   	//require_once DOMAIN_DIR . 'Product.php';
 	
-	class Finance
+	class FinanceApp
 	{
 		// Constructor reads query string parameter
 		public function __construct()
@@ -184,7 +184,7 @@
 
 		public function postInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total)
 		{
-			$invoice = Invoice::RaiseInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total);
+			$invoice = QuotationInvoiceTX::RaiseInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total);
 			$voucher = $invoice->post();
 			if ($voucher) {
 				echo json_encode($voucher);
@@ -195,7 +195,7 @@
 
 		public function receivePayment($clientid, $category, $account, $amount, $voucher, $descr)
 		{
-			$receipt = Receipt::ReceivePayment($clientid, $category, $account, $amount, $voucher, $descr);
+			$receipt = ReceiptTX::ReceivePayment($clientid, $category, $account, $amount, $voucher, $descr);
 			$voucher = $receipt->submit();
 			if ($voucher) {
 				echo json_encode($voucher);
@@ -348,8 +348,6 @@
 	}
 
 	/*$request_method = strtolower($_SERVER['REQUEST_METHOD']);
-	//echo $request_method;
-	$data = null;
 
 	switch ($request_method) {
 	    case 'post':
@@ -358,7 +356,5 @@
 	    break;
 	}*/
 
-	$response = new Finance();
-	//$response->init();
-	//echo json_encode($response->mJournals);
+	$response = new FinanceApp();
 ?>

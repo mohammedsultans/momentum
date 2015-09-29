@@ -1,7 +1,7 @@
-define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl", "tpl!apps/templates/ledgers.tpl", "tpl!apps/templates/accountschart.tpl", 
+define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.tpl", "tpl!apps/templates/payment.tpl", "tpl!apps/templates/ledgers.tpl", "tpl!apps/templates/accountschart.tpl", 
   "tpl!apps/templates/ledgerentries.tpl", "tpl!apps/templates/searchtx.tpl", "tpl!apps/templates/claims.tpl",  "tpl!apps/templates/expenses.tpl", 
   "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "backbone.syphon"], 
-	function(System, invoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl){
+	function(System, qinvoiceTpl, ginvoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl){
   System.module('FinanceApp.Show.View', function(View, System, Backbone, Marionette, $, _){   
 
     View.Payment = Marionette.ItemView.extend({      
@@ -136,9 +136,9 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
         }
     });
 
-    View.Invoice = Marionette.ItemView.extend({      
+    View.QuoteInvoice = Marionette.ItemView.extend({      
 
-        template: invoiceTpl,
+        template: qinvoiceTpl,
 
         events: {
           "click .ipost": "postInvoice",
@@ -389,6 +389,131 @@ define(["app", "tpl!apps/templates/invoice.tpl", "tpl!apps/templates/payment.tpl
         onError: function(e) { 
           swal("Error!", "Invoice could not be posted! Try again later.", "error");
           this.setup();
+        }
+    });
+
+    View.GeneralInvoice = Marionette.ItemView.extend({      
+
+        template: ginvoiceTpl,
+
+        events: {
+          "click .iadd": "addToInvoice",
+          "click .idiscard": "discardInvoice",
+          "click .igenerate": "generateInvoice"
+        },
+
+        onShow: function(){
+          //$("#leadscont").unwrap();
+          $('.loading').hide();
+          this.setup();
+
+          this['invitems'] = [];
+          this['tax'] = 0;
+          this['totalamt'] = 0;
+        },
+
+        setup: function(){
+          var ul = $('#clients');
+          ul.empty();
+          var uls = $('#services');
+          uls.empty();
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Customer...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/operations/index.php?services', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-question-circle" class="defserve">Select One...</option>');
+            tp.appendTo(uls);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-question-circle" value="'+elem['name']+'">'+elem['name']+'</option>');
+              tpl.appendTo(uls);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          var ulx = $('tbody');
+          ulx.empty();
+        },
+
+        addToInvoice: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          //var data = Backbone.Syphon.serialize($("#frmq1")[0]);
+          var data = Backbone.Syphon.serialize($("#frmi2")[0]);
+          //_.extend(data, data2);
+          //alert(JSON.stringify(data));
+          var ar = [];
+          ar = thiinv['qitems'];
+          ar.push(dinvta);
+          this['qitems'] = ar;
+
+          var ul = $('tbody');
+
+          var total = parseInt(data['qty']) * parseFloat(data['price']);
+          this['totalamt'] += parseFloat(total);
+          this['tax'] += parseFloat(total * parseInt(data['tax'])/100);
+
+          $('#tottax').val(this['tax']);
+          $('#totamt').val(this['totalamt']);
+
+          var tpl = $('<tr><td>'+data['service']+'<br><span style="font-style:italic; font-size:11px">'+data['task']+'</span></td>'+
+                      '<td>'+data['price']+'</td><td>'+data['qty']+'</td><td>Ksh. '+total+'</td></tr>');
+
+          tpl.appendTo(ul);
+
+          setTimeout(function (){
+            $("#frmq2").find('input').val('');
+            $("#frmq2").find('.selectpicker').find('.defserve').find('a').click();
+          }, 150);
+        },
+
+        isInt: function (value){
+          return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseInt(value, 10));
+        },
+
+        generateInvoice: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          data['client'] = parseInt(data['client'], 10);
+          if (data['client']) {
+            data['items'] = this['invitems'];
+            //alert(JSON.stringify(data));
+            this.trigger("generate", data);
+          }else{
+            swal("Error!", "Select a client first!", "error");
+          }
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The invoice has been generated.", "success");
+          $('#tottax').val('');
+          $('#totamt').val('');
+          var ulx = $('tbody');
+          ulx.empty();
+          //Open printable quote in separate window
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Quotation generation failed! Try again later.", "error");
         }
     });
 

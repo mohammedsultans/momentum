@@ -364,6 +364,7 @@ class TransactionType extends Protocol
 //Subclass into single transaction and batch transaction
 class Transaction extends Action
 {
+	//A transaction involves two or more actions/events
 	public $transactionId;
 	public $transactionType;// defines: Protocol/PaymentMethod/Transaction Type/Posting Rules	$this->transactionType->protocol
 	public $posted;
@@ -389,16 +390,19 @@ class Transaction extends Action
 			$resx = DatabaseHandler::GetRow($sqlx);
 
 			if ($resx['stamp']) {
-	 			throw new Exception('Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists '.json_encode($this));
-	 		}
-	 		//Initialize transaction
-			$sql = 'INSERT INTO transactions (type, amount, datetime, stamp, status, description) VALUES ("'.$this->transactionType->name.'", '.floatval($amount->amount).', "'.$this->date.'", '.$this->stamp.', 0, "'.$this->description.'")';
-	 		DatabaseHandler::Execute($sql);	 		
+				Logger::Log(get_class($this), 'Missing', 'Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists');
+	 			//throw new Exception('Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists '.json_encode($this));
+	 		}else{
+	 			//Initialize transaction
+				$sql = 'INSERT INTO transactions (type, amount, datetime, stamp, status, description) VALUES ("'.$this->transactionType->name.'", '.floatval($amount->amount).', "'.$this->date.'", '.$this->stamp.', 0, "'.$this->description.'")';
+		 		DatabaseHandler::Execute($sql);	 		
 
-	      	$sql2 = 'SELECT * FROM transactions WHERE stamp = '.$this->stamp.' AND description = "'.$description.'" ORDER BY stamp DESC LIMIT 0,1';
-			// Execute the query and return the results
-			$res =  DatabaseHandler::GetRow($sql2);
-			$this->transactionId = $res['id'];
+		      	$sql2 = 'SELECT * FROM transactions WHERE stamp = '.$this->stamp.' AND description = "'.$description.'" ORDER BY stamp DESC LIMIT 0,1';
+				// Execute the query and return the results
+				$res =  DatabaseHandler::GetRow($sql2);
+				$this->transactionId = $res['id'];
+	 		}
+	 		
 		} catch (Exception $e) {
 			Logger::Log(get_class($this), 'Exception', $e->getMessage());
 		}
@@ -464,7 +468,7 @@ class Transaction extends Action
 class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of the system - Reference Object
 {
 	public static $currentTransaction;
-	public static $status ;//0 - busy, 1 - ready
+	public static $status;//0 - busy, 1 - ready
 	public static $transactionQueue = [];//
 	public static $processors = [];//multi-threading/multi-pricessing foundation -- straight forward in node.js
 
@@ -480,6 +484,7 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 		if ($invoice->commit()) {
 			return Voucher::CreateInvoiceVoucher($invoice);
 		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Invoice transaction with id:'.$invoice->id.' and tx id:'.$invoice->transactionId.' could not be commited');
 			return false;
 		}
 	}
@@ -490,6 +495,7 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 		if ($transfer->commit()) {
 			return true;
 		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Transfer transaction with tx id:'.$transfer->transactionId.' could not be commited');
 			return false;
 		}
 	}
@@ -501,6 +507,7 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 		if ($payment->commit()) {
 			return Voucher::CreateReceiptVoucher($payment);
 		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Receipt transaction with id:'.$payment->id.' and tx id:'.$payment->transactionId.' could not be commited');
 			return false;
 		}	
 	}
@@ -511,16 +518,18 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 			//return Voucher::CreateTransactionVoucher($transaction);
 			return true;
 		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'General transaction with tx id:'.$transaction->transactionId.' could not be commited');
 			return false;
 		}	
 	}
 
-	public static function ProcessClaim($transaction)
+	public static function ProcessClaim($claim)
 	{
-		if ($transaction->commit()) {
-			//return Voucher::CreateTransactionVoucher($transaction);
-			return Voucher::CreateClaimVoucher($transaction);
+		if ($claim->commit()) {
+			//return Voucher::CreateTransactionVoucher($claim);
+			return Voucher::CreateClaimVoucher($claim);
 		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Claim transaction with tx id:'.$claim->transactionId.' could not be commited');
 			return false;
 		}	
 	}
@@ -531,7 +540,6 @@ class Artifact extends FourthDimension
 {
 
 }
-
 
 class AccountType extends Artifact
 {// say - account type == ledger name [stock, sales, shares, accounts payable]

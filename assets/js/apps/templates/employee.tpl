@@ -115,7 +115,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Search</label>
                 <div class="col-sm-10">
-                  <select class="selectpicker form-control" id="employees" name="employees" data-live-search="true" >
+                  <select class="selectpicker form-control" id="employees" name="employees" data-live-search="true">
                     <option data-icon="fa fa-user">Select Employee...</option>
                     <option data-icon="fa fa-user">Alex Mbaka</option>
                     <option data-icon="fa fa-user">Prince Munene</option>

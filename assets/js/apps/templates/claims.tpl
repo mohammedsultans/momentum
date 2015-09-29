@@ -36,7 +36,7 @@
                 <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Payment Account<span class="color10">*</span></label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="account" id="accounts" style="padding-left:5px">
+                      <select class="selectpicker form-control" name="account" id="accounts" style="padding-left:5px" data-live-search="true">
                         
                       </select>  
                     </div>
