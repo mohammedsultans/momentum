@@ -93,16 +93,15 @@ $voucher = json_decode($_POST['voucher']);
           <td>SERVICE DESCRIPTION</td>
           <td>QTY</td>
           <td>UNIT PRICE</td>
-          <td>VAT</td>
+          <td>VAT (inc.)</td>
           <td class="text-right">SUB-TOTAL</td>
         </tr>
       </thead>
       <tbody>
-      <script>alert(JSON.stringify($voucher->extras->quotations));</script>
       <?php 
 
-        foreach ($voucher->extras->quotations as $quotation) {
-          foreach ($quotation->lineItems as $item) {
+        foreach ($voucher->extras->advices as $advice) {
+          foreach ($advice->lineItems as $item) {
             ?> 
             <tr>
               <td><?php echo $item->itemName; ?> <p><?php echo $item->itemDesc; ?></p></td>

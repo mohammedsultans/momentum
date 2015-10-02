@@ -97,15 +97,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" id="clients" name="clients" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-institution">Select Customer...</option>
-                    <option data-icon="fa fa-institution">Alex Mbaka</option>
-                    <option data-icon="fa fa-institution">Prince Munene</option>
-                    <option data-icon="fa fa-institution">Chase Assurance</option>
-                    <option data-icon="fa fa-institution">Genghis Capital</option>
-                    <option data-icon="fa fa-institution">Light House Properties</option>
-                    <option data-icon="fa fa-institution">Orchid Capital</option>
-                    <option data-icon="fa fa-institution">Rafiki Microfinance</option>
-                    <option data-icon="fa fa-institution">Tulip Healthcare</option>
-                    <option data-icon="fa fa-institution">Rivieres Finance</option>
                   </select>  
                 </div>              
               </div>    

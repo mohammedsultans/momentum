@@ -114,6 +114,7 @@ class Client extends Party
 	    // Execute the query and return the results
 	    $res =  DatabaseHandler::GetRow($sql);
 	    if (!empty($res['id'])) {
+	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and phone number:'.$this->telephone.' already exists');
 	    	return false;
 	    }else{
 	    	$sql = 'INSERT INTO clients (type, name, telephone, address, email, details) 
@@ -124,12 +125,12 @@ class Client extends Party
 		        // Execute the query and return the results
 		        $res =  DatabaseHandler::GetRow($sql);
 	        	return $this->transferBalance($res['id'], $this->balance);
+	        }else{
+	        	return true;
 	        }
 	    }
-
-        
-        return true;
       } catch (Exception $e) {
+      	Logger::Log(get_class($this), 'Exception', $e->getMessage());
         return false;
       }
 
@@ -137,8 +138,8 @@ class Client extends Party
 
     private function transferBalance($clientId, $amount)
     {      
-    	$transfer = new SalesArrearsInvoiceTX($clientId, $amount);
-    	return $transfer->execute();
+    	$transfer = InvoiceTX::RaiseSalesArrearsInvoice($clientId, $amount);
+    	return $transfer->post();
     }
 }
 
@@ -236,21 +237,22 @@ class Enquiry extends Artifact
 
 class Supplier extends Party
 {
-  	public $creditRating;
+  	public $person;
   	public $accounts = array();
   	public $balance;
   	//public $stockAccountNumber;
-  	function __construct($id, $name, $telephone, $email, $address, $bal)
+  	function __construct($id, $name, $person, $telephone, $email, $address, $bal)
 	{
+		$this->person = $person;
 		$type = new PartyType('Supplier');
 		$this->balance = new Money(floatval($bal), Currency::Get('KES'));
 		parent::__construct($type, $id, $name, $telephone, $email, $address);
 	}
 
-  	public static function Update($id, $name, $telephone, $email, $address)
+  	public static function Update($id, $name, $person, $telephone, $email, $address)
   	{      	
   		try {
-	        $sql = 'UPDATE suppliers SET name = "'.$name.'", telephone = "'.$telephone.'", email = "'.$email.'", address = "'.$address.'" WHERE id = '.$id;
+	        $sql = 'UPDATE suppliers SET name = "'.$name.'", person = "'.$person.'", telephone = "'.$telephone.'", email = "'.$email.'", address = "'.$address.'" WHERE id = '.$id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
@@ -258,10 +260,10 @@ class Supplier extends Party
 	    }
   	}
 
-  	public static function Create($name, $telephone, $email, $address, $bal)
+  	public static function Create($name, $person, $telephone, $email, $address, $bal)
   	{      	
   		$type = new PartyType('Supplier');
-		$supplier = new Supplier($type, $name, $telephone, $email, $address, $bal);
+		$supplier = new Supplier($type, $name, $person, $telephone, $email, $address, $bal);
 		
 		if ($supplier->save()) {
 			return $supplier;
@@ -306,7 +308,7 @@ class Supplier extends Party
         $args['id'] = 65824;//use random number, more especially a uuid
       }
 
-      $party = new Supplier($args['id'], $args['name'], $args['telephone'], $args['email'], $args['address'], $args['balance']);
+      $party = new Supplier($args['id'], $args['name'], $args['person'], $args['telephone'], $args['email'], $args['address'], $args['balance']);
       
       return $party;
     }
@@ -320,8 +322,8 @@ class Supplier extends Party
 	    if (!empty($res['id'])) {
 	    	return false;
 	    }else{
-	    	$sql = 'INSERT INTO suppliers (type, name, telephone, address, email) 
-	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->address.'", "'.$this->email.'")';
+	    	$sql = 'INSERT INTO suppliers (type, name, person, telephone, address, email) 
+	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->person.'", "'.$this->telephone.'", "'.$this->address.'", "'.$this->email.'")';
 	        DatabaseHandler::Execute($sql);
 	        if ($this->balance->amount != 0) {
 	        	$sql = 'SELECT * FROM suppliers WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';

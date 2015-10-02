@@ -111,69 +111,6 @@
                     </tr>
                   </tfoot>
                   <tbody id="results">
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo" style="margin: 0px;"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>1101</td>
-                      <td>31/08/2015</td>
-                      <td>Transportation Expenses</td>
-                      <td>Petty Cash</td>
-                      <td>Ksh. 7500</td>
-                      <td>Fuel from Nairobi to Mombasa - KCA 987P</td>
-                      <td><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo"></i></a></td>
-                    </tr>
                   </tbody>
                 </table>
           </div>

@@ -38,8 +38,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" id="employees" name="employee" data-live-search="true" >
                         <option data-icon="fa fa-user">Select Employee...</option>
-                        <option data-icon="fa fa-user">Alex Mbaka</option>
-                        <option data-icon="fa fa-user">Prince Munene</option>
                       </select>  
                     </div>              
                   </div>
@@ -98,8 +96,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" id="users" name="user" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Employee...</option>
-                    <option data-icon="fa fa-user">Alex Mbaka</option>
-                    <option data-icon="fa fa-user">Prince Munene</option>
                   </select>  
                 </div>              
               </div>    

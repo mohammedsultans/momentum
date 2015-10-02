@@ -72,22 +72,6 @@
                       <td>Transportation Expenses</td>
                       <td><p class="sid" style="display: none;">12</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></td>
                     </tr>
-                    <tr>
-                      <td>Food & Refreshments Expenses</td>
-                      <td><p class="sid" style="display: none;">12</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>Food & Refreshments Expenses</td>
-                      <td><p class="sid" style="display: none;">12</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>Food & Refreshments Expenses</td>
-                      <td><p class="sid" style="display: none;">12</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></td>
-                    </tr>
-                    <tr>
-                      <td>Food & Refreshments Expenses</td>
-                      <td><p class="sid" style="display: none;">12</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></td>
-                    </tr>
                   </tbody>
                 </table>
           </div>

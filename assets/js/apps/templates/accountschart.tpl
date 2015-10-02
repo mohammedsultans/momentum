@@ -44,12 +44,6 @@
                       <td>Fixed Assets</td>
                       <td>Ksh. 75000</td>
                     </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Food & Refreshments Expenses</td>
-                      <td>Fixed Assets</td>
-                      <td>Ksh. 75000</td>
-                    </tr>
                   </tbody>
                 </table>
           </div>
@@ -77,12 +71,6 @@
                     <tr>
                       <td>101</td>
                       <td>Transportation Expenses</td>
-                      <td>Fixed Assets</td>
-                      <td>Ksh. 75000</td>
-                    </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Food & Refreshments Expenses</td>
                       <td>Fixed Assets</td>
                       <td>Ksh. 75000</td>
                     </tr>
@@ -117,12 +105,6 @@
                       <td>Fixed Assets</td>
                       <td>Ksh. 75000</td>
                     </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Food & Refreshments Expenses</td>
-                      <td>Fixed Assets</td>
-                      <td>Ksh. 75000</td>
-                    </tr>
                   </tbody>
                 </table>
           </div>
@@ -153,12 +135,6 @@
                       <td>Fixed Assets</td>
                       <td>Ksh. 75000</td>
                     </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Food & Refreshments Expenses</td>
-                      <td>Fixed Assets</td>
-                      <td>Ksh. 75000</td>
-                    </tr>
                   </tbody>
                 </table>
           </div>
@@ -186,12 +162,6 @@
                     <tr>
                       <td>101</td>
                       <td>Transportation Expenses</td>
-                      <td>Fixed Assets</td>
-                      <td>Ksh. 75000</td>
-                    </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Food & Refreshments Expenses</td>
                       <td>Fixed Assets</td>
                       <td>Ksh. 75000</td>
                     </tr>

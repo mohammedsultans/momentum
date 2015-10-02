@@ -215,7 +215,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             });
 
           }else{
-            swal("Error!", "Select a client first!", "error");
+            swal("Missing Details!", "Select a client first!", "warning");
           }
         },
 
@@ -279,7 +279,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
             
           }else{
-            swal("Error!", "Select a purpose first!", "error");
+            swal("Missing Details!", "Select a purpose first!", "warning");
           }
         },
 
@@ -329,7 +329,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               });
             };
           }else{
-            swal("Error!", "Select a quotation to add!", "error");
+            swal("Misiing Details!", "Select a quotation to add!", "warning");
           }
         },
 
@@ -397,9 +397,11 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         template: ginvoiceTpl,
 
         events: {
+          "change #clients": "fetchProjects",
           "click .iadd": "addToInvoice",
           "click .idiscard": "discardInvoice",
-          "click .igenerate": "generateInvoice"
+          "click .igenerate": "generateInvoice",
+          "keyup #disc": "discountInvoice"
         },
 
         onShow: function(){
@@ -435,7 +437,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
           $.get(System.coreRoot + '/service/operations/index.php?services', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-question-circle" class="defserve">Select One...</option>');
+            var tp = $('<option data-icon="fa fa-question-circle" value="0">Select One...</option>');
             tp.appendTo(uls);
             
             m.forEach(function(elem){
@@ -448,9 +450,44 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
           });
-
+          $('#disc').val(0);
+          $('#total').val('');
+          $('#taxes').val('');
+          $('#amount').val('');
           var ulx = $('tbody');
           ulx.empty();
+        },
+
+        fetchProjects: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          data['client'] = parseInt(data['client'], 10);
+          
+          if (data['client']) {
+            var ul = $('#scopes');
+            ul.empty();
+            $.get(System.coreRoot + '/service/operations/index.php?projects&clientid='+data['client'], function(result) {
+              var m = JSON.parse(result);
+              var tp = $('<option data-icon="fa fa-suitcase">Select scope...</option>');
+              tp.appendTo(ul);
+
+              tp = $('<option data-icon="fa fa-suitcase" value="G">General Services</option>');
+              tp.appendTo(ul);
+              
+              m.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">PRJ-'+elem['name']+'</option>');
+                tpl.appendTo(ul);
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+
+          }else{
+            swal("Missing Details!", "Select a client first!", "warning");
+          }
         },
 
         addToInvoice: function(e) { 
@@ -461,9 +498,9 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           //_.extend(data, data2);
           //alert(JSON.stringify(data));
           var ar = [];
-          ar = thiinv['qitems'];
-          ar.push(dinvta);
-          this['qitems'] = ar;
+          ar = this['invitems'];
+          ar.push(data);
+          this['invitems'] = ar;
 
           var ul = $('tbody');
 
@@ -471,17 +508,19 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           this['totalamt'] += parseFloat(total);
           this['tax'] += parseFloat(total * parseInt(data['tax'])/100);
 
-          $('#tottax').val(this['tax']);
-          $('#totamt').val(this['totalamt']);
+          $('#taxes').val(this['tax']);
+          $('#amount').val(this['totalamt']);
+          $('#total').val(this['totalamt'] + this['tax']);
 
           var tpl = $('<tr><td>'+data['service']+'<br><span style="font-style:italic; font-size:11px">'+data['task']+'</span></td>'+
                       '<td>'+data['price']+'</td><td>'+data['qty']+'</td><td>Ksh. '+total+'</td></tr>');
 
           tpl.appendTo(ul);
+          $('#services option[value="0"]').prop('selected', true);
 
           setTimeout(function (){
-            $("#frmq2").find('input').val('');
-            $("#frmq2").find('.selectpicker').find('.defserve').find('a').click();
+            $("#frmi2").find('input').val('');            
+            $('.selectpicker').selectpicker('refresh');
           }, 150);
         },
 
@@ -489,27 +528,59 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseInt(value, 10));
         },
 
+        discountInvoice: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var disc = parseFloat($('#disc').val()) || 0;
+          var tot = parseFloat(this['totalamt']+this['tax']) * (100 - disc)/100;
+          $('#total').val(tot); 
+          //Open printable quote in separate window
+        },
+
         generateInvoice: function(e) { 
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          var disc = Backbone.Syphon.serialize($("#frmi3")[0]);
+
           data['client'] = parseInt(data['client'], 10);
-          if (data['client']) {
-            data['items'] = this['invitems'];
+          if (disc['discount'] == "") {
+              disc['discount'] = 0;
+          };
+
+          var items = this['invitems'];
+
+          if (data['client'] && (parseInt(data['scope'], 10) || data['scope'] == 'G') && items.length > 0) {
+            data['items'] = items;
+            data['discount'] = disc['discount'];
             //alert(JSON.stringify(data));
-            this.trigger("generate", data);
+            this.trigger("post", data);
           }else{
-            swal("Error!", "Select a client first!", "error");
+            swal("Missing Details!", "Ensure you have client, scope and invoice items!", "warning");
           }
         },
 
-        onSuccess: function(e) { 
-          swal("Success!", "The invoice has been generated.", "success");
-          $('#tottax').val('');
-          $('#totamt').val('');
-          var ulx = $('tbody');
-          ulx.empty();
-          //Open printable quote in separate window
+        onSuccess: function(voucher) { 
+
+          swal("Success!", "The invoice has been posted.", "success");
+          //window.open("report.php?id=2&voucher=" + voucher);
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "invoice.php";
+
+          voucher['user'] = System.user;
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+
+          rform.parentNode.removeChild(rform);          
+          this.setup();
         },
 
         onError: function(e) { 
@@ -1469,7 +1540,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
           setTimeout(function() {
             if (data['action'] && data['account'] && data['amount'] != 0 && data['descr'] != "") {
-              alert(JSON.stringify(data));              
+              //alert(JSON.stringify(data));              
               if (data['action'] == "CashDeposit" && parseFloat($('#cash').val()) <  parseFloat(data['amount'])) {
                 swal("Error!", "Amount to deposit is more than cash in hand!", "error");
               }else{
@@ -1563,7 +1634,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           el.empty();
 
           result.forEach(function(entry, i){
-           var tpl = $('<tr><td>'+entry['txid']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td>'+
+           var tpl = $('<tr><td>'+entry['transactionId']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td>'+
                 '<td>'+entry['description']+'</td></td><td>'+entry['user']+'</td><td><p class="eid" style="display: none;">'+i+'</p><a class="btn btn-info vprint" href="#"><i class="fa fa-print" style="margin: 0px;"></i></a></td></tr>');
            
            tpl.appendTo(el);
@@ -1585,8 +1656,12 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate
-          rform.action = voucher.type.toLowerCase()+".php";
-
+          if (voucher.type.toLowerCase() == 'receipt') {
+            rform.action = "receipt.php";
+          }else{
+            rform.action = "invoice.php";
+          }
+          
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);

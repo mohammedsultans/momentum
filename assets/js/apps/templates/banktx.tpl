@@ -60,11 +60,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="account" id="accounts" style="padding-left:5px">
                         <option data-icon="fa fa-suitcase">Select account...</option>
-                        <option data-icon="fa fa-money">Family Bank</option>
-                        <option data-icon="fa fa-money">Equity Bank</option>
-                        <option data-icon="fa fa-money">Chase Bank</option>
-                        <option data-icon="fa fa-money">Standard Chartered Bank</option>
-                        <option data-icon="fa fa-money">M-Pesa</option>
                       </select>  
                     </div>
                   </div>

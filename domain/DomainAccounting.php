@@ -197,8 +197,7 @@ class Quotation
 			} catch (Exception $e) {
 				Logger::Log(get_class($this), 'Exception', $e->getMessage());
 			}
-		}
-		
+		}		
 	}
 
 	public function setInvoiced()
@@ -211,8 +210,7 @@ class Quotation
 			} catch (Exception $e) {
 				Logger::Log(get_class($this), 'Exception', $e->getMessage());
 			}
-		}
-		
+		}		
 	}
 
 	private static function initialize($args, $client){
@@ -751,7 +749,6 @@ class InvoiceLine
 	function __construct($invoiceId, $itemName, $itemDesc, $quantity, $unitPrice, $tax)
 	{
 		$this->invoiceId = $invoiceId;
-		//$this->itemId = $itemId;
 		$this->itemName = $itemName;
 		$this->itemDesc = $itemDesc;
 		$this->quantity = intval($quantity);
@@ -777,11 +774,11 @@ class InvoiceLine
 		//check whether available and make necessary inventory deductions, then
 		$lineItems = array();
 		try {
-			$sql = 'SELECT * FROM quotation_items WHERE quote_id = '.$invoiceId.' AND status = 1';
+			$sql = 'SELECT * FROM invoice_items WHERE invoice_id = '.$invoiceId.' AND status = 1';
 			$res =  DatabaseHandler::GetAll($sql);
 
 			foreach ($res as $item) {
-				$lineItem = new InvoiceLine($item['quote_id'], $item['item_name'], $item['item_desc'], $item['quantity'], $item['unit_price'], $item['tax']);
+				$lineItem = new InvoiceLine($item['invoice_id'], $item['item_name'], $item['item_desc'], $item['quantity'], $item['unit_price'], $item['tax']);
 				$lineItem->initId($item['id']);
 				$lineItems[] = $lineItem;
 			}
@@ -823,6 +820,8 @@ class InvoiceLine
 class Invoice
 {
 	public $id;
+	public $projectId;
+	public $description;
 	public $date;
 	public $lineItems = array();
 	public $items;
@@ -831,15 +830,21 @@ class Invoice
 	public $discount;
 	public $total;
 	public $status;
-	public $client;
+	public $clientId;
 	public $extras;
+	public $quoteIds;
+	public $quotations = [];
 
-	function __construct($quoteId, $date, $status, $client)
+	function __construct($invoiceId, $projectId, $quotes, $description, $discount, $date, $status, $client)
 	{
-		$this->id = $quoteId;
+		$this->id = $invoiceId;
+		$this->projectId = $projectId;
+		$this->description = $description;
+		$this->discount = $discount;
 		$this->date = $date;
 		$this->status = $status;
-		$this->client = $client;
+		$this->clientId = $client->id;
+		$this->quoteIds = $quotes;
 	}
 
 	public function initialize()
@@ -848,16 +853,18 @@ class Invoice
 		$this->generate();
 	}
 
-	public function initRecipient($partyId)
-	{
-		$this->clientId = $partyId;
-	}
-
-
 	public function addToInvoice(InvoiceLine $lineItem)
 	{
 		array_push($this->lineItems, $lineItem);
 		//$this->lineItems[] = $orderItem;
+	}
+
+	public function loadQuotes()
+	{
+		$quotes = explode(",", $this->quoteIds);
+		foreach ($quotes as $qid) {
+			$this->quotations[] = Quotation::GetQuotation($qid);
+		}
 	}
 
 	public function removeFromInvoice($lineId)
@@ -880,20 +887,36 @@ class Invoice
 		}
 		//$taxamt = $amount * $tax/100;
 		$total = $amount + $taxamt;
-		
+
+		if ($this->discount != 0) {
+			$total = $total * floatval((100 - $this->discount)/100);
+		}
 
 		try {
 			//status: 0 - unauthorized, 1 - awaiting shipment, 3 - dispatched, 4 - delivered
 			$sql = 'UPDATE invoices SET items = '.$items.', amount = '.$amount.', total = '.$total.', tax = '.$taxamt.' WHERE id = '.$this->id;
 	 		DatabaseHandler::Execute($sql);
-	 		$this->amount = $amount;
-			$this->taxamt = $taxamt;
-	 		$this->total = $total;
+	 		$this->amount = new Money(floatval($amount), Currency::Get('KES'));
+			$this->taxamt = new Money(floatval($taxamt), Currency::Get('KES'));
+	 		$this->total = new Money(floatval($total), Currency::Get('KES'));
 			$this->items = $items;
 			//$this->status = 1;
 			return true;
 		} catch (Exception $e) {
 			return false;
+		}
+	}
+
+	public function updateStatus($status)
+	{
+		//Invoice posted successfully
+		$this->status = $status;
+
+		try {
+			$sql = 'UPDATE invoices SET status = '.$this->status.' WHERE id = '.$this->id;
+	 		DatabaseHandler::Execute($sql);
+		} catch (Exception $e) {
+			
 		}
 	}
 
@@ -907,43 +930,22 @@ class Invoice
 		}
 	}
 
-	public static function CreateInvoice($client)
+	public static function CreateInvoice($client, $projectId, $quotes, $descr, $discount)
 	{
 		//Called and stored in a session object
 		try {
-			
 			$datetime = new DateTime();
-			$sql = 'INSERT INTO invoices (client_id, date, stamp, status) VALUES ("'.$client->id.'","'.$datetime->format('Y/m/d').'", '.$datetime->format('YmdHis').', 1)';
+			$sql = 'INSERT INTO invoices (client_id, project_id, quotes, description, discount, datetime, stamp, status) VALUES ("'.$client->id.'", '.intval($projectId).', "'.$quotes.'", "'.$descr.'", '.floatval($discount).', "'.$datetime->format('d/m/Y H:i a').'", '.$datetime->format('YmdHis').', 0)';
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql = 'SELECT * FROM invoices WHERE stamp = '.$datetime->format('YmdHis');
 			$res =  DatabaseHandler::GetRow($sql);
 
-			return new Quotation($res['id'], $res['date'], $res['status'], $client);
+			return new Invoice($res['id'], $res['project_id'], $res['quotes'], $res['description'], $res['discount'], $res['datetime'], $res['status'], $client);
 
 		} catch (Exception $e) {
 			
 		}
-	}
-
-	public function setProject($projectId)
-	{
-		if ($this->status != 2) {
-			try {
-				$sql = 'UPDATE invoices SET project_id = '.$projectId.', status = 2 WHERE id = '.$this->id;
-		 		DatabaseHandler::Execute($sql);
-		 		$this->projectId = $projectId;
-		 		$this->status = 2;
-			} catch (Exception $e) {
-				
-			}
-		}
-		
-	}
-
-	public function payInvoice()
-	{
-				
 	}
 
 	public static function GetInvoice($id)
@@ -951,9 +953,9 @@ class Invoice
 		try {
 			$sql = 'SELECT * FROM invoices WHERE id = '.$id;
 			$res =  DatabaseHandler::GetRow($sql);
-			if (!empty($res['date'])) {
+			if (!empty($res['datetime'])) {
 				$client = Client::GetClient($res['client_id']);
-				$invoice = new Invoice($res['id'], $res['date'], $res['status'], $client);
+				$invoice = new Invoice($res['id'], $res['project_id'], $res['quotes'], $res['description'], $res['discount'], $res['datetime'], $res['status'], $client);
 				$invoice->initialize();
 				if (!empty($res['project_id'])) {
 					$invoice->initProject($res['project_id']);
@@ -965,8 +967,7 @@ class Invoice
 			
 		} catch (Exception $e) {
 			return null;
-		}
-		
+		}		
 	}
 
 	public static function GetProjectInvoices($pid, $client)
@@ -976,8 +977,8 @@ class Invoice
 			$res =  DatabaseHandler::GetAll($sql);
 			$invoices = [];
 			foreach ($res as $item) {
-				if (!empty($item['date'])) {
-					$invoice = new Quotation($item['id'], $item['date'], $item['status'], $client);
+				if (!empty($item['datetime'])) {
+					$invoice = new Invoice($item['id'], $item['project_id'], $item['quotes'], $item['description'], $item['discount'], $item['datetime'], $item['status'], $client);
 					$invoice->initialize();
 					$invoice->initProject($item['project_id']);
 					$invoices[] = $invoice;
@@ -990,8 +991,7 @@ class Invoice
 			
 		} catch (Exception $e) {
 			return null;
-		}
-		
+		}		
 	}
 
 	public static function GetClientInvoices($clientid)
@@ -1002,8 +1002,8 @@ class Invoice
 			$res =  DatabaseHandler::GetAll($sql);
 			$invoices = [];
 			foreach ($res as $item) {
-				if (!empty($item['date'])) {
-					$invoice = new Invoice($item['id'], $item['date'], $item['status'], $client);
+				if (!empty($item['datetime'])) {
+					$invoice = new Invoice($item['id'], $item['project_id'], $item['quotes'], $item['description'], $item['discount'], $item['datetime'], $item['status'], $client);
 					$invoice->initialize();
 					$invoices[] = $invoice;
 				}else{
@@ -1015,8 +1015,7 @@ class Invoice
 			
 		} catch (Exception $e) {
 			return null;
-		}
-		
+		}		
 	}
 
 	public static function GetGeneralInvoices($clientid)
@@ -1027,8 +1026,8 @@ class Invoice
 			$res =  DatabaseHandler::GetAll($sql);
 			$invoice = [];
 			foreach ($res as $item) {
-				if (!empty($item['date'])) {
-					$invoice = new Invoice($item['id'], $item['date'], $item['status'], $client);
+				if (!empty($item['datetime'])) {
+					$invoice = new Invoice($item['id'], $item['project_id'], $item['quotes'], $item['description'], $item['discount'], $item['datetime'], $item['status'], $client);
 					$invoice->initialize();
 					$invoice[] = $invoice;
 				}else{
@@ -1040,8 +1039,7 @@ class Invoice
 			
 		} catch (Exception $e) {
 			return null;
-		}
-		
+		}		
 	}
 
 	public static function Delete($id)
@@ -1132,6 +1130,12 @@ class Voucher extends Artifact
 		return $inv;
 	}
 
+	public static function CreateInvoiceTxVoucher($tx){
+		$inv = new Voucher($tx->invoice->id, $tx->transactionType->name, $tx->transactionId, $tx->amount->amount, $tx->description, $tx->date, $tx->stamp);
+		$inv->persist();		
+		return InvoiceVoucher::GetInvoice($tx->invoice->id);
+	}
+
 	public static function CreateReceiptVoucher($receipt){
 		$rcpt = new Voucher($receipt->id, $receipt->transactionType->name, $receipt->transactionId, $receipt->amount->amount, $receipt->description, $receipt->date, $receipt->stamp);
 		$rcpt->persist();
@@ -1165,14 +1169,15 @@ class InvoiceVoucher
 {
 	public $id;
 	public $type;
-	public $txid;
+	public $transactionId;
 	public $party;
 	public $client;
 	public $date;
-	public $quotations = [];
+	public $advices = [];
 	public $description;
 	public $tax;
 	public $discount;
+	public $amt;
 	public $amount;
 	public $total;
 	public $status;
@@ -1188,31 +1193,37 @@ class InvoiceVoucher
 		$this->tax = new Money(floatval($tax), Currency::Get('KES'));
 		$this->discount = floatval($discount);
 		$this->total = new Money(floatval($total), Currency::Get('KES'));
-		$this->amount = floatval($amount);
+		$this->amt = new Money(floatval($amount), Currency::Get('KES'));
+		$this->amount = floatval($total);
 		$this->status = $status;
 		$this->description = $description;
 
-		$quotes = explode(",", $quotes);
-		foreach ($quotes as $qid) {
-			$this->quotations[] = Quotation::GetQuotation($qid);
+		if (intval($quotes) != 0) {
+			$quotes = explode(",", $quotes);
+			foreach ($quotes as $qid) {
+				$this->advices[] = Quotation::GetQuotation($qid);
+			}
+		}else{
+			$this->advices[] = Invoice::GetInvoice($this->id);
 		}
+		
 
 		$extras = new stdClass();
-   		$extras->amount = $this->amount;
+   		$extras->amount = $this->amt->amount;
    		$extras->tax = $this->tax->amount;
    		$extras->discount = $this->discount;
    		$extras->total = $this->total->amount;
-   		$extras->quotations = $this->quotations;
+   		$extras->advices = $this->advices;
    		$this->extras = $extras;
 
    		try {
 			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type LIKE "%Invoice%"';
 			$res =  DatabaseHandler::GetRow($sql);
-			$this->txid = $res['transaction_id'];
+			$this->transactionId = $res['transaction_id'];
 			$this->user = $res['cashier'];
 			$this->type = $res['tx_type'];;
 
-			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
+			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->transactionId).' AND account_no = '.intval($clientId);
 			$res2 =  DatabaseHandler::GetRow($sql);
 			$this->party->balance = new Money(floatval($res2['balance']), Currency::Get('KES'));
 		} catch (Exception $e) {
@@ -1264,7 +1275,7 @@ class ReceiptVoucher
 {
 	public $id;
 	public $type;
-	public $txid;
+	public $transactionId;
 	public $party;
 	public $date;
 	public $description;
@@ -1283,11 +1294,11 @@ class ReceiptVoucher
 		try {
 			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type LIKE "%Receipt%"';
 			$res =  DatabaseHandler::GetRow($sql);
-			$this->txid = $res['transaction_id'];
+			$this->transactionId = $res['transaction_id'];
 			$this->user = $res['cashier'];
 			$this->type = $res['tx_type'];
 
-			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->txid).' AND account_no = '.intval($clientId);
+			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->transactionId).' AND account_no = '.intval($clientId);
 			$res2 =  DatabaseHandler::GetRow($sql);
 			$this->party->balance = new Money(floatval($res2['balance']), Currency::Get('KES'));
 		} catch (Exception $e) {
@@ -1448,222 +1459,44 @@ class SalesInvoice extends TransactionType
 	}
 }
 
-class QuotationInvoiceTX extends FinancialTransaction
+class InvoiceTX extends FinancialTransaction
 {
-	public $id;
-	public $clientId;
-	public $projectId;
-	public $quotations = [];
-	public $description;
-	public $tax;
-	public $discount;
-	public $amt;
-	public $total;
-	public $status;
-
-	function __construct($id, $clientId, $projectId, $description, $amount, $tax, $discount, $total, $status)
-	{
-		$this->id = $id;
-		$this->clientId = $clientId;
-		$this->projectId = intval($projectId);
-		$this->tax = new Money(floatval($tax), Currency::Get('KES'));
-		$this->discount = floatval($discount);
-		$this->total = new Money(floatval($total), Currency::Get('KES'));
-		$this->amt = new Money(floatval($amount), Currency::Get('KES'));
-		$this->status = $status;
-		$txtype = new SalesInvoice($clientId, 'Quotation Invoice');
-		parent::__construct(new Money(floatval($total), Currency::Get('KES')), $description, $txtype);
-		$this->update();
-	}
-
-	public function update()
-	{
-		try {
-	        $sql = 'UPDATE invoices SET datetime = "'.$this->date.'", stamp = '.$this->stamp.' WHERE id = '.$this->id;
-	        DatabaseHandler::Execute($sql);
-	        return true;
-	    } catch (Exception $e) {
-	        Logger::Log(get_class($this), 'Exception', $e->getMessage());
-	    }
-	}
-
-	public function post()
-	{
-		if ($this->prepare()) {
-			$voucher = TransactionProcessor::ProcessInvoice($this);
-			if ($voucher) {
-				//payment has gone trough;
-				foreach ($this->quotations as $quote) {
-					$quote->setInvoiced();
-				}
-
-				if ($this->projectId != 0) {
-					$project = Project::GetProject($this->projectId);
-					$project->debit($this->total);
-				}
-
-				$this->status = 1;
-				$this->updateStatus();
-				
-				$extras = new stdClass();
-   				$extras->amount = $this->amt->amount;
-   				$extras->tax = $this->tax->amount;
-   				$extras->discount = $this->discount;
-   				$extras->total = $this->total->amount;
-   				$extras->quotations = $this->quotations;
-
-				$voucher->setExtras($extras);
-				return $voucher;
-			}else{
-				return false;
-			}
-		}
-		
-		//make the journal entry based on the invoicing TX
-		//Cr - Sales
-		//Dr - Debtors [A/C Receivable]
-		//Dr - Taxes Collectable
-	}
-
-	private function prepare()
-	{
-		foreach ($this->quotations as $quote) {
-			if ($quote->status > 2) {
-				return false;
-			}
-		}
-
-		for ($i=0; $i < count($this->transactionType->drAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->drRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->drAccounts[$i], $amount, $this->date, 'dr'));
-		}
-
-		for ($i=0; $i < count($this->transactionType->crAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->crRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->crAccounts[$i], $amount, $this->date, 'cr'));
-		}
-
-		return true;
-
-	}
-
-	public function loadQuotes($quotes)
-	{
-		$quotes = explode(",", $quotes);
-		foreach ($quotes as $qid) {
-			$this->quotations[] = Quotation::GetQuotation($qid);
-		}
-	}
-
-	private function updateStatus()
-	{
-		try {
-
-			$sql = 'UPDATE invoices SET status = '.$this->status.' WHERE id = '.$this->id;
-	 		DatabaseHandler::Execute($sql);	 		
-
-		} catch (Exception $e) {
-			
-		}
-	}
-
-	private static function initialize($args){
-		$invoice =  new QuotationInvoiceTX($args['id'], $args['client_id'], $args['project_id'], $args['description'], $args['amount'], $args['tax'], $args['discount'], $args['total'], $args['status']);
-		$invoice->loadQuotes($args['quotes']);
-		return $invoice;
-	}
-
-
-	public static function RaiseInvoice($clientId, $purpose, $quotes, $amount, $tax, $discount, $total)
-	{
-		try {
-			
-			$datetime = new DateTime();
-			#status 0 - awaiting payment, 1- partially paid, 2-overdue, 3-paid
-			if ($purpose == "G") {
-				$ref = "General Services";
-				$pid = 0;
-			}else{
-				$prj = Project::GetProject(intval($purpose));
-				$ref = $prj->name.' Project';
-				$pid = intval($purpose);
-			}
-
-			$quotes = implode(',', $quotes);
-
-			$sql = 'INSERT INTO invoices (client_id, quotes, project_id, amount, tax, discount, total, description, status) VALUES 
-			('.$clientId.', "'.$quotes.'", '.$pid.', '.$amount.', '.$tax.', '.$discount.', '.$total.', "'.$ref.'", 0)';
-	 		DatabaseHandler::Execute($sql);
-	 		
-	 		$sql2 = 'SELECT * FROM invoices WHERE client_id = '.$clientId.' ORDER BY id DESC LIMIT 0,1';
-			$res =  DatabaseHandler::GetRow($sql2);
-
-			return self::initialize($res);
-
-		} catch (Exception $e) {
-			
-		}
-	}
-}
-
-class GeneralInvoiceTX extends FinancialTransaction
-{
-	public $id;
-	public $clientId;
 	public $invoice;
-	public $description;
-	public $tax;
-	public $discount;
-	public $amt;
-	public $total;
-	public $status;
 
-	function __construct($id, $clientId, $description, $amount, $tax, $discount, $total, $status)
+	function __construct($invoice, $invoiceType)
 	{
-		$this->id = $id;
-		$this->clientId = $clientId;
-		$this->tax = new Money(floatval($tax), Currency::Get('KES'));
-		$this->discount = floatval($discount);
-		$this->total = new Money(floatval($total), Currency::Get('KES'));
-		$this->amt = new Money(floatval($amount), Currency::Get('KES'));
-		$this->status = $status;
-		$txtype = new SalesInvoice($clientId, 'General Invoice');
-		parent::__construct(new Money(floatval($total), Currency::Get('KES')), $description, $txtype);
-		$this->update();
-	}
-
-	public function update()
-	{
-		try {
-	        $sql = 'UPDATE invoices SET datetime = "'.$this->date.'", stamp = '.$this->stamp.' WHERE id = '.$this->id;
-	        DatabaseHandler::Execute($sql);
-	        return true;
-	    } catch (Exception $e) {
-	        
-	    }
+		$this->invoice = $invoice;
+		$txtype = new SalesInvoice($invoice->clientId, $invoiceType);
+		parent::__construct($invoice->total, $invoice->description, $txtype);
 	}
 
 	public function post()
 	{
 		if ($this->prepare()) {
-			$voucher = TransactionProcessor::ProcessInvoice($this);
+			$voucher = TransactionProcessor::ProcessInvoiceTX($this);
 			if ($voucher) {
 
-				if ($this->projectId != 0) {
-					$project = Project::GetProject($this->projectId);
-					$project->debit($this->total);
+				if ($this->invoice->quoteIds != null && $this->invoice->quoteIds != '') {
+					$this->invoice->loadQuotes();
+					foreach ($this->invoice->quotations as $quote) {
+						$quote->setInvoiced();
+					}
 				}
-
-				$this->status = 1;
-				$this->updateStatus();
+				
+				if ($this->invoice->projectId != 0) {
+					$project = Project::GetProject($this->invoice->projectId);
+					$project->debit($this->amount);
+				}
+				//TX successful
+				$this->invoice->updateStatus(1);
 				
 				$extras = new stdClass();
-   				$extras->amount = $this->amt->amount;
-   				$extras->tax = $this->tax->amount;
-   				$extras->discount = $this->discount;
-   				$extras->total = $this->total->amount;
+   				$extras->amount = $this->invoice->amount->amount;
+   				$extras->tax = $this->invoice->taxamt->amount;
+   				$extras->discount = $this->invoice->discount;
+   				$extras->total = $this->invoice->total->amount;
 
-				$voucher->setExtras($extras);
+				//$voucher->setExtras($extras);
 				return $voucher;
 			}else{
 				return false;
@@ -1684,49 +1517,87 @@ class GeneralInvoiceTX extends FinancialTransaction
 		}
 
 		return true;
-
 	}
 
-	private function updateStatus()
+	public static function RaiseQuotationInvoice($clientId, $scope, $quotes, $discount)
 	{
-		try {
+		$client = Client::GetClient($clientId);
 
-			$sql = 'UPDATE invoices SET status = '.$this->status.' WHERE id = '.$this->id;
-	 		DatabaseHandler::Execute($sql);	 		
-
-		} catch (Exception $e) {
-			
-		}
-	}
-
-	private static function initialize($args){
-		$invoice =  new GeneralInvoiceTX($args['id'], $args['client_id'], $args['description'], $args['amount'], $args['tax'], $args['discount'], $args['total'], $args['status']);
-		return $invoice;
-	}
-
-
-	public static function RaiseInvoice($clientId, $amount, $tax, $discount, $total)
-	{
-		//Defer to invoice class to persist details
-		try {
-			
-			$datetime = new DateTime();
-			#status 0 - awaiting payment, 1- partially paid, 2-overdue, 3-paid
-			$ref = "General Invoice";
+		if ($scope == "G") {
+			$descr = "General Services";
 			$pid = 0;
-
-			$sql = 'INSERT INTO invoices (client_id, amount, tax, discount, total, description, status) VALUES 
-			('.$clientId.', '.$amount.', '.$tax.', '.$discount.', '.$total.', "'.$ref.'", 0)';
-	 		DatabaseHandler::Execute($sql);
-	 		
-	 		$sql2 = 'SELECT * FROM invoices WHERE client_id = '.$clientId.' ORDER BY id DESC LIMIT 0,1';
-			$res =  DatabaseHandler::GetRow($sql2);
-
-			return self::initialize($res);
-
-		} catch (Exception $e) {
-			
+		}else{
+			$prj = Project::GetProject(intval($scope));
+			$descr = $prj->name.' Project';
+			$pid = intval($scope);
 		}
+
+		$qids = implode(",", $quotes);
+
+		$invoice = Invoice::CreateInvoice($client, $pid, $qids, $descr, $discount);		
+
+		foreach ($quotes as $qid) {
+			$quotation = Quotation::GetQuotation($qid);
+			foreach ($quotation->lineItems as $item) {
+		    	$invoice->addToInvoice(InvoiceLine::Create($invoice->id, $item->itemName, $item->itemDesc, $item->quantity, $item->unitPrice, $item->tax));
+			}			
+		}
+
+		if ($invoice->generate()) {
+			return new InvoiceTX($invoice, 'Quotation Invoice');
+		}else{
+			Logger::Log('InvoiceTX', 'Failed', 'Quotation invoice transaction with id:'.$invoice->id.' and tx id:'.$this->transactionId.' could not be completed');
+			return false;
+		}		
+	}
+
+	public static function RaiseGeneralInvoice($clientId, $scope, $items, $discount)
+	{
+		$client = Client::GetClient($clientId);
+
+		if ($scope == "G") {
+			$descr = "General Services";
+			$pid = 0;
+		}else{
+			$prj = Project::GetProject(intval($scope));
+			$descr = $prj->name.' Project';
+			$pid = intval($scope);
+		}
+
+		$quotes = null;
+
+		$invoice = Invoice::CreateInvoice($client, $pid, $quotes, $descr, $discount);
+
+		foreach ($items as $item) {
+		    $invoice->addToInvoice(InvoiceLine::Create($invoice->id, $item['service'], $item['task'], $item['qty'], $item['price'], $item['tax']));
+		}
+
+		if ($invoice->generate()) {
+			return new InvoiceTX($invoice, 'General Invoice');
+		}else{
+			Logger::Log('InvoiceTX', 'Failed', 'General invoice transaction with id:'.$invoice->id.' and tx id:'.$this->transactionId.' could not be completed');
+			return false;
+		}		
+	}
+
+	public static function RaiseSalesArrearsInvoice($clientId, $amount)
+	{
+		$client = Client::GetClient($clientId);
+		$descr = "Sales balance B/F";
+		$pid = 0;
+		$discount = 0;
+		$quotes = null;
+
+		$invoice = Invoice::CreateInvoice($client, $pid, $quotes, $descr, $discount);
+
+		$invoice->addToInvoice(InvoiceLine::Create($invoice->id, 'Balances brought forward', 'System migration', 1, $amount->amount, 0));
+
+		if ($invoice->generate()) {
+			return new InvoiceTX($invoice, 'Sales Balance B/F Invoice');
+		}else{
+			Logger::Log('InvoiceTX', 'Failed', 'Sales balance B/F invoice transaction with id:'.$invoice->id.' and tx id:'.$this->transactionId.' could not be completed');
+			return false;
+		}		
 	}
 }
 
@@ -1977,48 +1848,6 @@ class SimpleSaleAccountability extends Accountability
       		return $this->invoice;
       	}
   	}
-}
-
-class SalesArrearsInvoiceTX extends FinancialTransaction
-{
-	public $clientId;
-
-	function __construct($clientId, $amount)
-	{
-		$this->clientId = $clientId;
-		//$this->amount = $amount; - Money class
-		//$this->description = "Balance brought forward";
-		//$txtype = new BalanceBF($clientId);
-		$txtype = new SalesInvoice($clientId, 'Sales Balance B/F Invoice');
-		parent::__construct($amount, "Sales balance brought forward", $txtype);
-	}
-
-	public function execute()
-	{
-		if ($this->prepare()) {
-			if (TransactionProcessor::ProcessTransfer($this)) {
-				return true;
-			}else{
-				return false;
-			}
-		}
-	}
-
-	private function prepare()
-	{		
-		for ($i=0; $i < count($this->transactionType->drAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->drRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->drAccounts[$i], $amount, $this->date, 'dr'));
-		}
-
-		for ($i=0; $i < count($this->transactionType->crAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->crRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->crAccounts[$i], $amount, $this->date, 'cr'));
-		}
-
-		return true;
-
-	}	
 }
 
 class ExpenseItem

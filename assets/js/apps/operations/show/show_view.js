@@ -46,7 +46,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
 
           $.get(System.coreRoot + '/service/operations/index.php?services', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-question-circle" class="defserve">Select One...</option>');
+            var tp = $('<option data-icon="fa fa-question-circle" value="0">Select One...</option>');
             tp.appendTo(uls);
             
             m.forEach(function(elem){
@@ -89,10 +89,11 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                       '<td>'+data['price']+'</td><td>'+data['qty']+'</td><td>Ksh. '+total+'</td></tr>');
 
           tpl.appendTo(ul);
-
+          $('#services option[value="0"]').prop('selected', true);
+          
           setTimeout(function (){
             $("#frmq2").find('input').val('');
-            $("#frmq2").find('.selectpicker').find('.defserve').find('a').click();
+            $('.selectpicker').selectpicker('refresh');
           }, 150);
         },
 

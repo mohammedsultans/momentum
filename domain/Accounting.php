@@ -40,7 +40,7 @@ class ResourceType extends FourthDimension
 }
 
 class ConsumableType extends ResourceType
-{ 	
+{
  	function __construct($typeId, $typeName, Unit $unit)
  	{
  		parent::__construct($typeId, $typeName, $unit);
@@ -48,16 +48,15 @@ class ConsumableType extends ResourceType
 }
 
 class AssetType extends ResourceType
-{ 	
+{
  	function __construct($typeId, $typeName, Unit $unit)
  	{
  		parent::__construct($typeId, $typeName, $unit);
  	}
 }
 
-
 class ConvertionRatio
-{	
+{
 	public $name;
 	public $number;
 	public $fromUnit;
@@ -154,9 +153,7 @@ class Unit
 	{
 
 	}
-
 }
-
 
 class WorkService extends Unit
 {
@@ -187,7 +184,6 @@ class WorkService extends Unit
  		
 		return new WorkService($res['id'], $res['phenomena'], $res['name'], $res['symbol']);
 	}
-
 }
 
 class Currency extends Unit
@@ -219,11 +215,10 @@ class Currency extends Unit
  		
 		return new Currency($res['id'], $res['phenomena'], $res['name'], $res['symbol']);
 	}
-
 }
 
 class Enumerable extends Unit
-{	
+{
 	function __construct($id, $phenomena, $name, $symbol = null)
 	{
 		//parent::Create($phenomena, $name, $symbol);
@@ -246,7 +241,6 @@ class Enumerable extends Unit
  		
 		return new Enumerable($res['id'], $res['phenomena'], $res['name'], $res['symbol']);
 	}
-
 }
 
 class Quantity
@@ -360,7 +354,6 @@ class TransactionType extends Protocol
 		
 	}
 }
-
 //Subclass into single transaction and batch transaction
 class Transaction extends Action
 {
@@ -378,7 +371,7 @@ class Transaction extends Action
 	{
 		//parent::__construct();
 		$datetime = new DateTime();
-		$this->date = $datetime->format('Y/m/d H:i a');
+		$this->date = $datetime->format('d/m/Y H:i a');
 		$this->stamp = $datetime->format('YmdHis');
 		$this->amount = $amount;
 		$this->description = $description;
@@ -489,6 +482,17 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 		}
 	}
 
+	public static function ProcessInvoiceTX($invoicetx)
+	{
+		//if busy - add to queue, if ready - add to currentTransaction then prepare and commit
+		if ($invoicetx->commit()) {
+			return Voucher::CreateInvoiceTxVoucher($invoicetx);
+		}else{
+			Logger::Log('TransactionProcessor', 'Failed', $invoicetx->txtype->name.' transaction with id:'.$invoicetx->invoice->id.' and tx id:'.$invoicetx->transactionId.' could not be commited');
+			return false;
+		}
+	}
+
 	public static function ProcessTransfer($transfer)
 	{
 		//if busy - add to queue, if ready - add to currentTransaction then prepare and commit
@@ -533,7 +537,6 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 			return false;
 		}	
 	}
-
 }
 
 class Artifact extends FourthDimension
@@ -742,28 +745,28 @@ class Account extends Artifact
 	{
 		switch ($this->accountType) {
 			case 'Asset':
-				$this->balance->amount = intval($this->balance->amount) - intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) - intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) - floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) - floatval($entry->amount->amount);
 				break;
 
 			case 'Liability':
-				$this->balance->amount = intval($this->balance->amount) + intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) + intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) + floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) + floatval($entry->amount->amount);
 				break;
 
 			case 'Equity':
-				$this->balance->amount = intval($this->balance->amount) + intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) + intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) + floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) + floatval($entry->amount->amount);
 				break;
 
 			case 'Expense':
-				$this->balance->amount = intval($this->balance->amount) - intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) - intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) - floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) - floatval($entry->amount->amount);
 				break;
 
 			case 'Revenue':
-				$this->balance->amount = intval($this->balance->amount) + intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) + intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) + floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) + floatval($entry->amount->amount);
 				break;
 			
 			default:
@@ -775,28 +778,28 @@ class Account extends Artifact
 	{
 		switch ($this->accountType) {
 			case 'Asset':
-				$this->balance->amount = intval($this->balance->amount) + intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) + intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) + floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) + floatval($entry->amount->amount);
 				break;
 
 			case 'Liability':
-				$this->balance->amount = intval($this->balance->amount) - intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) - intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) - floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) - floatval($entry->amount->amount);
 				break;
 
 			case 'Equity':
-				$this->balance->amount = intval($this->balance->amount) - intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) - intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) - floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) - floatval($entry->amount->amount);
 				break;
 			
 			case 'Expense':
-				$this->balance->amount = intval($this->balance->amount) + intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) + intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) + floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) + floatval($entry->amount->amount);
 				break;
 
 			case 'Revenue':
-				$this->balance->amount = intval($this->balance->amount) - intval($entry->amount->amount);
-				$this->ledgerBal->amount = intval($this->ledgerBal->amount) - intval($entry->amount->amount);
+				$this->balance->amount = floatval($this->balance->amount) - floatval($entry->amount->amount);
+				$this->ledgerBal->amount = floatval($this->ledgerBal->amount) - floatval($entry->amount->amount);
 				break;
 			default:
 				break;
@@ -909,7 +912,6 @@ class HoldingAccount extends Artifact
 	function __construct()
 	{
 	}
-
 }
 
 abstract class TimeRecord

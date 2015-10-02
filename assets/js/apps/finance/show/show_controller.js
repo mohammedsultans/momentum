@@ -8,7 +8,7 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         System.contentRegion.show(view);
 
         view.on('post', function(data) {
-          data['operation'] = 'postInvoice';
+          data['operation'] = 'postQuoteInvoice';
           $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
             if (result != 0) {
               var res = JSON.parse(result);
@@ -31,7 +31,7 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         System.contentRegion.show(view);
 
         view.on('post', function(data) {
-          data['operation'] = 'postInvoice';
+          data['operation'] = 'postGenInvoice';
           $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
             if (result != 0) {
               var res = JSON.parse(result);

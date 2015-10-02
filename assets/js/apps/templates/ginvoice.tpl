@@ -34,15 +34,18 @@
           <div class="panel-body">
             <form class="form-horizontal" id="frmi1">
               <div class="form-group">
-                <label class="col-sm-2 control-label form-label">Client</label>
+                <label class="col-sm-2 control-label form-label">Client<span class="color10">*</span></label>
                 <div class="col-sm-10">
-                  <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px" data-live-search="true" >
+                  <select class="selectpicker form-control" name="client" id="clients" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Customer...</option>
-                    <option data-icon="fa fa-user">Alex Mbaka</option>
-                    <option data-icon="fa fa-user">Prince Munene</option>
-                    <option data-icon="fa fa-user">Chase Assurance</option>
-                    <option data-icon="fa fa-user">Genghis Capital</option>
-                    <option data-icon="fa fa-user">Light House Properties</option>
+                  </select>  
+                </div>              
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Scope<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="scope" id="scopes" data-live-search="true" >
+                    <option data-icon="fa fa-archive">Select One...</option>
                   </select>  
                 </div>              
               </div>
@@ -58,14 +61,8 @@
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Service</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="service" id="services" style="padding-left:5px" data-live-search="true" >
+                      <select class="selectpicker form-control" name="service" id="services" data-live-search="true" >
                         <option data-icon="fa fa-question-circle" class="defserve">Select One...</option>
-                        <option data-icon="fa fa-question-circle">General Boundary Survey</option>
-                        <option data-icon="fa fa-question-circle">Fixed Boundary Survey</option>
-                        <option data-icon="fa fa-question-circle">Topocadastral Survey</option>
-                        <option data-icon="fa fa-question-circle">Engineering Survey</option>
-                        <option data-icon="fa fa-question-circle">General Land Consultancy</option>
-                        <option data-icon="fa fa-question-circle">GIS Training</option>
                       </select>  
                     </div>              
                   </div>  
@@ -151,26 +148,42 @@
                     </tr>
                   </tbody>
             </table>
-          
-            
-            <form class="form-horizontal" style="overflow:hidden;border-top:5px solid #ddd;padding-top:20px">
+
+            <form class="form-horizontal" style="overflow:hidden;border-top:5px solid #ddd;padding-top:20px" id="frmi3">
               <div class="form-group">
-                <label class="col-sm-2 control-label form-label">Taxes</label>
-                <div class="col-sm-2">
-                  <input type="text" name="tax" class="form-control" id="tottax" placeholder="Tax" value="" readonly>
-                </div>
-                <label class="col-sm-2 control-label form-label" style="font-weight:600">TOTAL</label>
-                <div class="col-sm-6">
+                <label class="col-sm-3 control-label form-label" style="font-weight:600">AMOUNT</label>
+                <div class="col-sm-9">
                   <div class="input-group">
                     <div class="input-group-addon"><i class="">Ksh.</i></div>
-                    <input type="text" id="totamt" class="form-control" readonly>
+                    <input type="text" class="form-control" id="amount" name="amount" readonly>
+                    <div class="input-group-addon">.00</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-3 control-label form-label">Taxes</label>
+                <div class="col-sm-3">
+                  <input type="text" name="tax" class="form-control" id="taxes" placeholder="Tax" value="" readonly>
+                </div>
+                <label class="col-sm-3 control-label form-label" style="font-weight:600">Discount</label>
+                <div class="col-sm-3">
+                  <input type="text" name="discount" class="form-control" id="disc" placeholder="Discount %" value="">
+                </div>
+              </div>
+                  
+              <div class="form-group">
+                <label class="col-sm-3 control-label form-label" style="font-weight:600">TOTAL</label>
+                <div class="col-sm-9">
+                  <div class="input-group">
+                    <div class="input-group-addon"><i class="">Ksh.</i></div>
+                    <input type="text" class="form-control" name="total" id="total" readonly>
                     <div class="input-group-addon">.00</div>
                   </div>
                 </div>
               </div>
               <button type="submit" class="btn btn-warning idiscard float-r" style="margin-left:20px">Discard</button>
-              <button type="submit" class="btn btn-default igenerate float-r">Generate Invoice</button>
-              
+              <button type="submit" class="btn btn-default igenerate float-r">Post Invoice</button>
+                  
             </form>
           </div>
         </div>

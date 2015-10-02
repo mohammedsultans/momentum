@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Client Invoicing</h1>
+    <h1 class="title">Create Quotation Invoice</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -38,15 +38,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Customer...</option>
-                    <option data-icon="fa fa-user">Alex Mbaka</option>
-                    <option data-icon="fa fa-user">Prince Munene</option>
-                    <option data-icon="fa fa-user">Chase Assurance</option>
-                    <option data-icon="fa fa-user">Genghis Capital</option>
-                    <option data-icon="fa fa-user">Light House Properties</option>
-                    <option data-icon="fa fa-user">Orchid Capital</option>
-                    <option data-icon="fa fa-user">Rafiki Microfinance</option>
-                    <option data-icon="fa fa-user">Tulip Healthcare</option>
-                    <option data-icon="fa fa-user">Rivieres Finance</option>
                   </select>  
                 </div>              
               </div>
@@ -55,12 +46,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="purpose" id="projects" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-archive">Select One...</option>
-                    <option data-icon="fa fa-archive">General Boundary Survey</option>
-                    <option data-icon="fa fa-archive">Fixed Boundary Survey</option>
-                    <option data-icon="fa fa-archive">Topocadastral Survey</option>
-                    <option data-icon="fa fa-archive">Engineering Survey</option>
-                    <option data-icon="fa fa-archive">General Land Consultancy</option>
-                    <option data-icon="fa fa-archive">GIS Training</option>
                   </select>  
                 </div>              
               </div>   
@@ -69,10 +54,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="quote" id="quotes" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-calculator">Select One...</option>
-                    <option data-icon="fa fa-calculator">Q1235625</option>
-                    <option data-icon="fa fa-calculator">Q1236257</option>
-                    <option data-icon="fa fa-calculator">Q1230023</option>
-                    <option data-icon="fa fa-calculator">Q1242152</option>
                   </select>  
                 </div>              
               </div>   
@@ -87,7 +68,7 @@
         <div class="panel panel-default">
 
           <div class="panel-title">
-            Invoice Particulars <span class="label label-primary">4</span>
+            Invoice Particulars <span class="label label-primary">?</span>
             <ul class="panel-tools">
               <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
               <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
@@ -107,30 +88,6 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>Kode Gaming Laptop</td>
-                      <td>Ksh. 450</td>
-                      <td>3</td>
-                      <td>Ksh. 1,350</td>
-                    </tr>
-                    <tr>
-                      <td>New Season Jacket</td>
-                      <td>Ksh. 450</td>
-                      <td>1</td>
-                      <td>Ksh. 450</td>
-                    </tr>
-                    <tr>
-                      <td>IO Mouse</td>
-                      <td>Ksh. 450</td>
-                      <td>1</td>
-                      <td>Ksh. 450</td>
-                    </tr>
-                    <tr>
-                      <td>Doe Bike</td>
-                      <td>Ksh. 450</td>
-                      <td>2</td>
-                      <td>Ksh. 90</td>
-                    </tr>
                   </tbody>
                 </table>
 

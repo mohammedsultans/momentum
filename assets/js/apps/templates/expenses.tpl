@@ -37,11 +37,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="credit" id="banks" style="padding-left:5px" data-live-search="true">
                         <option data-icon="fa fa-suitcase">Select ledger...</option>
-                        <option data-icon="fa fa-suitcase" value="Asset">Asset</option>
-                        <option data-icon="fa fa-suitcase" value="Liability">Liability</option>
-                        <option data-icon="fa fa-suitcase" value="Equity">Equity</option>
-                        <option data-icon="fa fa-suitcase" value="Revenue">Revenue</option>
-                        <option data-icon="fa fa-suitcase" value="Expense">Expense</option>
                       </select>  
                     </div>
                   </div>
@@ -50,11 +45,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="debit" id="expenses" style="padding-left:5px" data-live-search="true">
                         <option data-icon="fa fa-suitcase">Select ledger...</option>
-                        <option data-icon="fa fa-suitcase" value="Asset">Asset</option>
-                        <option data-icon="fa fa-suitcase" value="Liability">Liability</option>
-                        <option data-icon="fa fa-suitcase" value="Equity">Equity</option>
-                        <option data-icon="fa fa-suitcase" value="Revenue">Revenue</option>
-                        <option data-icon="fa fa-suitcase" value="Expense">Expense</option>
                       </select>  
                     </div>
                   </div>

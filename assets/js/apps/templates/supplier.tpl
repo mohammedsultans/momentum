@@ -41,6 +41,12 @@
                     </div>
                   </div>
                   <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Contact Person</label>
+                    <div class="col-sm-10">
+                      <input type="text" name="person" class="form-control" id="">
+                    </div>
+                  </div>
+                  <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Mobile<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <input type="text" name="tel" class="form-control" id="">
@@ -90,16 +96,7 @@
                 <label class="col-sm-2 control-label form-label">Search</label>
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" id="suppliers" name="suppliers" style="padding-left:5px" data-live-search="true" >
-                    <option data-icon="fa fa-institution">Select Customer...</option>
-                    <option data-icon="fa fa-institution">Alex Mbaka</option>
-                    <option data-icon="fa fa-institution">Prince Munene</option>
-                    <option data-icon="fa fa-institution">Chase Assurance</option>
-                    <option data-icon="fa fa-institution">Genghis Capital</option>
-                    <option data-icon="fa fa-institution">Light House Properties</option>
-                    <option data-icon="fa fa-institution">Orchid Capital</option>
-                    <option data-icon="fa fa-institution">Rafiki Microfinance</option>
-                    <option data-icon="fa fa-institution">Tulip Healthcare</option>
-                    <option data-icon="fa fa-institution">Rivieres Finance</option>
+                    <option data-icon="fa fa-institution">Select supplier...</option>
                   </select>  
                 </div>              
               </div>    
@@ -107,6 +104,12 @@
                 <label class="col-sm-2 control-label form-label">Name</label>
                 <div class="col-sm-10">
                   <input type="text" name="name2" class="form-control" id="ename">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Contact Person</label>
+                <div class="col-sm-10">
+                  <input type="text" name="person2" class="form-control" id="eperson">
                 </div>
               </div>
               <div class="form-group">

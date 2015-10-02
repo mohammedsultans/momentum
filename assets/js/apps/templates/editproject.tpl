@@ -38,15 +38,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px" data-live-search="true" >
                         <option data-icon="fa fa-user">Select Customer...</option>
-                        <option data-icon="fa fa-user">Alex Mbaka</option>
-                        <option data-icon="fa fa-user">Prince Munene</option>
-                        <option data-icon="fa fa-user">Chase Assurance</option>
-                        <option data-icon="fa fa-user">Genghis Capital</option>
-                        <option data-icon="fa fa-user">Light House Properties</option>
-                        <option data-icon="fa fa-user">Orchid Capital</option>
-                        <option data-icon="fa fa-user">Rafiki Microfinance</option>
-                        <option data-icon="fa fa-user">Tulip Healthcare</option>
-                        <option data-icon="fa fa-user">Rivieres Finance</option>
                       </select>  
                     </div>              
                   </div> 
@@ -55,12 +46,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="projectid" id="projects" style="padding-left:5px" data-live-search="true" >
                         <option data-icon="fa fa-archive">Select One...</option>
-                        <option data-icon="fa fa-archive">General Boundary Survey</option>
-                        <option data-icon="fa fa-archive">Fixed Boundary Survey</option>
-                        <option data-icon="fa fa-archive">Topocadastral Survey</option>
-                        <option data-icon="fa fa-archive">Engineering Survey</option>
-                        <option data-icon="fa fa-archive">General Land Consultancy</option>
-                        <option data-icon="fa fa-archive">GIS Training</option>
                       </select>  
                     </div>              
                   </div>   
@@ -127,10 +112,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="quote" id="quotes" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-calculator">Select One...</option>
-                    <option data-icon="fa fa-calculator">Q1235625</option>
-                    <option data-icon="fa fa-calculator">Q1236257</option>
-                    <option data-icon="fa fa-calculator">Q1230023</option>
-                    <option data-icon="fa fa-calculator">Q1242152</option>
                   </select>  
                 </div>              
               </div>   
@@ -148,21 +129,6 @@
                 </tr>
               </thead>
               <tbody class="acts">
-                <tr>
-                  <td>Topocadastral Survey<br><span style="font-style:italic; font-size:11px">The Task goes here [Q12897637]</span></td>
-                  <td>3</td>
-                  <td>Proposed</td><!-- Quotation -->
-                </tr>
-                <tr>
-                  <td>Engineering Survey<br><span style="font-style:italic; font-size:11px">The Task goes here [Q12897637]</span></td>
-                  <td>1</td>
-                  <td>Approved</td><!-- Invoice -->
-                </tr>
-                <tr>
-                  <td>General Land Consultancy<br><span style="font-style:italic; font-size:11px">The Task goes here [Q12897637]</span></td>
-                  <td>2</td>
-                  <td>Completed</td><!-- Field Report -->
-                </tr>
               </tbody>
             </table>
 

@@ -107,8 +107,8 @@ $voucher = json_decode($_POST['voucher']);
         </tr>
         <tr>
           <td colspan="2" class="text-left" style="font-size:11px;text-transform:capitalize">ACCOUNT BALANCE: <?php if ($voucher->party->balance->amount < 0) { 
-              echo '(Ksh. '.$voucher->party->balance->amount.')';
-            }else { echo 'Ksh. '.$voucher->party->balance->amount; }?></td>
+              echo "(Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>)";
+            }else { echo "Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>"; }?></td>
         </tr>
       </tbody>
       

@@ -11,20 +11,28 @@
 		{
 			if(isset($_POST['operation'])){
 				$operation = $_POST['operation'];
-				if($operation == 'postInvoice'){
+				if($operation == 'postQuoteInvoice'){
 					if(isset($_POST['client']) && isset($_POST['purpose']) && isset($_POST['quotes'])){
 						$clientid = $_POST['client'];
-						$purpose = $_POST['purpose'];
+						$scope = $_POST['purpose'];
 						$discount = $_POST['discount'];
 						if (isset($_POST['quotes'])) {
 							$quotes = $_POST['quotes'];
 						}else{
 							$quotes = [];
 						}
-						$amount = $_POST['amount'];
-						$tax = $_POST['tax'];
-						$total = $_POST['total'];
-						$this->postInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total);
+						$this->postQuoteInvoice($clientid, $scope, $quotes, $discount);
+					}else{
+						echo 0;
+					}
+				
+				}elseif($operation == 'postGenInvoice'){
+					if(isset($_POST['client']) && isset($_POST['scope']) && isset($_POST['items'])){
+						$clientid = $_POST['client'];
+						$scope = $_POST['scope'];
+						$items = $_POST['items'];
+						$discount = $_POST['discount'];
+						$this->postGenInvoice($clientid, $scope, $items, $discount);
 					}else{
 						echo 0;
 					}
@@ -182,10 +190,25 @@
 			}
 		}
 
-		public function postInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total)
+		public function postQuoteInvoice($clientid, $scope, $quotes, $discount)
 		{
-			$invoice = QuotationInvoiceTX::RaiseInvoice($clientid, $purpose, $quotes, $amount, $tax, $discount, $total);
+			$invoice = InvoiceTX::RaiseQuotationInvoice($clientid, $scope, $quotes, $discount);
+
 			$voucher = $invoice->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postGenInvoice($clientid, $scope, $items, $discount)
+		{
+			$invoice = InvoiceTX::RaiseGeneralInvoice($clientid, $scope, $items, $discount);			
+
+			$voucher = $invoice->post();
+
 			if ($voucher) {
 				echo json_encode($voucher);
 			}else{

@@ -38,11 +38,6 @@
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px" data-live-search="true" >
                     <option data-icon="fa fa-user">Select Customer...</option>
-                    <option data-icon="fa fa-user">Alex Mbaka</option>
-                    <option data-icon="fa fa-user">Prince Munene</option>
-                    <option data-icon="fa fa-user">Chase Assurance</option>
-                    <option data-icon="fa fa-user">Genghis Capital</option>
-                    <option data-icon="fa fa-user">Light House Properties</option>
                   </select>  
                 </div>              
               </div>
@@ -60,12 +55,6 @@
                     <div class="col-sm-10">
                       <select class="selectpicker form-control" name="service" id="services" style="padding-left:5px" data-live-search="true" >
                         <option data-icon="fa fa-question-circle" class="defserve">Select One...</option>
-                        <option data-icon="fa fa-question-circle">General Boundary Survey</option>
-                        <option data-icon="fa fa-question-circle">Fixed Boundary Survey</option>
-                        <option data-icon="fa fa-question-circle">Topocadastral Survey</option>
-                        <option data-icon="fa fa-question-circle">Engineering Survey</option>
-                        <option data-icon="fa fa-question-circle">General Land Consultancy</option>
-                        <option data-icon="fa fa-question-circle">GIS Training</option>
                       </select>  
                     </div>              
                   </div>  
@@ -106,7 +95,7 @@
         <div class="panel panel-default">
 
           <div class="panel-title">
-            Quotation Particulars <span class="label label-primary">4</span>
+            Quotation Particulars <span class="label label-primary">?</span>
             <ul class="panel-tools">
               <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
               <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
@@ -125,30 +114,6 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                    <td>Topocadastral Survey<br><span style="font-style:italic; font-size:11px">The Task goes here</span></td>
-                      <td>450</td>
-                      <td>3</td>
-                      <td>Ksh. 1,350</td>
-                    </tr>
-                    <tr>
-                      <td>Topocadastral Survey<br><span style="font-style:italic; font-size:11px">The Task goes here</span></td>
-                      <td>450</td>
-                      <td>1</td>
-                      <td>Ksh. 450</td>
-                    </tr>
-                    <tr>
-                      <td>Engineering Survey<br><span style="font-style:italic; font-size:11px">The Task goes here</span></td>
-                      <td>450</td>
-                      <td>1</td>
-                      <td>Ksh. 450</td>
-                    </tr>
-                    <tr>
-                      <td>General Land Consultancy<br><span style="font-style:italic; font-size:11px">The Task goes here</span></td>
-                      <td>450</td>
-                      <td>2</td>
-                      <td>Ksh. 900</td>
-                    </tr>
                   </tbody>
             </table>
           

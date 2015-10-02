@@ -4,49 +4,22 @@
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
   	//require_once DOMAIN_DIR . 'Product.php';
 	
-	class CRM
+	class ProcurementApp
 	{
 		// Constructor reads query string parameter
 		public function __construct()
 		{
 			if(isset($_POST['operation'])){
 				$operation = $_POST['operation'];
-				if($operation == 'enquiry'){
+				if($operation == 'addSupplier'){
 					if(isset($_POST['name']) && isset($_POST['tel'])){
 						$name = $_POST['name'];
-						$mobile = $_POST['tel'];
-						if (isset($_POST['service'])) {
-							$services = $_POST['service'];
-						}
-						$servs;
-						foreach ($services as $key => $serv) {
-							if ($key == 0) {
-								$servs = $serv;
-							}else{
-								$servs .= ', '.$serv;
-							}
-						}
-						$details = $_POST['details'];
-						$this->logEnquiry($name, $mobile, $servs, $details);
-					}else{
-						echo 0;
-					}
-				
-				}elseif($operation == 'checkenquiry'){
-					if(isset($_POST['stamp'])){
-						$this->checkEnquiry($_POST['stamp']);
-					}else{
-						echo 0;
-					}
-						
-				}elseif($operation == 'addSupplier'){
-					if(isset($_POST['name']) && isset($_POST['tel'])){
-						$name = $_POST['name'];
+						$person = $_POST['person'];
 						$mobile = $_POST['tel'];
 						$email = $_POST['email'];
 						$address = $_POST['address'];
 						$bal = $_POST['bal'];
-						$this->createSupplier($name, $mobile, $email, $address, $bal);
+						$this->createSupplier($name, $person, $mobile, $email, $address, $bal);
 					}else{
 						echo 0;
 					}
@@ -55,10 +28,11 @@
 					if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['tel'])){
 						$supplierid = $_POST['id'];
 						$name = $_POST['name'];
+						$person = $_POST['person'];
 						$mobile = $_POST['tel'];
 						$email = $_POST['email'];
 						$address = $_POST['address'];
-						$this->updateSupplier($supplierid, $name, $mobile, $email, $address);
+						$this->updateSupplier($supplierid, $name, $person, $mobile, $email, $address);
 					}else{
 						echo 0;
 					}
@@ -87,50 +61,19 @@
 				echo 0;
 			}
 		}
-		/* Calls business tier method to read Journals list and create
-		their links */
-
-		public function logEnquiry($name, $mobile, $services, $details)
+		/* Calls procurement application methods */
+		public function createSupplier($name, $person, $mobile, $email, $address, $bal)
 		{
-			if (Enquiry::Create($name, $mobile, $services, $details)) {
+			if (Supplier::Create($name, $person, $mobile, $email, $address, $bal)) {
 				echo 1;
 			}else{
 				echo 0;
 			}
 		}
 
-		public function getPending()
+		public function updateSupplier($supplierid, $name, $person, $mobile, $email, $address)
 		{
-			if ($this->validateAdmin()) {
-				echo json_encode(Enquiry::GetPending());
-			}else{
-				echo 0;
-			}
-		}
-
-		public function checkEnquiry($stamp)
-		{
-			Enquiry::Check($stamp);
-			$enquiry = Enquiry::GetEnquiry($stamp);
-			if ($enquiry->status == 1) {
-				echo 1;
-			}else{
-				echo 0;
-			}
-		}
-
-		public function createSupplier($name, $mobile, $email, $address, $bal)
-		{
-			if (Supplier::Create($name, $mobile, $email, $address, $bal)) {
-				echo 1;
-			}else{
-				echo 0;
-			}
-		}
-
-		public function updateSupplier($supplierid, $name, $mobile, $email, $address)
-		{
-			if (Supplier::Update($supplierid, $name, $mobile, $email, $address)) {
+			if (Supplier::Update($supplierid, $name, $person, $mobile, $email, $address)) {
 				echo 1;
 			}else{
 				echo 0;
@@ -214,7 +157,7 @@
 	    break;
 	}*/
 
-	$response = new CRM();
+	$response = new ProcurementApp();
 	//$response->init();
 	//echo json_encode($response->mJournals);
 ?>
