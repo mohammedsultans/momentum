@@ -23,8 +23,8 @@ God bless QET, God bless us all.
 
 Regards,
 Alexander Mbaka,
-Chief Systems Architect,
-QET Systems
+Co-founder, Philosopher & Chief Systems Architect.
+QET Systems Ltd.
 [GitHub: xander-mbaka]
 
 
