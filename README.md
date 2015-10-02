@@ -6,7 +6,7 @@ EIS {enterprise information system}
 Here we are implementing the information system using the standard frontend stack of HTML5, CSS3 and Javascript with
 the backend being currently implemented in PHP > 5.4 with a view to port the architecture to Node.js and maybe
 C++ {it really doesnt matter what we are planning, the architecture itself supports polygot programming - that being 
-said, everything is strictly object oriented (or being refactored to that end; we have no time for 'feelings')}
+said, everything is strictly object oriented [or being refactored to that end; we have no time for 'feelings' :)]}
 
 The main aim for the creation of this system is to apply stable architectural patterns as defined by nature and delineated
 by software architects like Lubor Sesera and Martin Fowler. Most importantly we aim to apply the reuse of the four 
