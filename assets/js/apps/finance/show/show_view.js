@@ -1257,7 +1257,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                 
               items.forEach(function(elem){
                 var tpl = $('<tr><td>'+elem['claimant']+'</td><td>'+elem['description']+'</td><td><p class="lid" style="display: none;">'+elem['ledger']['id']+'</p>'+elem['ledger']['name']+'</td><td>Ksh. '+(parseFloat(elem['claimed'])).formatMoney(2, '.', ',')+'</td>'+
-                  '<td><form class="form-horizontal"><div class="form-group"><div class="input-group"><p class="viid" style="display: none;">'+elem['id']+'</p><div class="input-group-addon">'+
+                  '<td><form class="form-horizontal" style="margin:0"><div class="form-group"><div class="input-group"><p class="viid" style="display: none;">'+elem['id']+'</p><div class="input-group-addon">'+
                   '<i class="">Ksh.</i></div><input type="text" class="form-control adjusted" name="adjusted" value="'+elem['adjusted']+'"></div></div></form></td></tr>');
                 tpl.appendTo(ul);
               });
@@ -1658,6 +1658,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           rform.method = "POST"; // or "post" if appropriate
           if (voucher.type.toLowerCase() == 'receipt') {
             rform.action = "receipt.php";
+          }else if(voucher.type.toLowerCase() == 'quotation'){
+            rform.action = "quotation.php";
           }else{
             rform.action = "invoice.php";
           }

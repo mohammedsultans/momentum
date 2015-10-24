@@ -417,8 +417,10 @@ class Transaction extends Action
 			foreach ($this->entries as $entry) {
 				if ($entry->effect == 'cr') {
 					$cr = $cr + $entry->amount->amount;
+
 				}else if ($entry->effect == 'dr') {
 					$dr = $dr + $entry->amount->amount;
+					Logger::Log(get_class($this), 'Test', 'Debit '.$entry->account->accountName.': '.$entry->amount->amount);
 				}
 			}
 
@@ -438,7 +440,7 @@ class Transaction extends Action
 				}
 			}else{
 				//throw new Exception("The entries are not conservative. Probable system leak!");
-				Logger::Log(get_class($this), 'Exception', 'The entries are not conservative. Probable system leak!');
+				Logger::Log(get_class($this), 'Exception', 'The entries are not conservative. Probable system leak! CR: '.$cr.', DR: '.$dr);
 				return false;
 			}
 
@@ -482,13 +484,24 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 		}
 	}
 
-	public static function ProcessInvoiceTX($invoicetx)
+	public static function ProcessSalesTX($invoicetx)
 	{
 		//if busy - add to queue, if ready - add to currentTransaction then prepare and commit
 		if ($invoicetx->commit()) {
-			return Voucher::CreateInvoiceTxVoucher($invoicetx);
+			return Voucher::CreateSalesTxVoucher($invoicetx);
 		}else{
 			Logger::Log('TransactionProcessor', 'Failed', $invoicetx->txtype->name.' transaction with id:'.$invoicetx->invoice->id.' and tx id:'.$invoicetx->transactionId.' could not be commited');
+			return false;
+		}
+	}
+
+	public static function ProcessPurchaseTX($invoicetx)
+	{
+		//if busy - add to queue, if ready - add to currentTransaction then prepare and commit
+		if ($invoicetx->commit()) {
+			return Voucher::CreatePurchaseTxVoucher($invoicetx);
+		}else{
+			Logger::Log('TransactionProcessor', 'Failed', $invoicetx->transactionType->name.' transaction with id:'.$invoicetx->invoice->id.' and tx id:'.$invoicetx->transactionId.' could not be commited');
 			return false;
 		}
 	}
@@ -536,6 +549,16 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 			Logger::Log('TransactionProcessor', 'Failed', 'Claim transaction with tx id:'.$claim->transactionId.' could not be commited');
 			return false;
 		}	
+	}
+}
+
+class FinancialTransaction extends Transaction
+{
+	function __construct(Money $amount, $description, TransactionType $txtype)
+	{		
+		//$ttype === posting protocol/rule
+		$this->transactionType = $txtype;
+		parent::__construct($amount, $description);
 	}
 }
 
@@ -1034,6 +1057,21 @@ class Ledger extends Artifact
 		}
 	}
 
+	public static function GetPurchaseLedgers()
+	{	    
+	    try {
+			$sql = 'SELECT * FROM ledgers WHERE (type = "Asset" OR type = "Expense") AND category != "Bank"';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ledgers = [];
+			foreach ($res as $ledger) {
+				$ledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
 	public static function GetLedgerType($type)
 	{	    
 	    try {
@@ -1103,6 +1141,424 @@ class Ledger extends Artifact
         	return false;
         }
     }
+}
+
+class Voucher extends Artifact
+{
+	public $id;
+	public $party;
+	public $type;
+	public $transactionId;
+	public $amount;
+	public $tendered;
+	public $date;
+	public $stamp;
+	public $description;
+	public $extras;
+	public $user;
+
+	function __construct($id, $txTypeName, $txId, $amount, $description, $date, $stamp)
+	{		
+		$this->id = $id;
+		$this->type = $txTypeName;
+		$this->transactionId = $txId;
+		$this->amount = $amount;
+		$this->description = $description;
+		$this->date = $date;
+		$this->stamp = $stamp; 
+		$this->user = SessionManager::GetUsername(); 
+	}
+
+	public function persist(){
+		try {
+
+			$sql = 'INSERT INTO vouchers (voucher_id, tx_type, transaction_id, amount, description, datetime, stamp, cashier) 
+			VALUES ('.$this->id.', "'.$this->type.'", '.$this->transactionId.', '.$this->amount.', "'.$this->description.'", "'.$this->date.'", '.$this->stamp.', "'.$this->user.'")';
+	 		DatabaseHandler::Execute($sql);
+	 		
+	 		$sql2 = 'SELECT * FROM vouchers WHERE transaction_id = '.$this->transactionId;
+			$res =  DatabaseHandler::GetRow($sql2);
+
+			$this->id = $res['voucher_id'];
+
+		} catch (Exception $e) {
+			Logger::Log(get_class($this), 'Exception', $e->getMessage());
+		}
+	}
+
+	public function setClient($id){
+		$this->party = Client::GetClient($id);
+	}
+
+	public function setExtras($extras){
+		$this->extras = $extras;
+	}
+
+	private static function initialize($args){
+		return new Voucher($args['voucher_id'], $args['tx_type'], $args['transaction_id'], $args['amount'], $args['description'], $args['date'], $args['stamp'], $args['cashier']);
+	}
+
+	public static function GetVouchers($type)
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM vouchers WHERE tx_type = "'.$type.'"';
+			$res =  DatabaseHandler::GetAll($sql);
+			$vouchers = [];
+			foreach ($res as $inv) {
+				$vouchers[] = self::initialize($inv);
+			}			
+			return $vouchers;
+		} catch (Exception $e) {
+			Logger::Log(get_class($this), 'Exception', $e->getMessage());
+		}
+	}
+	public static function CreateInvoiceVoucher($invoice){
+		$inv = new Voucher($invoice->id, $invoice->transactionType->name, $invoice->transactionId, $invoice->amount->amount, $invoice->description, $invoice->date, $invoice->stamp);
+		$inv->persist();
+		$inv->setClient($invoice->clientId);
+		return $inv;
+	}
+
+	public static function CreateSalesTxVoucher($tx){
+		$inv = new Voucher($tx->invoice->id, $tx->transactionType->name, $tx->transactionId, $tx->amount->amount, $tx->description, $tx->date, $tx->stamp);
+		$inv->persist();		
+		return SalesVoucher::GetInvoice($tx->invoice->id);
+	}
+
+	public static function CreatePurchaseTxVoucher($tx){
+		$inv = new Voucher($tx->invoice->id, $tx->transactionType->name, $tx->transactionId, $tx->amount->amount, $tx->description, $tx->date, $tx->stamp);
+		$inv->persist();		
+		return PurchaseVoucher::GetInvoice($tx->invoice->id);
+	}
+
+	public static function CreateReceiptVoucher($receipt){
+		$rcpt = new Voucher($receipt->id, $receipt->transactionType->name, $receipt->transactionId, $receipt->amount->amount, $receipt->description, $receipt->date, $receipt->stamp);
+		$rcpt->persist();
+		$rcpt->setClient($receipt->clientId);
+		return $rcpt;
+	}
+
+	public static function CreateClaimVoucher($claim){
+		$voucher = new Voucher($claim->transactionId, $claim->transactionType->name, $claim->transactionId, $claim->amount->amount, $claim->description, $claim->date, $claim->stamp);
+		return $voucher;
+	}
+
+	public static function PaymentVoucher($payment){
+		
+	}
+
+	public static function GoodsReceivedVoucher($grn){
+		
+	}
+
+	public static function PaySlipVoucher($payslip){
+		
+	}
+	
+	public static function ExpenseReimbursementVoucher($claim){
+		
+	}
+}
+
+class TransactionVouchers extends Artifact
+{
+	public static function GetClientTransactions($cid, $category, $dates, $all)
+	{
+		if ($category == 1) {//Statement
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" ORDER BY id DESC';
+			}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $tx) {
+					if ($tx['effect'] == 'cr') {
+						$voucher = ReceiptVoucher::GetVoucher(intval($tx['transaction_id']));
+						if ($voucher) {
+							$vouchers[] = $voucher;
+						}	
+					}else{
+						$voucher = SalesVoucher::GetVoucher(intval($tx['transaction_id']));
+						if ($voucher) {
+							$vouchers[] = $voucher;
+						}						
+					}
+				}
+
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}else{//Quotations
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' ORDER BY id DESC';
+			}else{
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $quote) {
+					$vouchers[] = QuotationVoucher::initialize($quote);
+				}
+
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}
+	}
+
+	public static function GetSupplierTransactions($sid, $category, $dates, $all)
+	{
+		if ($category == 1) {//Statement
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" ORDER BY id DESC';
+			}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $tx) {
+					if ($tx['effect'] == 'dr') {
+						$voucher = PaymentVoucher::GetVoucher(intval($tx['transaction_id']));
+						if ($voucher) {
+							$vouchers[] = $voucher;
+						}	
+					}else{
+						$voucher = PurchaseVoucher::GetVoucher(intval($tx['transaction_id']));
+						if ($voucher) {
+							$vouchers[] = $voucher;
+						}						
+					}
+				}
+
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}else{//Quotations
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM purchase_orders WHERE party_id = '.intval($sid).' ORDER BY id DESC';
+			}else{
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM purchase_orders WHERE party_id = '.intval($sid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $quote) {
+					$vouchers[] = PurchaseOrderVoucher::initialize($quote);
+				}
+
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+		}
+	}	
+}
+
+class DirectPosting extends TransactionType
+{
+
+	function __construct($entries, $amount, $classifier)
+	{
+		parent::__construct("Direct Posting - ".$classifier);
+		
+		foreach ($entries as $entry) {
+			if ($entry['effect'] == "dr") {
+				$this->drAccounts[] = Account::GetLedger($entry['lid']);
+				$this->drRatios[] = floatval(floatval($entry['amount'])/floatval($amount));
+			}elseif ($entry['effect'] == "cr") {
+				$this->crAccounts[] = Account::GetLedger($entry['lid']);
+				$this->crRatios[] = floatval(floatval($entry['amount'])/floatval($amount));
+			}
+		}
+	}
+}
+
+class GeneralTransaction extends FinancialTransaction
+{
+	public $status;
+	public $txentries = [];
+
+	function __construct($entries, $amount, $description, $classifier)
+	{
+		//$this->status = $status;
+		$this->txentries = $entries;
+		$txtype = new DirectPosting($entries, $amount, $classifier);
+		parent::__construct(new Money(floatval($amount), Currency::Get('KES')), $description, $txtype);
+	}
+
+	public function post()
+	{
+		if ($this->prepare()) {
+			if (TransactionProcessor::ProcessTransaction($this)) {
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+
+	public function postprojectclaim($expvouch)
+	{
+		if ($this->prepare()) {
+			$voucher = TransactionProcessor::ProcessClaim($this);
+			if ($voucher){
+				$voucher->setExtras($expvouch);
+				return $voucher;
+			}else{
+				return false;
+			}
+		}
+	}
+
+	private function prepare()
+	{
+		foreach ($this->txentries as $entry) {
+			if ($entry['effect'] == 'dr') {
+				$amount = new Money(floatval($entry['amount']), $this->amount->unit);
+				$this->add(new AccountEntry($this, Account::GetLedger($entry['lid']), $amount, $this->date, 'dr'));
+			}else if ($entry['effect'] == 'cr') {
+				$amount = new Money(floatval($entry['amount']), $this->amount->unit);
+				$this->add(new AccountEntry($this, Account::GetLedger($entry['lid']), $amount, $this->date, 'cr'));
+			}
+		}
+
+		return true;
+	}
+
+	public static function PostTransaction($entries, $amount, $descr)
+	{
+		return new GeneralTransaction($entries, $amount, $descr, "General Transaction");
+	}
+
+	public static function PostClaim($ledgerId, $amount, $items, $descr)
+	{
+		$entries = [];
+		//Debit entries
+		foreach ($items as $item) {
+			$entry['lid'] = $item->ledger->id;
+			$entry['effect'] = 'dr';
+			$entry['amount'] = $item->adjusted;
+			$entries[] = $entry;
+		}
+		//Credit entry
+		$entry['lid'] = $ledgerId;
+		$entry['effect'] = 'cr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+		
+		return new GeneralTransaction($entries, $amount, $descr, "Project Claim");
+	}
+
+	public static function PostExpense($crid, $drid, $amount, $descr)
+	{
+		$entries = [];
+		//Debit entry
+		$entry['lid'] = $drid;
+		$entry['effect'] = 'dr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+
+		//Credit entry
+		$entry['lid'] = $crid; 
+		$entry['effect'] = 'cr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+		
+		return new GeneralTransaction($entries, $amount, $descr, "General Expenses");
+	}
+
+	public static function InjectCapital($crid, $drid, $amount, $descr)
+	{
+		$entries = [];
+		//Debit entry
+		$entry['lid'] = $drid;
+		$entry['effect'] = 'dr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+
+		//Credit entry
+		$entry['lid'] = $crid;
+		$entry['effect'] = 'cr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+		
+		return new GeneralTransaction($entries, $amount, $descr, "Capital Injection");
+	}
+
+	public static function PostBankTx($action, $account, $amount, $descr)
+	{
+		$entries = [];
+
+		switch ($action) {
+			case 'CashDeposit':
+				//Debit entry				
+				$entry['lid'] = $account;
+				$entry['effect'] = 'dr';
+				$entry['amount'] = $amount;
+				$entries[] = $entry;
+
+				//Credit entry
+				$ledger = Ledger::GetLedgerByName('"Cash in Hand"');
+				$entry['lid'] = $ledger->id;
+				$entry['effect'] = 'cr';
+				$entry['amount'] = $amount;
+				$entries[] = $entry;
+				break;
+
+			case 'CashWithdrawal':
+				//Debit entry
+				$ledger = Ledger::GetLedgerByName('"Cash in Hand"');
+				$entry['lid'] = $ledger->id;
+				$entry['effect'] = 'dr';
+				$entry['amount'] = $amount;
+				$entries[] = $entry;
+
+				//Credit entry
+				$entry['lid'] = $account;
+				$entry['effect'] = 'cr';
+				$entry['amount'] = $amount;
+				$entries[] = $entry;
+				break;
+
+			default:
+				
+				break;
+		}
+		
+		return new GeneralTransaction($entries, $amount, $descr, "Bank Cash Transaction");
+	}
 }
 
 ?>

@@ -5,8 +5,10 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
       appRoutes: {
         "suppliers" : "showSuppliers",
         "addSupplier" : "addSupplier",
-        "receiveGoods" : "enquiries",
-        "paySupplier" : "pendingQueries",
+        "receiveGoods" : "receiveGoods",
+        "returnGoods" : "returnGoods",
+        "paySupplier" : "paySupplier",
+        "purchaseOrder" : "purchaseOrder",
         "supplierTx" : "supplierTx"
       }
     });
@@ -30,17 +32,35 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
         //System.execute("set:active:header", "Menu");
       },
 
-      enquiries: function(a){
+      receiveGoods: function(a){
         //System.contentRegion.show();
-        showController.enquiries(a);
+        showController.receiveGoods(a);
         //System.execute("set:active:header", "Menu");
       },
 
-      pendingQueries: function(a){
+      returnGoods: function(a){
         //System.contentRegion.show();
-        showController.pendingQueries(a);
+        showController.returnGoods(a);
         //System.execute("set:active:header", "Menu");
-      }
+      },
+
+      paySupplier: function(){
+        //System.contentRegion.show();
+        showController.paySupplier();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      purchaseOrder: function(){
+        //System.contentRegion.show();
+        showController.purchaseOrder();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      supplierTx: function(){
+        //System.contentRegion.show();
+        showController.supplierTx();
+        //System.execute("set:active:header", "Menu");
+      },
     };
 
     System.on("suppliers:show", function(){

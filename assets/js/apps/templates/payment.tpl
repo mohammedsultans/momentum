@@ -64,7 +64,7 @@
                     </div>           
                   </div>
                   <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Payment Mode<span class="color10">*</span></label>
+                    <label class="col-sm-2 control-label form-label">Payment Account<span class="color10">*</span></label>
                     <div class="col-sm-4">
                       <select class="selectpicker form-control" name="mode" id="banks" style="padding-left:5px">
                         <option data-icon="fa fa-money">Select Mode...</option>

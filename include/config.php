@@ -28,7 +28,7 @@
 	define('DB_SERVER', 'localhost');
 	define('DB_USERNAME', 'admin');
 	define('DB_PASSWORD', 'andromedapx660');
-	define('DB_DATABASE', 'eve-mom');
+	define('DB_DATABASE', 'geomirror');
 	define('PDO_DSN', 'mysql:host=' . DB_SERVER . ';dbname=' . DB_DATABASE);
 	// Server HTTP port (can omit if the default 80 is used)
 	define('HTTP_SERVER_PORT', '80');

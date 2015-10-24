@@ -2,17 +2,9 @@
 
 require_once 'Accounting.php';
 
-class FinancialTransaction extends Transaction
-{
-	function __construct(Money $amount, $description, TransactionType $txtype)
-	{		
-		//$ttype === posting protocol/rule
-		$this->transactionType = $txtype;
-		parent::__construct($amount, $description);
-	}
-}
 
-class Paymentx extends FinancialTransaction
+
+/*class Paymentx extends FinancialTransaction
 {
 	public $reference;
 	public $isCleared;
@@ -25,7 +17,7 @@ class Paymentx extends FinancialTransaction
 		$this->method = $paymentMethod;
 		parent::__construct($amount, $description, $paymentMethod);
 	}
-}
+}*/
 
 class Invoicing extends FinancialTransaction
 {

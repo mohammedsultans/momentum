@@ -41,7 +41,7 @@ $voucher = json_decode($_POST['voucher']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum Invoices</title>
+  <title>Momentum Goods Received Note</title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">
@@ -58,7 +58,7 @@ $voucher = json_decode($_POST['voucher']);
 
   <!-- Start Invoice -->
   <div class="invoice row">
-    <div class="invoicename">INVOICE</div>
+    <div class="invoicename">GRN</div>
     <div class="logo">
       <img src="img/geoland.png" alt="logo"><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
@@ -67,22 +67,22 @@ $voucher = json_decode($_POST['voucher']);
 
     <div class="line row row2" style="border-bottom:none;">
       <div class="col-md-6 col-xs-6 padding-0 text-left">
-        <h4>DATE & TIME</h4>
+        <h4>DATE</h4>
         <h2><?php echo $voucher->date; ?></h2>
       </div>
       <div class="col-md-6 col-xs-6 padding-0 text-right">
-        <h4>INVOICE NO</h4>
+        <h4>GRN NO</h4>
         <h2><?php echo $voucher->id; ?></h2>
       </div>
     </div>
 
     <div class="line row row2">
       <div class="col-md-6 col-xs-6 padding-0 text-left">
-        <h4>PREPARED FOR</h4>
+        <h4>RECEIVED FROM</h4>
         <h2><?php echo $voucher->party->name; ?></h2>
       </div>
       <div class="col-md-6 col-xs-6 padding-0 text-right">
-        <h4>SCOPE</h4>
+        <h4>DESCRIPTION</h4>
         <h2><?php echo $voucher->description; ?></h2>
       </div>
     </div>
@@ -90,10 +90,11 @@ $voucher = json_decode($_POST['voucher']);
     <table class="table">
       <thead class="title">
         <tr>
-          <td>SERVICE DESCRIPTION</td>
+          <td>ITEM DESCRIPTION</td>
           <td>QTY</td>
           <td>UNIT PRICE</td>
           <td>TAX</td>
+          <td>DISC</td>
           <td class="text-right">SUB-TOTAL</td>
         </tr>
       </thead>
@@ -104,11 +105,12 @@ $voucher = json_decode($_POST['voucher']);
           foreach ($advice->lineItems as $item) {
             ?> 
             <tr>
-              <td><?php echo $item->itemName; ?> <p><?php echo $item->itemDesc; ?></p></td>
-              <td><?php echo $item->quantity; ?></td>
+              <td style="max-width: 220px; padding-right:15px;"><?php echo $item->itemName; ?></td>
+              <td style="min-width: 30px"><?php echo $item->quantity; ?></td>
               <td><script>document.writeln((<?php echo $item->unitPrice; ?>).formatMoney(2, '.', ','));</script></td>
-              <td><?php echo $item->tax; ?>%</td>
-              <td class="text-right">Ksh. <script>document.writeln((<?php echo ($item->unitPrice * $item->quantity * floatval(100.00 + floatval($item->tax))/100); ?>).formatMoney(2, '.', ','));</script></td>
+              <td style="min-width: 30px"><?php echo $item->tax; ?>%</td>
+              <td style="min-width: 30px"><?php echo $item->discount; ?>%</td>
+              <td class="text-right">Ksh. <script>document.writeln((<?php $tot = ($item->unitPrice * $item->quantity * floatval(100.00 + floatval($item->tax))/100); echo ($tot * floatval(100.00 - floatval($item->discount))/100) ?>).formatMoney(2, '.', ','));</script></td>
             </tr>
             <?php
           }
@@ -121,32 +123,38 @@ $voucher = json_decode($_POST['voucher']);
         <tr>
           <td class="text-left" style="font-size:12px;">
             <b>VATABLE AMOUNT:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->amount; ?>).formatMoney(2, '.', ','));</script><br>
-            <b>TOTAL VAT:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->tax; ?>).formatMoney(2, '.', ','));</script><br>
+            <b>TOTAL TAX:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->tax; ?>).formatMoney(2, '.', ','));</script><br>
             <?php if (floatval($voucher->extras->discount) != 0.00){ 
-              echo '<b>DISCOUNT:</b>'.$voucher->extras->discount.'%';
+              echo "<b>DISCOUNT:</b> ( Ksh. <script>document.writeln((".$voucher->extras->discount.").formatMoney(2, '.', ','));</script>)<br>";
             }else {  }?>
+            <?php if (floatval($voucher->extras->balance) > 0.00){ 
+              echo "<b>UNPAID BALANCE:</b> Ksh. <script>document.writeln((".$voucher->extras->balance.").formatMoney(2, '.', ','));</script>";
+            }else {  }?>
+            
           </td>
           <td></td>
           <td></td>
-          <td></td>          
-          <td class="text-right">GRAND TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->extras->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
+          <td></td> 
+          <td></td>
+          <td class="text-right">PURCHASE TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->extras->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
         </tr>
       </tfoot>
       
     </table>
-    <p>PRICES INCLUSIVE OF VAT WHERE APPLICABLE</p>
-      <p style="font-size:11px;text-transform:capitalize">ACCOUNT BALANCE: <?php if ($voucher->party->balance->amount < 0) { 
-        echo "(Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>)";
+    <p style="padding:5px 15px;">PRICES INCLUSIVE OF VAT WHERE APPLICABLE</p>
+      <p style="padding:5px 15px;font-size:11px;text-transform:capitalize">ACCOUNT BALANCE: <?php if ($voucher->party->balance->amount < 0) { 
+        echo "( Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>)";
         }else { echo "Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>"; }?>
       </p>
-    
+      <p style="padding:10px 15px;">RECEIVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">CHECKED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">APPROVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
     <div class="invfoot">
       <div class="signature">
-        <p>Invoice Prepared By:</p>
-        <p><b><?php echo $voucher->user ?></b></p>
+        <p>GRN Prepared By: <b><?php echo $voucher->user; ?></b></p>
       </div>
       <div class="row" style="line-height:13px;font-size:10px;border-top: 2px solid #e4e4e4;padding-top:5px">
-        <div class="col-md-4 text-left">Copyright © <?php  echo date('Y')." ".$comname ?></div>
+        <div class="col-md-4 text-left">Copyright © <?php  echo date('Y')." ".$comname; ?></div>
         <div class="col-md-8 text-right">Momentum ERP by <br><a href="#">QET Systems Ltd</a> [www.qet.co.ke]
       </div> 
     </div>

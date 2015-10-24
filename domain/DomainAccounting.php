@@ -496,7 +496,7 @@ class BillableService extends Service
     }
 }
 
-class Order
+class SalesOrder
 {
 	public $id;
 	//public $saleId;
@@ -524,7 +524,7 @@ class Order
 		$this->vat = $vat;
 		$this->freightCost = $freight;
 		$this->status = $status;
-		$this->lineItems = OrderLine::GetOrderItems($this->id);
+		$this->lineItems = SalesOrderLine::GetOrderItems($this->id);
 	}
 
 	public function initRecipient($partyId)
@@ -533,7 +533,7 @@ class Order
 	}
 
 
-	public function addToOrder(OrderLine $orderItem)
+	public function addToOrder(SalesOrderLine $orderItem)
 	{
 		array_push($this->lineItems, $orderItem);
 		//$this->lineItems[] = $orderItem;
@@ -564,7 +564,7 @@ class Order
 
 		try {
 			//status: 0 - unauthorized, 1 - awaiting shipment, 3 - dispatched, 4 - delivered
-			$sql = 'UPDATE orders SET items = '.$items.', amount = '.$amount.', vat = '.$vat.', discount = '.$discount.', freight = '.$freight.', status = 1 WHERE id = '.$this->id;
+			$sql = 'UPDATE sales_orders SET items = '.$items.', amount = '.$amount.', vat = '.$vat.', discount = '.$discount.', freight = '.$freight.', status = 1 WHERE id = '.$this->id;
 	 		DatabaseHandler::Execute($sql);
 	 		$this->initializeOrder($amount, $discount, $vat, $freight, 1);
 	 		//$this->initRecipient($partyId);
@@ -592,7 +592,7 @@ class Order
 	{
 		try {
 			//status - 0 - awaiting shipment, 1 - dispatched, 2 - delivered
-			$sql = 'UPDATE orders SET recepient_id = '.$partyId.' WHERE id = '.$this->id;
+			$sql = 'UPDATE sales_orders SET recepient_id = '.$partyId.' WHERE id = '.$this->id;
 	 		DatabaseHandler::Execute($sql);
 	 		$this->initRecipient($partyId);
 		} catch (Exception $e) {
@@ -602,7 +602,7 @@ class Order
 
 	public static function GetOrder($id)
 	{
-		$sql = 'SELECT * FROM orders WHERE id = '.$id;
+		$sql = 'SELECT * FROM sales_orders WHERE id = '.$id;
 		$res =  DatabaseHandler::GetRow($sql);
 		$order = new Order($res['id'], $res['date_received'], $res['status']);
 		$order->initializeOrder($res['amount'], $res['discount'], $res['vat'], $res['freight'], $res['status']);
@@ -616,10 +616,10 @@ class Order
 		try {
 			
 			$datetime = new DateTime();
-			$sql = 'INSERT INTO orders (date_received, stamp, status) VALUES ("'.$datetime->format('Y/m/d').'", '.$datetime->format('YmdHis').', 0)';
+			$sql = 'INSERT INTO sales_orders (date_received, stamp, status) VALUES ("'.$datetime->format('Y/m/d').'", '.$datetime->format('YmdHis').', 0)';
 	 		DatabaseHandler::Execute($sql);
 	 		
-	 		$sql = 'SELECT * FROM orders WHERE stamp = '.$datetime->format('YmdHis');
+	 		$sql = 'SELECT * FROM sales_orders WHERE stamp = '.$datetime->format('YmdHis');
 			$res =  DatabaseHandler::GetRow($sql);
 
 			return new Order($res['id'], $res['date_received'], $res['status']);
@@ -630,7 +630,7 @@ class Order
 	}
 }
 
-class OrderLine
+class SalesOrderLine
 {
 	public $lineId;
 	public $orderId;
@@ -666,7 +666,7 @@ class OrderLine
 		//check whether available and make necessary inventory deductions, then
 		$vat = (intval($vatrate)/(intval($vatrate) + 100)) * (intval($quantity) * floatval($unitPrice));
 		$discount = floatval($discount);
-		$lineItem = new OrderLine($orderId, $itemId, $itemName, $quantity, $vat, $unitPrice, $unitCost, $discount);
+		$lineItem = new SalesOrderLine($orderId, $itemId, $itemName, $quantity, $vat, $unitPrice, $unitCost, $discount);
 		
 		try {
 
@@ -698,7 +698,7 @@ class OrderLine
 			$res =  DatabaseHandler::GetAll($sql);
 
 			foreach ($res as $item) {
-				$lineItem = new OrderLine($item['order_id'], $item['item_id'], $item['item_name'], $item['quantity'], $item['vat'], $item['unit_price'], $item['unit_cost'], $item['discount'], $item['status']);
+				$lineItem = new SalesOrderLine($item['order_id'], $item['item_id'], $item['item_name'], $item['quantity'], $item['vat'], $item['unit_price'], $item['unit_cost'], $item['discount'], $item['status']);
 				$lineItem->initId($item['id']);
 				$lineItems[] = $lineItem;
 			}
@@ -1221,6 +1221,9 @@ class InvoiceVoucher
 			$res =  DatabaseHandler::GetRow($sql);
 			$this->transactionId = $res['transaction_id'];
 			$this->user = $res['cashier'];
+			if (is_null($this->user)) {
+				$this->user = SessionManager::GetUsername();
+			}
 			$this->type = $res['tx_type'];;
 
 			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->transactionId).' AND account_no = '.intval($clientId);
@@ -1296,6 +1299,9 @@ class ReceiptVoucher
 			$res =  DatabaseHandler::GetRow($sql);
 			$this->transactionId = $res['transaction_id'];
 			$this->user = $res['cashier'];
+			if (is_null($this->user)) {
+				$this->user = SessionManager::GetUsername();
+			}
 			$this->type = $res['tx_type'];
 
 			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->transactionId).' AND account_no = '.intval($clientId);
@@ -1327,8 +1333,12 @@ class ReceiptVoucher
 		try {
 			$sql = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.$txid;
 			$res =  DatabaseHandler::GetOne($sql);
-			$sql2 = 'SELECT * FROM receipts WHERE id = '.$res;
-			$res2 =  DatabaseHandler::GetRow($sql2);
+			$res2 = false;
+			if (!empty($res)) {
+				$sql2 = 'SELECT * FROM receipts WHERE id = '.$res;
+				$res2 =  DatabaseHandler::GetRow($sql2);
+			}
+			
 			if ($res2) {
 				return self::initialize($res2);
 			}else{
@@ -1345,7 +1355,7 @@ class QuotationVoucher
 {
 	public $id;
 	public $type;
-	public $txid;
+	public $transactionId;
 	public $party;
 	public $date;
 	public $lineItems = [];
@@ -1356,15 +1366,20 @@ class QuotationVoucher
 	function __construct($quoteId, $date, $clientId, $amount, $tax, $total, $user)
 	{
 		$this->id = $quoteId;
-		$this->txid = $quoteId;
+		$this->transactionId = $quoteId;
 		$this->date = $date;
 		$this->type = 'Quotation';
 		$this->party = Client::GetClient($clientId);
 		$this->amount = floatval($amount);
 		$this->tax = floatval($tax);
 		$this->total = floatval($total);
-		$this->description = 'Quotation for client';
-		$this->user = $user;
+		$this->description = 'Quotation for '.$this->party->name;
+		if (is_null($user)) {
+			$this->user = SessionManager::GetUsername();
+		}else{
+			$this->user = $user;
+		}
+		
 		$this->lineItems = QuotationLine::GetQuoteItems($quoteId);
 	}	
 
@@ -1445,7 +1460,7 @@ class TransactionVouchers extends Artifact
 	}	
 }
 
-class SalesInvoice extends TransactionType
+class ClientInvoice extends TransactionType
 {
 
 	function __construct($clientId, $name)
@@ -1466,7 +1481,7 @@ class InvoiceTX extends FinancialTransaction
 	function __construct($invoice, $invoiceType)
 	{
 		$this->invoice = $invoice;
-		$txtype = new SalesInvoice($invoice->clientId, $invoiceType);
+		$txtype = new ClientInvoice($invoice->clientId, $invoiceType);
 		parent::__construct($invoice->total, $invoice->description, $txtype);
 	}
 
@@ -2266,59 +2281,5 @@ class GeneralTransaction extends FinancialTransaction
 		
 		return new GeneralTransaction($entries, $amount, $descr, "Bank Cash Transaction");
 	}
-}
-
-class PurchaseInvoice extends TransactionType
-{
-	function __construct($supplierId, $name)
-	{
-		parent::__construct($name);
-		
-		$this->crAccounts[] = Account::GetAccountByNo($supplierId, 'suppliers', 'Creditors');
-		$this->crRatios[] = 1;
-		$this->drAccounts[] = Account::GetAccount('Purchases', 'ledgers');
-		$this->drRatios[] = 1;
-	}
-}
-
-class SupplierBalanceTransfer extends FinancialTransaction
-{
-	public $supplierId;
-
-	function __construct($supplierId, $amount)
-	{
-		$this->supplierId = $supplierId;
-		//$this->amount = $amount; - Money class
-		//$this->description = "Balance brought forward";
-		$txtype = new PurchaseInvoice($supplierId, 'Purchases Balance B/F');
-		parent::__construct($amount, "Purchases balance brought forward", $txtype);
-	}
-
-	public function execute()
-	{
-		if ($this->prepare()) {
-			if (TransactionProcessor::ProcessTransfer($this)) {
-				return true;
-			}else{
-				return false;
-			}
-		}
-	}
-
-	private function prepare()
-	{		
-		for ($i=0; $i < count($this->transactionType->drAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->drRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->drAccounts[$i], $amount, $this->date, 'dr'));
-		}
-
-		for ($i=0; $i < count($this->transactionType->crAccounts); $i++) { 
-			$amount = new Money(floatval($this->amount->amount * $this->transactionType->crRatios[$i]), $this->amount->unit);
-			$this->add(new AccountEntry($this, $this->transactionType->crAccounts[$i], $amount, $this->date, 'cr'));
-		}
-
-		return true;
-
-	}	
 }
 ?>

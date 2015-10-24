@@ -1,12 +1,10 @@
 <?php
-// Manages the Journals list
   	require_once '../../include/config.php';
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
   	//require_once DOMAIN_DIR . 'Product.php';
 	
 	class ProcurementApp
 	{
-		// Constructor reads query string parameter
 		public function __construct()
 		{
 			if(isset($_POST['operation'])){
@@ -44,6 +42,55 @@
 					}else{
 						echo 0;
 					}
+				}elseif($operation == 'postGenPurchase'){
+					if(isset($_POST['supplier']) && isset($_POST['invno']) && isset($_POST['date']) && isset($_POST['items'])){
+						$supplierid = $_POST['supplier'];
+						$invno = $_POST['invno'];						
+						$date = $_POST['date'];
+						$items = $_POST['items'];
+						$this->postGenPurchase($supplierid, $invno, $date, $items);
+					}else{
+						echo 0;
+					}
+				
+				}elseif($operation == 'postOrderPurchase'){
+					if(isset($_POST['supplier']) && isset($_POST['invno']) && isset($_POST['date']) && isset($_POST['orders'])){
+						$supplierid = $_POST['supplier'];
+						$invno = $_POST['invno'];						
+						$date = $_POST['date'];
+						if (isset($_POST['orders'])) {
+							$orders = $_POST['orders'];
+						}else{
+							$orders = [];
+						}
+						$this->postOrderPurchase($supplierid, $invno, $date, $orders);
+					}else{
+						echo 0;
+					}
+				
+				}elseif($operation == 'makePayment'){
+					if(isset($_POST['supplier']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category'])){
+						$supplierid = $_POST['supplier'];
+						$account = $_POST['mode'];
+						$category = $_POST['category'];
+						$amount = $_POST['amount'];
+						$descr = $_POST['descr'];
+						$voucher =  $_POST['voucher'];
+						$this->makePayment($supplierid, $category, $account, $amount, $voucher, $descr);
+					}else{
+						echo 0;
+					}
+						
+				}elseif($operation == 'findSupplierEntries'){
+					if(isset($_POST['supplier']) && isset($_POST['category'])){
+						$supplier = $_POST['supplier'];
+						$category = $_POST['category'];
+						$dates = $_POST['dates'];
+						$all = $_POST['vall'];
+						$this->findSupplierEntries($supplier, $category, $dates, $all);
+					}else{
+						echo 0;
+					}				
 				}elseif($operation == 'logout'){
 					$this->logout();
 				}elseif($operation == 'checkauth'){
@@ -55,13 +102,15 @@
 				$this->getPending();
 			}elseif(isset($_GET['suppliers'])){
 				$this->getSuppliers();
+			}elseif(isset($_GET['unclearedinvoices']) && isset($_GET['supplierid'])){
+				$this->getUnclearedInvoices($_GET['supplierid']);
 			}elseif(isset($_GET['supplier']) && isset($_GET['supplierid'])){
 				$this->getSupplier($_GET['supplierid']);
 			}else{
 				echo 0;
 			}
 		}
-		/* Calls procurement application methods */
+		/* PROCUREMENT APPLICATION INTERFACE */
 		public function createSupplier($name, $person, $mobile, $email, $address, $bal)
 		{
 			if (Supplier::Create($name, $person, $mobile, $email, $address, $bal)) {
@@ -111,7 +160,62 @@
 			}
 		}
 
-		//Helper Functions
+		public function postGenPurchase($supplierid, $invno, $date, $items)
+		{
+			$invoice = PurchaseTX::RaiseGeneralPurchase($supplierid, $invno, $date, $items);			
+
+			$voucher = $invoice->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postOrderPurchase($supplierid, $invno, $date, $quotes)
+		{
+			$invoice = PurchaseTX::RaiseOrderPurchase($supplierid, $invno, $date, $quotes);
+
+			$voucher = $invoice->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function makePayment($supplierid, $account, $mode, $amount, $voucher, $invoices)
+		{
+			$payment = PaymentTX::ReceivePayment($supplierid, $account, $mode, $amount, $voucher, $invoices);
+			$voucher = $payment->submit();
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function findSupplierEntries($supplierid, $category, $dates, $all)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(TransactionVouchers::GetSupplierTransactions($supplierid, $category, $dates, $all));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getUnclearedInvoices($supplierid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(PurchaseInvoice::GetUnclearedInvoices($supplierid));
+			}else{
+				echo 0;
+			}
+		}
+
+		//HELPER FUNCTIONS
 
 		private function validateAdmin()
 		{

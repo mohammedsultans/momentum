@@ -1,5 +1,156 @@
 <?php
 
+class Service
+{
+}
+
+class OfficeService extends Service
+{
+	public $name;
+	public $descr;
+	public $unit;
+	public $rate;
+
+	function __construct($name, $task, $unit, $rate)
+ 	{
+ 		$this->name = $name;
+ 		$this->descr = $task;
+ 		$this->unit = $unit;
+ 		$this->rate = $rate;
+ 	}
+
+	public static function Create($name, $descr, $rate)
+	{
+		//Called and stored in a session object
+		try {
+
+			$unit = WorkService::Get('SLP');
+			//start here
+			$sql = 'INSERT IGNORE INTO office_services (name, descr, unit_id, rate) VALUES ("'.$name.'", "'.$descr.'", '.$unit->unitId.', '.$rate.')';
+	 		DatabaseHandler::Execute($sql);
+	 		
+	 		$sql = 'SELECT * FROM office_services WHERE name = "'.$name.'" ';
+			$res =  DatabaseHandler::GetRow($sql);
+
+			return new OfficeService($res['name'], $res['descr'], $unit, $res['rate']);
+
+		} catch (Exception $e) {
+			
+		}
+
+
+	}
+
+	public static function Get($name)
+	{
+		//Called and stored in a session object
+		try {
+	 		
+	 		$sql = 'SELECT * FROM office_services WHERE name = "'.$name.'"';
+			$res =  DatabaseHandler::GetRow($sql);
+			$unit = WorkService::Get('SLP');//GetBySymbol -> $res['unit_id']
+
+			return new OfficeService($res['name'], $res['descr'], $unit, $res['rate']);
+
+		} catch (Exception $e) {
+			
+		}
+
+
+	}
+
+	public static function Delete()
+    {
+      try {
+        $sql = 'DELETE FROM office_services WHERE name = "'.$name.'"';			
+		DatabaseHandler::Execute($sql);
+		return true;
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+}
+
+class BillableService extends Service
+{
+	public $name;
+	public $unit;
+
+	function __construct($name, $unit)
+ 	{
+ 		$this->name = $name;
+ 		$this->unit = $unit;
+ 	}
+
+	public static function Create($name)
+	{
+		//Called and stored in a session object
+		try {
+
+			$unit = WorkService::Get('BSV');
+			//start here
+			$sql = 'INSERT IGNORE INTO services (name, unit_id) VALUES ("'.$name.'", '.$unit->unitId.')';
+	 		DatabaseHandler::Execute($sql);
+	 		
+	 		$sql = 'SELECT * FROM services WHERE name = "'.$name.'" ';
+			$res =  DatabaseHandler::GetRow($sql);
+
+			return new BillableService($res['name'], $unit);
+
+		} catch (Exception $e) {
+			return false;
+		}
+
+
+	}
+
+	public static function Get($name)
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM services WHERE name = "'.$name.'"';
+			$res =  DatabaseHandler::GetRow($sql);
+			$unit = WorkService::Get('BSV');//GetBySymbol -> $res['unit_id']
+
+			return new BillableService($res['name'], $unit);
+
+		} catch (Exception $e) {
+			
+		}
+	}
+
+	public static function GetAll()
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM services';
+			$res =  DatabaseHandler::GetAll($sql);
+			$unit = WorkService::Get('BSV');//GetBySymbol -> $res['unit_id']
+			$services = [];
+			foreach ($res as $service) {
+				$services[] = new BillableService($service['name'], $unit);
+			}
+			return $services;
+
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function Delete($name)
+    {
+      try {
+        $sql = 'DELETE FROM services WHERE name = "'.$name.'"';			
+		DatabaseHandler::Execute($sql);
+		return true;
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+}
+
 class ProjectActivity
 {
 	public $id;
@@ -412,6 +563,251 @@ class WorkReport
     {
       try {
       	$sql = 'DELETE FROM work_reports WHERE id = '.$id;
+        DatabaseHandler::Execute($sql);
+      } catch (Exception $e) {
+        
+      }
+    }
+}
+
+class ExpenseItem
+{
+	//Refactor to ClaimItem
+	public $id;
+  	public $voucherId;
+  	public $claimant;
+  	public $description;
+	public $ledger;
+	public $claimed;
+	public $adjusted;
+
+  	function __construct($id, $voucherId, $claimantId, $description, $ledgerId, $claimed, $adjusted)
+	{
+		$this->id = $id;
+		$this->claimant = Employee::GetEmployee($claimantId);
+		$this->voucherId = $voucherId;
+		$this->description = $description;
+		$this->ledger = Ledger::GetLedger($ledgerId);
+		$this->claimed = $claimed;
+		$this->adjusted = $adjusted;
+	}
+
+	public function revoke(){
+		//revoke
+	}
+
+	public static function Adjust($items){
+		foreach ($items as $item) {
+			try {
+		        $sql = 'UPDATE expense_items SET adjusted = '.floatval($item['amount']).' WHERE id = '.intval($item['viid']);
+		        DatabaseHandler::Execute($sql);
+		    } catch (Exception $e) {
+		        return false;
+		        break;
+		    }
+		}
+		return true;
+	}
+
+	public static function Create($vid, $claimantId, $descr, $ledgerId, $claimed)
+    {
+      try {
+		$sql = 'INSERT INTO expense_items (voucher_id, claimant_id, descr, ledger_id, claimed, adjusted) 
+		VALUES ('.$vid.', '.intval($claimantId).', "'.$descr.'", '.intval($ledgerId).', '.floatval($claimed).', '.floatval($claimed).')';
+		DatabaseHandler::Execute($sql);
+
+		$sql = 'SELECT * FROM expense_items WHERE voucher_id = '.$vid.' AND descr = "'.$descr.'"';
+		$res =  DatabaseHandler::GetRow($sql); 
+        return self::initialize($res);
+        
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+    public static function GetItems($vid)
+    {
+      try {
+        $sql = 'SELECT * FROM expense_items WHERE voucher_id = '.$vid;
+		$res =  DatabaseHandler::GetAll($sql);
+		$vitems = array();
+        foreach ($res as $item) {
+        	$vitems[] = self::initialize($item);
+        }                
+        return $vitems;
+
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+    private static function initialize($args)
+  	{
+     	$item = new ExpenseItem($args['id'], $args['voucher_id'], $args['claimant_id'], $args['descr'], $args['ledger_id'], $args['claimed'], $args['adjusted']);
+      	return $item;
+  	}
+
+  	public static function DeleteItems($vid)
+    {
+      try {
+      	$sql = 'DELETE FROM expense_items WHERE voucher_id = '.$vid;
+        DatabaseHandler::Execute($sql);
+      } catch (Exception $e) {
+        
+      }
+    }
+}
+
+class ExpenseVoucher
+{
+	//Refactor to ClaimVoucher
+	public $id;
+  	public $projectId;
+  	public $reportId;
+  	public $transactionId;
+	public $date;
+	public $stamp;
+	public $status;
+	public $total;
+	public $items = [];
+	//IMPLEMENTATION
+  	function __construct($id, $projectId, $reportId, $transactionId, $date, $stamp, $status = 0)
+	{
+		$this->id = $id;
+		$this->projectId = $projectId;
+		$this->reportId = $reportId;
+		$this->transactionId = $transactionId;
+		$this->date = $date;
+		$this->stamp = $stamp;
+		$this->status = $status;
+	}
+
+	public function loadItems(){
+		$this->items = ExpenseItem::GetItems($this->id);
+		$this->calculate();
+	}
+
+	public function addItem($vitem){
+		$this->items[] = $vitem;
+		$this->calculate();
+	}
+
+	public function calculate(){
+		$total = 0;
+		foreach ($this->items as $item) {
+			$total = $total + $item->adjusted;
+		}
+		$this->total = $total;
+	}
+
+	public function authorize($txid){
+		try {
+		    $sql = 'UPDATE expense_vouchers SET status = 1, transaction_id = '.intval($txid).' WHERE id = '.$this->id;
+		    DatabaseHandler::Execute($sql);
+		} catch (Exception $e) {
+		    return false;
+		}
+	}
+	//INTERFACE
+	private static function initialize($args)
+  	{
+     	$voucher = new ExpenseVoucher($args['id'], $args['project_id'], $args['report_id'], $args['transaction_id'], $args['date'], $args['stamp'], $args['status']);
+      	$voucher->loadItems();
+      	return $voucher;
+  	}
+
+	public static function Create($projectId, $report, $charges)
+    {
+      try {
+      	$datetime = new DateTime();
+		$sql = 'INSERT IGNORE INTO expense_vouchers (project_id, report_id, date, stamp, status) 
+		VALUES ('.$projectId.', '.$report->id.', "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
+		DatabaseHandler::Execute($sql);
+
+		$sql = 'SELECT * FROM expense_vouchers WHERE stamp = '.$datetime->format('YmdHis');
+		$res =  DatabaseHandler::GetRow($sql);        
+        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], 0, $res['date'], $res['stamp'], $res['status']);
+        foreach ($charges as $charge) {
+        	$voucher->addItem(ExpenseItem::Create($res['id'], $charge['claimant'], $charge['description'], $charge['category'], $charge['amount']));
+        }
+        return $voucher;
+        
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+    public static function GetVoucher($vid)
+    {
+      try {
+        $sql = 'SELECT * FROM expense_vouchers WHERE id = '.$vid;
+		$res =  DatabaseHandler::GetRow($sql);               
+        return self::initialize($res);
+
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+
+    public static function GetProjectVouchers($prid)
+    {
+      try {
+        $sql = 'SELECT * FROM expense_vouchers WHERE project_id = '.$prid;
+		$res =  DatabaseHandler::GetAll($sql);
+		$vouchers = array();
+        foreach ($res as $act) {
+        	$vouchers[] = self::initialize($act);
+        }                
+        return $vouchers;
+
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+    public static function GetProjectClaims($prid)
+    {
+      try {
+        $sql = 'SELECT * FROM expense_vouchers WHERE status = 0 AND project_id = '.$prid;
+		$res =  DatabaseHandler::GetAll($sql);
+		$vouchers = array();
+        foreach ($res as $act) {
+        	$vouchers[] = self::initialize($act);
+        }                
+        return $vouchers;
+
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+    public static function GetUnsettledVouchers($prid)
+    {
+      try {
+        $sql = 'SELECT * FROM expense_vouchers WHERE status = 0';
+		$res =  DatabaseHandler::GetAll($sql);
+		$vouchers = array();
+        foreach ($res as $act) {
+        	$vouchers[] = self::initialize($act);
+        }                
+        return $vouchers;
+
+      } catch (Exception $e) {
+        
+      }
+
+    }
+
+  	public static function DeleteVoucher($id)
+    {
+      try {
+      	$sql = 'DELETE FROM expense_vouchers WHERE id = '.$id;
         DatabaseHandler::Execute($sql);
       } catch (Exception $e) {
         

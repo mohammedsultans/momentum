@@ -1,100 +1,6 @@
 define(["app", "apps/procurement/show/show_view"], function(System, View){
   System.module('ProcurementApp.Show', function(Show, System, Backbone, Marionette, $, _){
     Show.Controller = {
-      showSuppliers: function(){ 
-        var view = new View.Suppliers();
-        System.contentRegion.show(view);
-
-        view.on('del', function(id) {
-          var data = {};
-          data['operation'] = 'deleteSupplier';
-          data['id'] = id;
-          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-            if (result == 1) {
-              view.triggerMethod("delete");
-            }else{
-              view.triggerMethod("error");
-            }
-          });
-        });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
-          });
-
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
-          });
-        }); */
-	    },
-
-      //receiveQuotation
-      enquiries: function(a){ 
-        var view = new View.Enquiry();
-        
-
-        /*if (a) {
-          var x = Backbone.Model.extend({
-            urlRoot: "presentation/blog",
-          });
-          var model = new x;
-          model.set('name', a.name);
-          model.set('phone', a.phone);
-          view = new View.AddContactLead({model: model});
-        }else{
-          view = new View.AddLead();
-        }*/
-        
-        System.contentRegion.show(view);
-
-        view.on('create', function(data) {
-          data['operation'] = 'enquiry';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("success");
-              }else{
-                view.triggerMethod("error");
-              }
-            });
-        });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
-          });
-
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
-          });
-        }); */
-      },
-
-      pendingQueries: function(a){ 
-        var view = new View.PendingQueries();
-
-        System.contentRegion.show(view);
-
-        view.on('check', function(stamp) {
-          var data = {};
-          data['operation'] = 'checkenquiry';
-          data['stamp'] = stamp;
-          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-            if (result == 1) {
-              view.triggerMethod("success");
-            }else{
-              view.triggerMethod("error");
-            }
-          });
-        });
-      },
-
       addSupplier: function(a){ 
         var view = new View.Supplier();
         
@@ -132,149 +38,162 @@ define(["app", "apps/procurement/show/show_view"], function(System, View){
               }
             });
         });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
-          });
-
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
-          });
-        }); */
       },
 
-      receiveGoods: function(a){ 
-        var view = new View.Supplier();
-        
+      showSuppliers: function(){ 
+        var view = new View.Suppliers();
+        System.contentRegion.show(view);
 
-        /*if (a) {
-          var x = Backbone.Model.extend({
-            urlRoot: "presentation/blog",
+        view.on('del', function(id) {
+          var data = {};
+          data['operation'] = 'deleteSupplier';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
           });
-          var model = new x;
-          model.set('name', a.name);
-          model.set('phone', a.phone);
-          view = new View.AddContactLead({model: model});
-        }else{
-          view = new View.AddLead();
-        }*/
+        });
+	    },      
+
+      receiveGoods: function(a){ 
+        var view = new View.GRN();
         
         System.contentRegion.show(view);
 
-        view.on('create', function(data) {
-          data['operation'] = 'addSupplier';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("success");
+        view.on('post', function(data) {
+          data['operation'] = 'postGenPurchase';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
               }else{
                 view.triggerMethod("error");
-              }
-            });
-        });
-
-        view.on('edit', function(data) {
-          data['operation'] = 'editClient';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("success");
-              }else{
-                view.triggerMethod("error");
-              }
-            });
-        });
-
-        view.on('delete', function(data) {
-          data['operation'] = 'deleteClient';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("delete");
-              }else{
-                view.triggerMethod("error");
-              }
-            });
-        });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
           });
+        });
+      },
 
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
+      receiveOrderedGoods: function(a){ 
+        var view = new View.GRN();
+        
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'postOrderPurchase';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
           });
-        }); */
+        });
+      },
+
+      paySupplier: function(a){ 
+        var view = new View.PaySupplier();
+        
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'makePayment';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
       },
 
       returnGoods: function(a){ 
-        var view = new View.Supplier();
-        
-
-        /*if (a) {
-          var x = Backbone.Model.extend({
-            urlRoot: "presentation/blog",
-          });
-          var model = new x;
-          model.set('name', a.name);
-          model.set('phone', a.phone);
-          view = new View.AddContactLead({model: model});
-        }else{
-          view = new View.AddLead();
-        }*/
+        var view = new View.GRO();
         
         System.contentRegion.show(view);
 
-        view.on('create', function(data) {
-          data['operation'] = 'addSupplier';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("success");
+        view.on('post', function(data) {
+          data['operation'] = 'postGenInvoice';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
               }else{
                 view.triggerMethod("error");
-              }
-            });
-        });
-
-        view.on('edit', function(data) {
-          data['operation'] = 'editClient';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("success");
-              }else{
-                view.triggerMethod("error");
-              }
-            });
-        });
-
-        view.on('delete', function(data) {
-          data['operation'] = 'deleteClient';
-            $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
-              if (result == 1) {
-                view.triggerMethod("delete");
-              }else{
-                view.triggerMethod("error");
-              }
-            });
-        });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
           });
+        });
+      },
 
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
+      purchaseOrder: function(a){ 
+        var view = new View.PurchaseOrder();
+        
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'postGenInvoice';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
           });
-        }); */
+        });
+      },
+
+      supplierTx: function(a){ 
+        var view = new View.SupplierTx();
+        
+        System.contentRegion.show(view);
+
+        view.on('search', function(data) {
+          data['operation'] = 'findSupplierEntries';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res.length) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("empty");
+              }                
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
       }
     };
   });

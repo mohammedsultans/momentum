@@ -21,7 +21,6 @@
     <div class="row">
       <div class="col-xs-12 col-sm-4">
         <div class="panel panel-default">
-
           <div class="panel-title">
             Particulars
             <ul class="panel-tools">
@@ -30,36 +29,46 @@
               <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
             </ul>
           </div>
-
-              <div class="panel-body">
-                <form class="form-horizontal" id="frmr1">
-                <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Payment Account<span class="color10">*</span></label>
-                    <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="account" id="accounts" style="padding-left:5px" data-live-search="true">
-                        
-                      </select>  
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Project<span class="color10">*</span></label>
-                    <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="project" id="projects" style="padding-left:5px" data-live-search="true" >
-                        
-                      </select>  
-                    </div>              
-                  </div> 
-                  <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Expense Voucher<span class="color10">*</span></label>
-                    <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="voucher" id="vouchers" style="padding-left:5px">
-                        
-                      </select>  
-                    </div>              
-                  </div>
-                </form>
-
+          <div class="panel-body">
+            <form class="form-horizontal" id="frmr1">                  
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Project<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="project" id="projects" data-live-search="true"></select>  
+                </div>              
+              </div> 
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Expense Voucher<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="voucher" id="vouchers"></select>  
+                </div>              
               </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Payment Account<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="account" id="accounts" data-live-search="true"></select>  
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Mode<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="mode" id="modes">
+                    <option data-icon="fa fa-money">Select Mode...</option>
+                    <option data-icon="fa fa-money">Cash</option>
+                    <option data-icon="fa fa-money">Cheque</option>
+                    <option data-icon="fa fa-money">Bank Transfer</option>
+                  </select>  
+                </div>                
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Voucher No<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <input type="text" name="voucher" class="form-control" id="">
+                </div>                    
+              </div>
+            </form>
+
+          </div>
 
         </div>
       </div>
@@ -75,26 +84,25 @@
             </ul>
           </div>
           <div class="panel-body table-responsive">
-
-                <table class="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <td>Claimant</td>
-                      <td>Description</td>
-                      <td>Category</td>
-                      <td>Claimed Amt</td>
-                      <td>Adjusted Amt</td>
-                    </tr>
-                  </thead>
-                  <tbody>
+            <table class="table table-hover table-striped">
+              <thead>
+                <tr>
+                  <td>Claimant</td>
+                  <td>Description</td>
+                  <td>Category</td>
+                  <td>Claimed Amt</td>
+                  <td>Adjusted Amt</td>
+                </tr>
+              </thead>
+              <tbody>
                     
-                  </tbody>
-                </table>
-                <form class="form-horizontal" style="overflow:hidden;border-top:5px solid #ddd;padding-top:20px" id="frmr3">
-                  <button type="submit" class="btn btn-default bauth">Authorize</button>
-                  <button type="submit" class="btn btn-warning brevoke">Revoke</button>
-                </form>
-              </div>
+              </tbody>
+            </table>
+            <form class="form-horizontal" style="overflow:hidden;border-top:5px solid #ddd;padding-top:20px" id="frmr3">
+              <button type="submit" class="btn btn-default bauth">Authorize</button>
+              <button type="submit" class="btn btn-warning brevoke">Revoke</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

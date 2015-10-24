@@ -144,6 +144,8 @@
 				$this->getBanks();
 			}elseif(isset($_GET['allLedgers'])){
 				$this->getLedgers();
+			}elseif(isset($_GET['purchaseLedgers'])){
+				$this->getPurchaseLedgers();
 			}elseif(isset($_GET['ledgerName'])){
 				$this->getLedgerByName($_GET['ledgerName']);
 			}elseif(isset($_GET['ledgerType'])){
@@ -172,6 +174,15 @@
 			}
 		}
 
+		public function getPurchaseLedgers()
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Ledger::GetPurchaseLedgers());
+			}else{
+				echo 0;
+			}
+		}
+
 		public function getLedgerByName($name)
 		{
 			if ($this->validateAdmin()) {
@@ -192,7 +203,7 @@
 
 		public function postQuoteInvoice($clientid, $scope, $quotes, $discount)
 		{
-			$invoice = InvoiceTX::RaiseQuotationInvoice($clientid, $scope, $quotes, $discount);
+			$invoice = SalesTX::RaiseQuotationInvoice($clientid, $scope, $quotes, $discount);
 
 			$voucher = $invoice->post();
 
@@ -205,7 +216,7 @@
 
 		public function postGenInvoice($clientid, $scope, $items, $discount)
 		{
-			$invoice = InvoiceTX::RaiseGeneralInvoice($clientid, $scope, $items, $discount);			
+			$invoice = SalesTX::RaiseGeneralInvoice($clientid, $scope, $items, $discount);			
 
 			$voucher = $invoice->post();
 
