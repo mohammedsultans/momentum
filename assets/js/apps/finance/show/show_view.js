@@ -61,6 +61,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           uly.empty();
           $('form input').val('');
           $('form textarea').val('');
+          $('button').prop({disabled: false});
         },
       
         fetchProjects: function(e) { 
@@ -93,6 +94,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         submitPayment: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize(this);
@@ -102,6 +104,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             this.trigger("submit", data);
           }else{
             swal("Error!", "Enter All Payment Details!", "error");
+            $('button').prop({disabled: false});
           }
         },
 
@@ -133,6 +136,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Payment could not be received! Try again.", "error");
+          $('button').prop({disabled: false});
         }
     });
 
@@ -185,6 +189,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           ulx.empty();
           $('form input').val('');
           $('form textarea').val('');
+          $('button').prop({disabled: false});
         },
       
         fetchProjects: function(e) { 
@@ -344,6 +349,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
 
         postInvoice: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmi1")[0]);
@@ -359,6 +365,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             this.trigger("post", data);
           }else{
             swal("Error!", "Enter All Details!", "error");
+            $('button').prop({disabled: false});
           }
         },
 
@@ -456,6 +463,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           $('#amount').val('');
           var ulx = $('tbody');
           ulx.empty();
+          $('button').prop({disabled: false});
         },
 
         fetchProjects: function(e) { 
@@ -538,6 +546,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         generateInvoice: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmi1")[0]);
@@ -557,6 +566,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             this.trigger("post", data);
           }else{
             swal("Missing Details!", "Ensure you have client, scope and invoice items!", "warning");
+            $('button').prop({disabled: false});
           }
         },
 
@@ -585,6 +595,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Quotation generation failed! Try again later.", "error");
+          $('button').prop({disabled: false});
         }
     });
 
@@ -626,6 +637,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                 $('.selectpicker').selectpicker('refresh');
 
                 $('.ldel').on('click', function(e){
+                  $('button').prop({disabled: true});
                   e.preventDefault();
                   e.stopPropagation();
                   var lid = $(this).parent().find('.lid').text();
@@ -646,8 +658,10 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                       THAT.deleteLedger(lid);                             
                     } else if (isConfirm && parseFloat(bal) > 0) {
                       swal("Restricted", "Deletion Prevented. Ensure balance is ZERO before deletion.", "error");
+                      $('button').prop({disabled: false});
                     }else {
                       swal("Cancelled", "The ledger has NOT been deleted :)", "error");
+                      $('button').prop({disabled: false});
                     }
                   });
                   
@@ -658,6 +672,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           
           
           $('form input').val('');
+          $('button').prop({disabled: false});
         },
       
         createLedger: function(e) { 
@@ -674,6 +689,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         deleteLedger: function(lid) { 
+
           this.trigger("delete", lid);
         },
 
@@ -684,6 +700,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Ledger could not be created! Please, try again.", "error");
+          $('button').prop({disabled: false});
         }
     });
 
@@ -792,7 +809,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           uld.empty();
           var ulc = $('#crledger');
           ulc.empty();
-          var ulx = $('tbody');
+          var ulx = $('#ledgertx');
           ulx.empty();   
 
           this['ledgers'] = [];       
@@ -824,6 +841,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           $("#txstatus").html('<a class="btn btn-warning" href="#"><i class="fa fa-exclamation"></i></a>');
           $("#crtot").text('Ksh. '+(parseFloat(0)).formatMoney(2, '.', ','));
           $("#drtot").text('Ksh. '+(parseFloat(0)).formatMoney(2, '.', ','));
+          $('button').prop({disabled: false});
         },
 
         addDebit: function(e) { 
@@ -834,7 +852,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           //_.extend(data, data2);
 
           if (data['debit'] && data['dramount'] != 0) {
-            var ulx = $('tbody');
+            var ulx = $('#ledgertx');
             var led = this['ledgers'];
 
             var tpl = $('<tr lid="'+data['debit']+'" effect="dr" amount="'+parseFloat(data['dramount'])+'"><td>'+led[data['debit']]['name']+'</td><td>'+(parseFloat(data['dramount'])).formatMoney(2, '.', ',')+'</td><td></td><td><a class="btn btn-danger tdel" href="#"><i class="fa fa-trash"></i></a></td></tr>');
@@ -866,7 +884,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           //_.extend(data, data2);
 
           if (data['credit'] && data['cramount'] != 0) {
-            var ulx = $('tbody');
+            var ulx = $('#ledgertx');
             var led = this['ledgers'];
 
             var tpl = $('<tr lid="'+data['credit']+'" effect="cr" amount="'+parseFloat(data['cramount'])+'"><td>'+led[data['credit']]['name']+'</td><td></td><td>'+(parseFloat(data['cramount'])).formatMoney(2, '.', ',')+'</td><td><a class="btn btn-danger tdel" href="#"><i class="fa fa-trash"></i></a></td></tr>');
@@ -893,11 +911,11 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         computeTotals: function() { 
           var cr = 0;
           var dr = 0;
-          $("tbody tr td:nth-child(3)").each(function(){
+          $("#ledgertx tr td:nth-child(3)").each(function(){
               cr += parseFloat($(this).text().replace(/,/g , "") || 0);
           });
 
-          $("tbody tr td:nth-child(2)").each(function(){
+          $("#ledgertx tr td:nth-child(2)").each(function(){
               dr += parseFloat($(this).text().replace(/,/g , "") || 0);
           });
 
@@ -917,11 +935,12 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
 
         postTransaction: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = {}
           var entries = [];
-          $("tbody tr").each(function(){
+          $("#ledgertx tr").each(function(){
             var entry = {};
             entry['lid'] = $(this).attr('lid');
             entry['effect'] = $(this).attr('effect');
@@ -940,6 +959,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               THAT.trigger("post", data);
             }else{
               swal("Error!", "Ensure you ADD the entries and the description is written!", "error");
+              $('button').prop({disabled: false});
             }
           }, 300);
         },
@@ -950,7 +970,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         onError: function(e) { 
-          swal("Error!", "Transaction failed! Try again later.", "error");          
+          swal("Error!", "Transaction failed! Try again later.", "error"); 
+          $('button').prop({disabled: false});         
         }
     });
 
@@ -1202,6 +1223,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
           var uly = $('tbody');
           uly.empty();
+          $('button').prop({disabled: false});
         },
       
         fetchExpenses: function(e) { 
@@ -1268,6 +1290,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         authorizeExpense: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var THAT = this;
@@ -1288,6 +1311,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               THAT.trigger("authorize", data);
             }else{
               swal("Error!", "Ensure you select an expense voucher and the details are given!", "error");
+              $('button').prop({disabled: false});
             }
           }, 300);
         },
@@ -1321,6 +1345,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Payment could not be received! Try again.", "error");
+          $('button').prop({disabled: false});
         }
     });
 
@@ -1374,12 +1399,14 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                 $('.selectpicker').selectpicker();
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
+            $('button').prop({disabled: false});
           });  
 
           $('form input, form textarea').val('');
         },
 
         postTransaction: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize(this);
@@ -1392,6 +1419,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               THAT.trigger("post", data);
             }else{
               swal("Error!", "Ensure ledgers are selected, the amount is entered and the description is written!", "error");
+              $('button').prop({disabled: false});
             }
           }, 300);
         },
@@ -1402,7 +1430,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         onError: function(e) { 
-          swal("Error!", "Transaction failed! Try again later.", "error");          
+          swal("Error!", "Transaction failed! Try again later.", "error");   
+          $('button').prop({disabled: false});       
         }
     });
 
@@ -1459,9 +1488,11 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           });  
 
           $('form input, form textarea').val('');
+          $('button').prop({disabled: false});
         },
 
         postTransaction: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize(this);
@@ -1474,6 +1505,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               THAT.trigger("post", data);
             }else{
               swal("Error!", "Ensure ledgers are selected, the amount is entered and the description is written!", "error");
+              $('button').prop({disabled: false});
             }
           }, 300);
         },
@@ -1485,6 +1517,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Transaction failed! Try again later.", "error");          
+          $('button').prop({disabled: false});
         }
     });
 
@@ -1529,9 +1562,11 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
           $('form textarea').val('');
           $('#amt').val('');
+          $('button').prop({disabled: false});
         },
 
         postTransaction: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize(this);
@@ -1548,6 +1583,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               }
             }else{
               swal("Error!", "Ensure action is selected, the account is selected, the amount is entered and the note is written!", "error");
+              $('button').prop({disabled: false});
             }
           }, 300);
         },
@@ -1558,7 +1594,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         onError: function(e) { 
-          swal("Error!", "Transaction failed! Try again later.", "error");          
+          swal("Error!", "Transaction failed! Try again later.", "error");
+          $('button').prop({disabled: false});          
         }
     });
 
@@ -1656,12 +1693,12 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate
-          if (voucher.type.toLowerCase() == 'receipt') {
+          if (voucher.type.toLowerCase().indexOf('receipt') >= 0) {
             rform.action = "receipt.php";
-          }else if(voucher.type.toLowerCase() == 'quotation'){
-            rform.action = "quotation.php";
-          }else{
+          }else if(voucher.type.toLowerCase().indexOf('invoice') >= 0){
             rform.action = "invoice.php";
+          }else{
+            rform.action = "quotation.php";
           }
           
           var vouch = document.createElement("input");
@@ -1670,7 +1707,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           rform.appendChild(vouch);
 
           /*var id = document.createElement("input");
-          id.name = "id";
+          id.name = "id"; 
           id.value = 2;
           rform.appendChild(id);*/
 

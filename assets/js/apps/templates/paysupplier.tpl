@@ -32,7 +32,7 @@
           </div>
 
           <div class="panel-body">
-            <form class="form-horizontal" id="frmi1">
+            <form class="form-horizontal" id="frmp1">
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Supplier<span class="color10">*</span></label>
                 <div class="col-sm-10">
@@ -61,14 +61,14 @@
                 </thead>
                 <tfoot>
                   <tr>
-                    <td></td>
-                    <td>TOTALS:</td>
-                    <td>Ksh. 5,150</td>
-                    <td>Ksh. 3,000</td>
-                    <td>Ksh. 2,000</td>
+                    <th></th>
+                    <th>TOTALS:</th>
+                    <th id="totamt">Ksh. 5,150</th>
+                    <th id="totbal">Ksh. 3,000</th>
+                    <th id="totpay">Ksh. 2,000</th>
                   </tr>
                 </tfoot>
-                <tbody>
+                <tbody id="paysup">
                   <tr>
                     <td>25/09/2015</td>
                     <td>INV362</td>
@@ -79,42 +79,6 @@
                         <div class="form-group">
                           <div class="input-group">
                             <p class="viid" style="display: none;"></p>
-                            <div class="input-group-addon">
-                              <i class="">Ksh.</i>
-                            </div>
-                            <input type="text" class="form-control adjusted" name="adjusted" value="">
-                          </div>
-                        </div>
-                      </form>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>25/09/2015</td>
-                    <td>INV362</td>
-                    <td>Ksh. 1,350</td>
-                    <td>Ksh. 1,000</td>
-                    <td>
-                      <form class="form-horizontal" style="margin:0">
-                        <div class="form-group">
-                          <div class="input-group"><p class="viid" style="display: none;"></p>
-                            <div class="input-group-addon">
-                              <i class="">Ksh.</i>
-                            </div>
-                            <input type="text" class="form-control adjusted" name="adjusted" value="">
-                          </div>
-                        </div>
-                      </form>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>25/09/2015</td>
-                    <td>INV362</td>
-                    <td>Ksh. 1,350</td>
-                    <td>Ksh. 1,000</td>
-                    <td>
-                      <form class="form-horizontal" style="margin:0">
-                        <div class="form-group">
-                          <div class="input-group"><p class="viid" style="display: none;"></p>
                             <div class="input-group-addon">
                               <i class="">Ksh.</i>
                             </div>
@@ -141,8 +105,8 @@
             </ul>
           </div>
 
-          <div class="panel-body table-responsive">
-            <form class="form-horizontal" style="overflow:hidden;" id="frmi3">
+          <div class="panel-body">
+            <form class="form-horizontal" id="frmp3">
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Total Payment</label>
                 <div class="col-sm-10">
@@ -171,10 +135,10 @@
                 <label class="col-sm-2 control-label form-label">Payment Mode<span class="color10">*</span></label>
                 <div class="col-sm-4">
                   <select class="selectpicker form-control" name="mode" id="modes">
-                    <option data-icon="fa fa-money">Select Mode...</option>
-                    <option data-icon="fa fa-money">Cash</option>
-                    <option data-icon="fa fa-money">Cheque</option>
-                    <option data-icon="fa fa-money">Bank Transfer</option>
+                    <option data-icon="fa fa-money" value="">Select Mode...</option>
+                    <option data-icon="fa fa-money" value="Cash">Cash</option>
+                    <option data-icon="fa fa-money" value="Cheque">Cheque</option>
+                    <option data-icon="fa fa-money" value="Bank Transfer">Bank Transfer</option>
                   </select>  
                 </div> 
                 <label class="col-sm-2 control-label form-label">Voucher No</label>

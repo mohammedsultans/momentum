@@ -1539,7 +1539,7 @@ class ReceiptTX extends FinancialTransaction
 	public function submit()
 	{
 		if ($this->prepare()) {
-			$voucher = TransactionProcessor::ProcessPayment($this);
+			$voucher = TransactionProcessor::ProcessReceipt($this);
 			if ($voucher) {
 				//payment has gone trough;
 				

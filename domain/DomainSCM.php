@@ -97,11 +97,10 @@ class Supplier extends Party
 		        // Execute the query and return the results
 		        $res =  DatabaseHandler::GetRow($sql);
 	        	return $this->transferBalance($res['id'], $this->balance);
+	        }else{
+	        	return true;
 	        }
 	    }
-
-        
-        return true;
       } catch (Exception $e) {
         return false;
       }
@@ -110,8 +109,8 @@ class Supplier extends Party
 
     private function transferBalance($supplierId, $amount)
     {      
-    	$transfer = new SupplierBalanceTransfer($supplierId, $amount);
-    	return $transfer->execute();
+    	$transfer = PurchaseTX::TransferArrears($supplierId, $amount);
+    	return $transfer->post();
     }
 }
 
@@ -668,17 +667,24 @@ class PurchaseInvoice
 		}
 	}
 
-	public function receivePayment($amount)
+	public function credit($amount)
 	{
 		//Invoice posted successfully
-		//$this->status = $status;
+		if ($this->balance->amount == floatval($amount)) {
+			$this->status = 1;
+		}else{
+			$this->status = 2;
+		}
+		
+		$newbal = $this->balance->amount - floatval($amount);
+		$this->balance = new Money(floatval($newbal), Currency::Get('KES'));
 
-		//try {
-			//$sql = 'UPDATE purchase_invoices SET status = '.$this->status.' WHERE id = '.$this->id;
-	 		//DatabaseHandler::Execute($sql);
-		//} catch (Exception $e) {
+		try {
+			$sql = 'UPDATE purchase_invoices SET status = '.$this->status.', balance = '.$newbal.' WHERE id = '.$this->id;
+	 		DatabaseHandler::Execute($sql);
+		} catch (Exception $e) {
 			
-		//}
+		}
 	}
 
 	public function discard()
@@ -783,7 +789,7 @@ class PurchaseInvoice
 	{
 		try {
 			$party = Supplier::GetSupplier($supplierid);
-			$sql = 'SELECT * FROM purchase_invoices WHERE party_id = '.$supplierid.' AND balance > 0 AND status = 1';
+			$sql = 'SELECT * FROM purchase_invoices WHERE party_id = '.$supplierid.' AND balance > 0 AND status != 0';
 			$res =  DatabaseHandler::GetAll($sql);
 			$invoices = [];
 			foreach ($res as $item) {
@@ -973,7 +979,7 @@ class PaymentVoucher
 		$this->description = $descr;
 		$this->status = $status;
 		try {
-			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type LIKE "%Receipt%"';
+			$sql = 'SELECT * FROM vouchers WHERE voucher_id = '.$id.' AND tx_type LIKE "%Payment%"';
 			$res =  DatabaseHandler::GetRow($sql);
 			$this->transactionId = $res['transaction_id'];
 			$this->user = $res['cashier'];
@@ -991,8 +997,8 @@ class PaymentVoucher
 	}
 
 	private static function initialize($args){
-		$receipt =  new ReceiptVoucher($args['id'], $args['party_id'], $args['datetime'], $args['amount'], $args['description'], $args['status']);
-		return $receipt;
+		$payment =  new PaymentVoucher($args['id'], $args['party_id'], $args['datetime'], $args['amount'], $args['description'], $args['status']);
+		return $payment;
 	}
 
 	public static function GetPayment($id)
@@ -1187,7 +1193,7 @@ class PurchaseTX extends FinancialTransaction
 
 	public static function RaiseOrderPurchase($supplierid, $invno, $date, $orders)
 	{
-		$client = Supplier::GetSupplier($supplierid);
+		$supplier = Supplier::GetSupplier($supplierid);
 
 		if ($scope == "G") {
 			$descr = "General Purchases";
@@ -1200,7 +1206,7 @@ class PurchaseTX extends FinancialTransaction
 
 		$oids = implode(",", $orders);
 
-		$invoice = PurchaseInvoice::CreateInvoice($client, $pid, $qids, $descr, $discount);		
+		$invoice = PurchaseInvoice::CreateInvoice($supplier, $pid, $qids, $descr, $discount);		
 
 		foreach ($oids as $oid) {
 			$order = Order::GetOrder($oid);
@@ -1253,10 +1259,12 @@ class PurchaseTX extends FinancialTransaction
 		$pid = 0;
 		$discount = 0;
 		$orders = null;
+		$datetime = new DateTime();
+		$ledger = Account::GetAccount('Purchases', 'ledgers');
 
-		$invoice = PurchaseInvoice::CreateInvoice($supplier, $pid, $orders, $descr, $discount);
+		$invoice = PurchaseInvoice::CreateInvoice($supplier, $pid, $orders, 0, $descr, $datetime->format('d/m/Y'));
 
-		$invoice->addToInvoice(PurchaseInvoiceLine::Create($invoice->id, 'Balances brought forward', 1, $amount->amount, 0, 0, Account::GetAccount('Purchases', 'ledgers')));
+		$invoice->addToInvoice(PurchaseInvoiceLine::Create($invoice->id, 'Balances brought forward', 1, $amount->amount, 0, 0, $ledger->ledgerId));
 
 		if ($invoice->generate()) {
 			return new PurchaseTX($invoice, 'Purchases Arrears B/F Invoice');
@@ -1271,18 +1279,20 @@ class PaymentTX extends FinancialTransaction
 {
 	public $id;
 	public $supplierId;
-	public $projectId;
+	public $grns;
 	public $voucherNo;
 	public $ledgerId;
 	public $status;
 
-	function __construct($id, $supplierId, $projectId, $voucherNo, $amount, $ledgerId, $descr, $status)
+	function __construct($id, $supplierId, $grns, $amount, $ledgerId, $mode, $voucherNo, $descr, $status, $payments)
 	{
 		$this->id = $id;
 		$this->supplierId = $supplierId;
-		$this->projectId = intval($projectId);
-		$this->voucherNo = $voucherNo;
+		$this->grns = $grns;		
 		$this->ledgerId = $ledgerId;
+		$this->mode = $mode;
+		$this->voucherNo = $voucherNo;
+		$this->payments = $payments;
 		$this->status = $status;
 		$txtype = new PurchasesPayment($ledgerId, $supplierId);
 		parent::__construct(new Money(floatval($amount), Currency::Get('KES')), $descr, $txtype);
@@ -1292,7 +1302,7 @@ class PaymentTX extends FinancialTransaction
 	public function update()
 	{
 		try {
-	        $sql = 'UPDATE receipts SET datetime = "'.$this->date.'", stamp = '.$this->stamp.' WHERE id = '.$this->id;
+	        $sql = 'UPDATE payments SET cashier = "'.SessionManager::GetUsername().'", datetime = "'.$this->date.'", stamp = '.$this->stamp.' WHERE id = '.$this->id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
@@ -1306,10 +1316,9 @@ class PaymentTX extends FinancialTransaction
 			$voucher = TransactionProcessor::ProcessPayment($this);
 			if ($voucher) {
 				//payment has gone trough;
-				
-				if ($this->projectId != 0) {
-					$project = Project::GetProject($this->projectId);
-					$project->credit($this->amount);
+				foreach ($this->payments as $key => $value) {
+					$grn = PurchaseInvoice::GetInvoice($key);
+					$grn->credit(floatval($value));
 				}
 				$this->status = 1;
 				$this->updateStatus();
@@ -1326,10 +1335,7 @@ class PaymentTX extends FinancialTransaction
 	}
 
 	private function prepare()
-	{		
-		//
-
-
+	{	
 		for ($i=0; $i < count($this->transactionType->drAccounts); $i++) { 
 			$amount = new Money(floatval($this->amount->amount * $this->transactionType->drRatios[$i]), $this->amount->unit);
 			$this->add(new AccountEntry($this, $this->transactionType->drAccounts[$i], $amount, $this->date, 'dr'));
@@ -1341,7 +1347,6 @@ class PaymentTX extends FinancialTransaction
 		}
 
 		return true;
-
 	}
 
 	private function updateStatus()
@@ -1356,34 +1361,33 @@ class PaymentTX extends FinancialTransaction
 		}
 	}
 
-	private static function initialize($args){
-		$payment =  new ReceiptTX($args['id'], $args['party_id'], $args['project_id'], $args['voucher_no'], $args['amount'], $args['ledger_id'], $args['description'], $args['status']);
+	private static function initialize($args, $payments){
+		$payment =  new PaymentTX($args['id'], $args['party_id'], $args['grns'], $args['amount'], $args['ledger_id'], $args['mode'], $args['voucher_no'], $args['description'], $args['status'], $payments);
 		return $payment;
 	}
 
 
-	public static function ReceivePayment($supplierId, $purpose, $ledgerId, $amount, $voucherno, $descr)
+	public static function MakePayment($supplierid, $amount, $ledgerId, $mode, $voucher, $payments)
 	{
 		try {
-			
-			$datetime = new DateTime();
-			if ($purpose == "G") {
-				$ref = $descr;
-				$purp = 0;
-			}else{
-				$prj = Project::GetProject(intval($purpose));
-				$ref = $prj->name." - ".$descr;
-				$purp = $purpose;
-			}
+			$supplier = Supplier::GetSupplier($supplierid);
 
-			$sql = 'INSERT INTO payments (party_id, project_id, voucher_no, amount, ledger_id, description, status) VALUES 
-			('.$supplierId.', '.$purp.', "'.$voucherno.'", '.$amount.', '.$ledgerId.', "'.$ref.'", 0)';
+			$descr = "Items purchased. Reference GRN(s) - ";
+			$grns = "";
+			foreach ($payments as $key => $payment) {
+				$descr .= "no: ".$key." amount: ".floatval($payment)."; ";
+				$grns .= $key.",";
+			}
+			$descr .= "from ".$supplier->name;
+
+			$sql = 'INSERT INTO payments (party_id, grns, amount, ledger_id, mode, voucher_no, description, status) VALUES 
+			('.$supplierid.', "'.$grns.'", '.$amount.', '.$ledgerId.', "'.$mode.'", "'.$voucher.'", "'.$descr.'", 0)';
 	 		DatabaseHandler::Execute($sql);
 	 		
-	 		$sql2 = 'SELECT * FROM payments WHERE party_id = '.$supplierId.' ORDER BY id DESC LIMIT 0,1';
+	 		$sql2 = 'SELECT * FROM payments WHERE party_id = '.$supplierid.' ORDER BY id DESC LIMIT 0,1';
 			$res =  DatabaseHandler::GetRow($sql2);
 
-			return self::initialize($res);
+			return self::initialize($res, $payments);
 
 		} catch (Exception $e) {
 			

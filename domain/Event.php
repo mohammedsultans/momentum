@@ -26,10 +26,10 @@ class Event extends FifthDimension
 		// Execute the query and return the results
 		$res =  DatabaseHandler::GetRow($sql);
 
-		return self::initialize($res);
+		return self::initi($res);
 	}
 
-	private static function initialize($args)
+	private static function initi($args)
   	{
      	$event = new Event($args['id']);
 

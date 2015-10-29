@@ -148,7 +148,7 @@
                         <th id="txstatus"></th>
                     </tr>
                 </tfoot>
-                  <tbody>
+                  <tbody id="ledgertx">
                     <tr>
                       <td>Chase Bank</td>
                       <td></td>

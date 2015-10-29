@@ -41,7 +41,7 @@ $voucher = json_decode($_POST['voucher']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum Invoices</title>
+  <title>Momentum - Sales Invoice</title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">
@@ -58,7 +58,7 @@ $voucher = json_decode($_POST['voucher']);
 
   <!-- Start Invoice -->
   <div class="invoice row">
-    <div class="invoicename">INVOICE</div>
+    <div class="invoicename">SALES INVOICE</div>
     <div class="logo">
       <img src="img/geoland.png" alt="logo"><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>

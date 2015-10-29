@@ -69,14 +69,14 @@
 					}
 				
 				}elseif($operation == 'makePayment'){
-					if(isset($_POST['supplier']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category'])){
+					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments'])){
 						$supplierid = $_POST['supplier'];
-						$account = $_POST['mode'];
-						$category = $_POST['category'];
 						$amount = $_POST['amount'];
-						$descr = $_POST['descr'];
+						$account = $_POST['account'];
+						$mode = $_POST['mode'];
 						$voucher =  $_POST['voucher'];
-						$this->makePayment($supplierid, $category, $account, $amount, $voucher, $descr);
+						$payments = $_POST['payments'];
+						$this->makePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
 					}else{
 						echo 0;
 					}
@@ -102,8 +102,8 @@
 				$this->getPending();
 			}elseif(isset($_GET['suppliers'])){
 				$this->getSuppliers();
-			}elseif(isset($_GET['unclearedinvoices']) && isset($_GET['supplierid'])){
-				$this->getUnclearedInvoices($_GET['supplierid']);
+			}elseif(isset($_GET['unclearedinvoices']) && isset($_GET['supplier'])){
+				$this->getUnclearedInvoices($_GET['supplier']);
 			}elseif(isset($_GET['supplier']) && isset($_GET['supplierid'])){
 				$this->getSupplier($_GET['supplierid']);
 			}else{
@@ -186,9 +186,9 @@
 			}
 		}
 
-		public function makePayment($supplierid, $account, $mode, $amount, $voucher, $invoices)
+		public function makePayment($supplierid, $amount, $account, $mode, $voucher, $payments)
 		{
-			$payment = PaymentTX::ReceivePayment($supplierid, $account, $mode, $amount, $voucher, $invoices);
+			$payment = PaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
 			$voucher = $payment->submit();
 			if ($voucher) {
 				echo json_encode($voucher);

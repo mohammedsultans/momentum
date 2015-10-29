@@ -519,12 +519,22 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 
 
 	
+	public static function ProcessReceipt($receipt)
+	{
+		if ($receipt->commit()) {
+			return Voucher::CreateReceiptVoucher($receipt);
+		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Receipt transaction with id:'.$receipt->id.' and tx id:'.$receipt->transactionId.' could not be commited');
+			return false;
+		}	
+	}
+
 	public static function ProcessPayment($payment)
 	{
 		if ($payment->commit()) {
-			return Voucher::CreateReceiptVoucher($payment);
+			return Voucher::CreatePaymentVoucher($payment);
 		}else{
-			Logger::Log('TransactionProcessor', 'Failed', 'Receipt transaction with id:'.$payment->id.' and tx id:'.$payment->transactionId.' could not be commited');
+			Logger::Log('TransactionProcessor', 'Failed', 'Payment transaction with id:'.$payment->id.' and tx id:'.$payment->transactionId.' could not be commited');
 			return false;
 		}	
 	}
@@ -629,6 +639,7 @@ class AccountEntry extends Artifact
 	public static function FindEntries($param, $value)
 	{
 		$query = '';
+
 	    switch (intval($param)) {
 	    	case 1:
 	    		//Transaction number
@@ -672,7 +683,7 @@ class AccountEntry extends Artifact
 	    		
 	    		break;
 	    }
-
+	    $query .= ' ORDER BY id DESC';
 	    try {
 			$sql = 'SELECT * FROM general_ledger_entries'.$query;
 			$res =  DatabaseHandler::GetAll($sql);
@@ -1190,6 +1201,10 @@ class Voucher extends Artifact
 		$this->party = Client::GetClient($id);
 	}
 
+	public function setSupplier($id){
+		$this->party = Supplier::GetSupplier($id);
+	}
+
 	public function setExtras($extras){
 		$this->extras = $extras;
 	}
@@ -1237,6 +1252,13 @@ class Voucher extends Artifact
 		$rcpt->persist();
 		$rcpt->setClient($receipt->clientId);
 		return $rcpt;
+	}
+
+	public static function CreatePaymentVoucher($payment){
+		$pmnt = new Voucher($payment->id, $payment->transactionType->name, $payment->transactionId, $payment->amount->amount, $payment->description, $payment->date, $payment->stamp);
+		$pmnt->persist();
+		$pmnt->setSupplier($payment->supplierId);
+		return $pmnt;
 	}
 
 	public static function CreateClaimVoucher($claim){

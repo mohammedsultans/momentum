@@ -41,7 +41,7 @@ $voucher = json_decode($_POST['voucher']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum Goods Received Note</title>
+  <title>Momentum - Goods Received Note</title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">
@@ -127,9 +127,7 @@ $voucher = json_decode($_POST['voucher']);
             <?php if (floatval($voucher->extras->discount) != 0.00){ 
               echo "<b>DISCOUNT:</b> ( Ksh. <script>document.writeln((".$voucher->extras->discount.").formatMoney(2, '.', ','));</script>)<br>";
             }else {  }?>
-            <?php if (floatval($voucher->extras->balance) > 0.00){ 
-              echo "<b>UNPAID BALANCE:</b> Ksh. <script>document.writeln((".$voucher->extras->balance.").formatMoney(2, '.', ','));</script>";
-            }else {  }?>
+            <b>UNPAID BALANCE:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->balance; ?>).formatMoney(2, '.', ','));</script>
             
           </td>
           <td></td>

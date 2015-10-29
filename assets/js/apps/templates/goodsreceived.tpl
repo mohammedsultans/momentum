@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Receive Goods/Services (GRN)</h1>
+    <h1 class="title">Receive Goods & Services</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">

@@ -41,7 +41,7 @@ $voucher = json_decode($_POST['voucher']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum Goods Received Note</title>
+  <title>Momentum - Payment Voucher</title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">
@@ -93,7 +93,7 @@ $voucher = json_decode($_POST['voucher']);
 
       <tbody>
         <tr style="border-bottom: 50px solid rgba(221, 221, 221,0);">
-          <td style=""><?php  echo $voucher->description; ?></td>
+          <td style="max-width:450px"><?php  echo $voucher->description; ?></td>
 
           <td class="text-right">Ksh. <script>document.writeln(( <?php  echo $voucher->amount ?>).formatMoney(2, '.', ','));</script></td>
         </tr>
@@ -118,8 +118,7 @@ $voucher = json_decode($_POST['voucher']);
     
     <div class="invfoot">
       <div class="signature">
-        <p>Voucher Prepared By:</p>
-        <p><b><?php echo $voucher->user ?></b></p>
+        <p style="padding:10px 15px;">Voucher Prepared By: <b><?php echo $voucher->user ?></b></p>
       </div>
       <div class="row" style="line-height:13px;font-size:10px;border-top: 2px solid #e4e4e4;padding-top:5px">
         <div class="col-md-4 text-left">Copyright © <?php  echo date('Y')." ".$comname?></div>
