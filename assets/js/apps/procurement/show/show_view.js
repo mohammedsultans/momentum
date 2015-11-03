@@ -1,6 +1,6 @@
 define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.tpl", "tpl!apps/templates/goodsreceived.tpl", 
-  "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
-	function(System, supplierTpl, suppliersTpl, grnTpl, paySupplierTpl, supplierTxTpl){
+  "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
+	function(System, supplierTpl, suppliersTpl, grnTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
   System.module('ProcurementApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Suppliers = Marionette.CompositeView.extend({
@@ -221,39 +221,36 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
     View.PurchaseOrder = Marionette.ItemView.extend({      
 
-        template: grnTpl,
+        template: purchOrderTpl,
 
         events: {
           //"change #clients": "fetchProjects",
-          "click .iadd": "addToGRN",
-          "click .idiscard": "discardGRN",
-          "click .igenerate": "generateGRN",
-          "keyup #disc": "discountGRN"
+          "click .iadd": "addToPO",
+          "click .idiscard": "discardPO",
+          "click .igenerate": "generatePO"
         },
 
         onShow: function(){
           //$("#leadscont").unwrap();
           $('.loading').hide();
-          //this.setup();
+          this.setup();
 
-          this['grnitems'] = [];
-          this['tax'] = 0;
-          this['disc'] = 0;
+          this['orderitems'] = [];
           this['totalamt'] = 0;
         },
 
         setup: function(){
+          this['totalamt'] = 0;
+
           var ul = $('#suppliers');
           ul.empty();
-          var uls = $('#ledgers');
-          uls.empty();
-          $.get(System.coreRoot + '/service/crm/index.php?suppliers', function(result) {
+          $.get(System.coreRoot + '/service/procurement/index.php?suppliers', function(result) {
             var m = JSON.parse(result);
             var tp = $('<option data-icon="fa fa-user">Select Supplier...</option>');
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</span></option>');
               tpl.appendTo(ul);
             });
             
@@ -262,112 +259,77 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
           });
-
-          $.get(System.coreRoot + '/service/finance/index.php?purchaseLedgers', function(result) {
-            var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-question-circle" value="0">Select Ledger...</option>');
-            tp.appendTo(uls);
-            
-            m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-question-circle" value="'+elem['name']+'">'+elem['name']+'</option>');
-              tpl.appendTo(uls);
-            });
-            
-            setTimeout(function() {
-                $('.selectpicker').selectpicker();
-                $('.selectpicker').selectpicker('refresh');
-            }, 300);
-          });
-          $('#disc').val(0);
           $('#total').val('');
-          $('#taxes').val('');
-          $('#amount').val('');
-          var ulx = $('tbody');
+          var ulx = $('#potable');
           ulx.empty();
 
-          $('#date-range').daterangepicker({ singleDatePicker: true }, function(start, end, label) {});
+          $('#date-picker').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY' }, function(start, end, label) {});
+
+          $('button').prop({disabled: false});
         },
 
-        addToGRN: function(e) { 
+        addToPO: function(e) { 
           e.preventDefault();
           e.stopPropagation();
           //var data = Backbone.Syphon.serialize($("#frmq1")[0]);
           var data = Backbone.Syphon.serialize($("#frmi2")[0]);
           //_.extend(data, data2);
+          var ul = $('#potable');
           //alert(JSON.stringify(data));
-          var ar = [];
-          ar = this['invitems'];
-          ar.push(data);
-          this['invitems'] = ar;
+          if (data['item'] && parseFloat(data['price']) && parseInt(data['qty'], 10)) {
+            var ar = [];
+            ar = this['orderitems'];
+            ar.push(data);
+            this['orderitems'] = ar;
 
-          var ul = $('tbody');
+            var total = parseFloat(data['qty']) * parseFloat(data['price']);
+            this['totalamt'] += total;
 
-          var total = parseInt(data['qty']) * parseFloat(data['price']);
-          this['totalamt'] += parseFloat(total);
-          this['tax'] += parseFloat(total * parseInt(data['tax'])/100);
+            $('#total').val(this['totalamt']);
+            
+            var tpl = $('<tr><td>'+data['item']+'</td><td>'+(parseFloat(data['price'])).formatMoney(2, '.', ',')+'</td><td>'+data['qty']+'</td><td>Ksh. '+(total).formatMoney(2, '.', ',')+'</td></tr>');
+            tpl.appendTo(ul);
 
-          $('#taxes').val(this['tax']);
-          $('#amount').val(this['totalamt']);
-          $('#total').val(this['totalamt'] + this['tax']);
+            setTimeout(function (){
+              $("#frmi2").find('input').val('');            
+              $('.selectpicker').selectpicker('refresh');
+            }, 150);
 
-          var tpl = $('<tr><td>'+data['service']+'<br><span style="font-style:italic; font-size:11px">'+data['task']+'</span></td>'+
-                      '<td>'+data['price']+'</td><td>'+data['qty']+'</td><td>Ksh. '+total+'</td></tr>');
-
-          tpl.appendTo(ul);
-          $('#services option[value="0"]').prop('selected', true);
-
-          setTimeout(function (){
-            $("#frmi2").find('input').val('');            
-            $('.selectpicker').selectpicker('refresh');
-          }, 150);
+          }else{
+            swal("Missing Details!", "Please enter all mandatory fields!", "warning");
+          }            
         },
 
-        isInt: function (value){
-          return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseInt(value, 10));
-        },
-
-        discountGRN: function(e) { 
-          e.preventDefault();
-          e.stopPropagation();
-          var disc = parseFloat($('#disc').val()) || 0;
-          var tot = parseFloat(this['totalamt']+this['tax']) * (100 - disc)/100;
-          $('#total').val(tot); 
-          //Open printable quote in separate window
-        },
-
-        generateGRN: function(e) { 
+        generatePO: function(e) { 
+          $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmi1")[0]);
           var disc = Backbone.Syphon.serialize($("#frmi3")[0]);
 
-          data['client'] = parseInt(data['client'], 10);
-          if (disc['discount'] == "") {
-              disc['discount'] = 0;
-          };
+          data['supplier'] = parseInt(data['supplier'], 10);
+          
+          var items = this['orderitems'];
 
-          var items = this['invitems'];
-
-          if (data['client'] && (parseInt(data['scope'], 10) || data['scope'] == 'G') && items.length > 0) {
+          if (data['supplier'] && data['date'] && items.length > 0) {
             data['items'] = items;
-            data['discount'] = disc['discount'];
             //alert(JSON.stringify(data));
-            this.trigger("post", data);
+            this.trigger("generate", data);
           }else{
-            swal("Missing Details!", "Ensure you have entered all supplier, scope and GRN items!", "warning");
+            swal("Missing Details!", "Ensure you have entered all supplier and order particulars!", "warning");
+            $('button').prop({disabled: false});
           }
         },
 
         onSuccess: function(voucher) { 
 
-          swal("Success!", "The invoice has been posted.", "success");
+          swal("Success!", "The purchase order has been generated.", "success");
           //window.open("report.php?id=2&voucher=" + voucher);
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate
-          rform.action = "invoice.php";
+          rform.action = "order.php";
 
-          voucher['user'] = System.user;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -383,6 +345,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
         onError: function(e) { 
           swal("Error!", "Quotation generation failed! Try again later.", "error");
+          $('button').prop({disabled: false});
         }
     });
 
@@ -508,9 +471,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
           }else{
             swal("Missing Details!", "Please enter all mandatory fields!", "warning");
-          }  
-
-          
+          }            
         },
 
         isInt: function (value){
@@ -1018,7 +979,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           if (voucher.type.toLowerCase().indexOf('payment') >= 0) {
             rform.action = "payment.php";
           }else if(voucher.type.toLowerCase().indexOf('order') >= 0){
-            rform.action = "porder.php";
+            rform.action = "order.php";
           }else{
             rform.action = "grn.php";
           }

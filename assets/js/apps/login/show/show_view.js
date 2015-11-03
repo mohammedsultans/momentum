@@ -8,7 +8,11 @@ define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/t
 	    events: {
 	    	'click button.btn': 'submitClicked',
 	    	'click #forgot-pass': 'forgotClicked',
-	        "click .btn-art": "viewNode"
+	        "click .btn-art": "viewNode",
+	        'click #menu': 'resetInterval',
+	        'mousemove body': 'resetInterval',
+	        'keypress body': 'resetInterval',
+	        'scroll body': 'resetInterval'
 	    },
 
 	  	initialize: function(){},
@@ -62,8 +66,8 @@ define(["app", "tpl!apps/login/show/templates/login.tpl", "tpl!apps/login/show/t
 	    },
 
 	    onSuccess: function(data) { 
-          swal("Welcome!", "Login successful.", "success");
-          System.trigger("menu:show", data);
+          	swal("Welcome!", data.user.record.name, "success");
+          	System.trigger("menu:show", data);
         },
 
         onError: function(e) { 

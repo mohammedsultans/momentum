@@ -202,8 +202,8 @@ class View
     {
       	try {
         	$sql = 'SELECT * FROM views WHERE module_id = '.$mid.' AND status = 1 ORDER BY pos ASC';
-			$res =  DatabaseHandler::GetAll($sql);
-			$activities = array();
+    			$res =  DatabaseHandler::GetAll($sql);
+    			$activities = array();
         	foreach ($res as $act) {
         		$activities[] = self::initialize($act);
         	}                

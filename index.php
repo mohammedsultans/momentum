@@ -15,9 +15,29 @@
         <title>Momentum - Business in motion</title>
         <!--Master css-->
         <link href="css/root.css" rel="stylesheet">
+        <script type="text/javascript">
+            var timer;
+            function startTimer () {
+                resetTimer();
+            }
+
+            function autoLogout () {
+                clearInterval(timer);
+                window.momentum.execute("logout:show");
+            }
+
+            function resetTimer () {
+                //console.log('reset');
+                clearInterval(timer);           
+                timer = setInterval(function(){
+                    autoLogout();
+                }, 300000);
+            }
+            startTimer();
+        </script>
     </head>
 
-    <body>
+    <body id="body" onmousemove="resetTimer()" onclick="resetTimer()" onkeypress="resetTimer()" onscroll="resetTimer()">
         <div class="loading"><img src="img/loading.gif" alt="loading-img"></div>
         <div id="menu"></div>
         <div id="content" class="content main"></div>

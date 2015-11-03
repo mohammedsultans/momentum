@@ -63,10 +63,16 @@ class Client extends Party
 
     public static function Delete($id)
     {
-        try {
-        	$sql = 'DELETE FROM clients WHERE id = '.intval($id);
-        	$res =  DatabaseHandler::Execute($sql);
-        	return true;
+        try { 
+        	$statement = TransactionVouchers::ClientStatement($id, '', 'true');
+        	if (!empty($statement) && count($statement) > 0 ) {
+        		return false;
+        	}else{
+        		$sql = 'DELETE FROM clients WHERE id = '.intval($id);
+        		$res =  DatabaseHandler::Execute($sql);
+        		return true;
+        	}
+        	
         } catch (Exception $e) {
         	return false;
         }       

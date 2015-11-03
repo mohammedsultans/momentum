@@ -8,6 +8,7 @@
 /* Color Class */
 .sweet-alert fieldset {display: none;}
 .sweet-alert .sa-error-container {display: none;}
+
 .color1 {
   color: #37363e;
 }
@@ -4157,4 +4158,8 @@ Widgets
 .table-dic .type {
   font-size: 11px;
   opacity: 0.7;
+}
+
+.panel.reports tr > td:nth-child(1){
+  width: 50px;
 }

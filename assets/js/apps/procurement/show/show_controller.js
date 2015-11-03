@@ -155,13 +155,13 @@ define(["app", "apps/procurement/show/show_view"], function(System, View){
         
         System.contentRegion.show(view);
 
-        view.on('post', function(data) {
-          data['operation'] = 'postGenInvoice';
-          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+        view.on('generate', function(data) {
+          data['operation'] = 'genPurchOrder';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
             if (result != 0) {
               var res = JSON.parse(result);
               //alert(JSON.stringify(res));
-              if (res['transactionId']) {
+              if (res['id']) {
                 view.triggerMethod("success", res);
               }else{
                 view.triggerMethod("error");

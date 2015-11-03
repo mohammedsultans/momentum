@@ -1346,6 +1346,32 @@ class TransactionVouchers extends Artifact
 		}
 	}
 
+	public static function ClientStatement($cid, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" ORDER BY id ASC';
+		}else if($dates != ''){
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    $upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);
+			foreach ($result as &$tx) {
+				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
+				$res =  DatabaseHandler::GetOne($sql2);
+				$tx['type'] = $res;
+			}
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+
 	public static function GetSupplierTransactions($sid, $category, $dates, $all)
 	{
 		if ($category == 1) {//Statement
@@ -1383,27 +1409,53 @@ class TransactionVouchers extends Artifact
 			}
 		}else{//Quotations
 			if ($all == 'true'){
-				$sql = 'SELECT * FROM purchase_orders WHERE party_id = '.intval($sid).' ORDER BY id DESC';
+				$sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.intval($sid).' ORDER BY id DESC';
 			}else{
 				$split = explode(' - ', $dates);
 		    	$d1 = explode('/', $split[0]);
 		    	$d2 = explode('/', $split[1]);
 		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
 		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
-		    	$sql = 'SELECT * FROM purchase_orders WHERE party_id = '.intval($sid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+		    	$sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.intval($sid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
 			}
 
 			try {
 				$res = DatabaseHandler::GetAll($sql);
 				$vouchers = [];
-				foreach ($res as $quote) {
-					$vouchers[] = PurchaseOrderVoucher::initialize($quote);
+				foreach ($res as $order) {
+					$vouchers[] = PurchaseOrderVoucher::initialize($order);
 				}
 
 				return $vouchers;
 			} catch (Exception $e) {
 				
 			}
+		}
+	}
+
+	public static function SupplierStatement($sid, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" ORDER BY id ASC';
+		}else if($dates != ''){
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    $upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);
+			foreach ($result as &$tx) {
+				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
+				$res =  DatabaseHandler::GetOne($sql2);
+				$tx['type'] = $res;
+			}
+			return $result;
+		} catch (Exception $e) {
+				
 		}
 	}	
 }

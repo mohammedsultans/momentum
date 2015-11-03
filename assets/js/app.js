@@ -1,6 +1,8 @@
 define(["marionette", "plugins", "sweetalert"], function(Marionette){
   var System = new Marionette.Application();
 
+  window.momentum = System;
+
   System.coreRoot = "http://code.dev/momentum";
 
   var checkLogin = function(callback) {
@@ -55,8 +57,8 @@ define(["marionette", "plugins", "sweetalert"], function(Marionette){
         "apps/procurement/procurement_app",
         "apps/hr/hr_app",
         "apps/tools/tools_app",
+        "apps/reports/reports_app",
         //"apps/notifications/notifications_app",
-        //"apps/reports/reports_app",
         //"apps/profile/profile_app",
         //"apps/about/about_app"
         ], function () {

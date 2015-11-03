@@ -48,9 +48,14 @@ class Supplier extends Party
     public static function Delete($id)
     {
         try {
-        	$sql = 'DELETE FROM suppliers WHERE id = '.intval($id);
-        	$res =  DatabaseHandler::Execute($sql);
-        	return true;
+        	$statement = TransactionVouchers::SupplierStatement($id, '', 'true');
+        	if (!empty($statement) && count($statement) > 0 ) {
+        		return false;
+        	}else{
+        		$sql = 'DELETE FROM suppliers WHERE id = '.intval($id);
+        		$res =  DatabaseHandler::Execute($sql);
+        		return true;
+        	}
         } catch (Exception $e) {
         	return false;
         }       
@@ -118,22 +123,16 @@ class PurchaseOrderLine
 {
 	public $lineId;
 	public $orderId;
-	public $itemId;
 	public $itemName;
-	public $itemDesc;
 	public $quantity;
-	public $unitPrice;//Money class - price per part
-	public $tax;
+	public $unitPrice;
 
-	function __construct($orderId, $itemName, $itemDesc, $quantity, $unitPrice, $tax)
+	function __construct($orderId, $itemName, $quantity, $unitPrice)
 	{
 		$this->orderId = $orderId;
-		//$this->itemId = $itemId;
 		$this->itemName = $itemName;
-		$this->itemDesc = $itemDesc;
 		$this->quantity = intval($quantity);
 		$this->unitPrice = floatval($unitPrice);
-		$this->tax = floatval($tax);
 		//$var = '37152548';number_format($var / 100, 2, ".", "") == 371525.48 ;
 	}
 
@@ -142,9 +141,9 @@ class PurchaseOrderLine
       	$this->lineId = $id;  		
   	}
 
-	public static function Create($orderId, $itemName, $itemDesc, $quantity, $unitPrice, $tax)
+	public static function Create($orderId, $itemName, $quantity, $unitPrice)
 	{
-		$lineItem = new PurchaseOrderLine($orderId, $itemName, $itemDesc, $quantity, $unitPrice, $tax);		
+		$lineItem = new PurchaseOrderLine($orderId, $itemName, $quantity, $unitPrice);		
 		$lineItem->save();
 		return $lineItem;
 	}
@@ -158,7 +157,7 @@ class PurchaseOrderLine
 			$res =  DatabaseHandler::GetAll($sql);
 
 			foreach ($res as $item) {
-				$lineItem = new OrderLine($item['order_id'], $item['item_name'], $item['item_desc'], $item['quantity'], $item['unit_price'], $item['tax']);
+				$lineItem = new PurchaseOrderLine($item['order_id'], $item['item_name'], $item['quantity'], $item['unit_price']);
 				$lineItem->initId($item['id']);
 				$lineItems[] = $lineItem;
 			}
@@ -174,8 +173,8 @@ class PurchaseOrderLine
       	try {
       		$datetime = new DateTime();
  			$stamp = $datetime->format('YmdHis');
-      		$sql = 'INSERT INTO purchase_order_items (order_id, item_name, item_desc, quantity, unit_price, tax, stamp) 
-      		VALUES ('.$this->orderId.', "'.$this->itemName.'", "'.$this->itemDesc.'", '.$this->quantity.', '.$this->unitPrice.', '.$this->tax.', '.$stamp.')';
+      		$sql = 'INSERT INTO purchase_order_items (order_id, item_name, quantity, unit_price, stamp) 
+      		VALUES ('.$this->orderId.', "'.$this->itemName.'", '.$this->quantity.', '.$this->unitPrice.', '.$stamp.')';
 	 		DatabaseHandler::Execute($sql);
 	 		//get lineId???? and set to object
 
@@ -203,8 +202,6 @@ class PurchaseOrder
 	public $date;
 	public $lineItems = array();
 	public $items;
-	public $taxamt;
-	public $amount;
 	public $total;
 	public $status;
 	public $party;
@@ -250,31 +247,26 @@ class PurchaseOrder
 
 	public function generate()
 	{
-		$amount = 0.00;
-		$taxamt = 0.00;
 		$total = 0.00;
 		$items = 0;
 
 		foreach ($this->lineItems as $orderLine) {
 			$lineItemAmount = ($orderLine->quantity * $orderLine->unitPrice);
-			$amount = $amount + $lineItemAmount;
+			$total = $total + $lineItemAmount;
 			$items = $items + $orderLine->quantity;
-			$taxamt = $taxamt + ($lineItemAmount * ($orderLine->tax/100));
 		}
 		//$taxamt = $amount * $tax/100;
-		$total = $amount + $taxamt;
+		//$total = $amount + $taxamt;
 		
 
 		try {
 			//status: 0 - unauthorized, 1 - awaiting shipment, 3 - dispatched, 4 - delivered
-			$sql = 'UPDATE purchase_orders SET items = '.$items.', amount = '.$amount.', total = '.$total.', tax = '.$taxamt.' WHERE id = '.$this->id;
+			$sql = 'UPDATE purchase_orders SET items = '.$items.', total = '.$total.' WHERE id = '.$this->id;
 	 		DatabaseHandler::Execute($sql);
-	 		$this->amount = $amount;
-			$this->taxamt = $taxamt;
 	 		$this->total = $total;
 			$this->items = $items;
 			//$this->status = 1;
-			return true;
+			return $this;
 		} catch (Exception $e) {
 			Logger::Log(get_class($this), 'Exception', $e->getMessage());
 			return false;
@@ -319,17 +311,17 @@ class PurchaseOrder
 	}
 
 	private static function initialize($args, $supplier){
-		$order = new Order($args['id'], $args['date'], $args['status'], $supplier, $args['user']);
+		$order = new PurchaseOrder($args['id'], $args['date'], $args['status'], $supplier, $args['user']);
 		$order->initializeOrder();
 		return $order;
 	}
 
-	public static function CreateOrder($supplier)
+	public static function CreateOrder($supplier, $date)
 	{
 		//Called and stored in a session object
 		try {			
 			$datetime = new DateTime();
-			$sql = 'INSERT INTO purchase_orders (party_id, date, stamp, status, user) VALUES ("'.$supplier->id.'","'.$datetime->format('Y/m/d').'", '.$datetime->format('YmdHis').', 1, "'.SessionManager::GetUsername().'")';
+			$sql = 'INSERT INTO purchase_orders (supplier_id, date, stamp, status, user) VALUES ("'.$supplier->id.'","'.$datetime->format('Y/m/d').'", '.$datetime->format('YmdHis').', 1, "'.SessionManager::GetUsername().'")';
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql = 'SELECT * FROM purchase_orders WHERE stamp = '.$datetime->format('YmdHis');
@@ -1045,34 +1037,34 @@ class PurchaseOrderVoucher
 	public $lineItems = [];
 	public $description;
 	public $amount;
+	public $total;
 	public $user;
 
-	function __construct($orderId, $date, $supplierid, $amount, $tax, $total, $user)
+	function __construct($orderId, $date, $supplierid, $total, $user)
 	{
 		$this->id = $orderId;
 		$this->transactionId = $orderId;
 		$this->date = $date;
-		$this->type = 'Order';
+		$this->type = 'Purchase Order';
+		$this->description = 'Order for items';
 		$this->party = Supplier::GetSupplier($supplierid);
-		$this->amount = floatval($amount);
-		$this->tax = floatval($tax);
+		$this->amount = floatval($total);
 		$this->total = floatval($total);
-		$this->description = 'Order for '.$this->party->name;
 		if (is_null($user)) {
 			$this->user = SessionManager::GetUsername();
 		}else{
 			$this->user = $user;
 		}
 		
-		$this->lineItems = PurchaseOrderLine::GetQuoteItems($orderId);
+		$this->lineItems = PurchaseOrderLine::GetOrderItems($orderId);
 	}	
 
 	public static function initialize($args){
-		$quote =  new PurchaseOrderVoucher($args['id'], $args['date'], $args['party_id'], $args['amount'], $args['tax'], $args['total'], $args['user']);
+		$quote =  new PurchaseOrderVoucher($args['id'], $args['date'], $args['supplier_id'], $args['total'], $args['user']);
 		return $quote;
 	}
 
-	public static function GetQuotation($id)
+	public static function GetOrder($id)
 	{
 		$sql2 = 'SELECT * FROM purchase_orders WHERE id = '.$id;
 		$res =  DatabaseHandler::GetRow($sql2);

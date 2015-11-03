@@ -32,6 +32,11 @@ define(["app"], function(System){
       API.showLogin();
     });
 
+    System.commands.setHandler("logout:show", function(){
+      System.navigate("logout");
+      API.logout();
+    });
+
     System.addInitializer(function(){
       new LoginApp.Router({
         controller: API

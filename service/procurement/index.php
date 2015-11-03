@@ -42,6 +42,20 @@
 					}else{
 						echo 0;
 					}
+				}elseif($operation == 'genPurchOrder'){
+					if(isset($_POST['supplier']) && isset($_POST['date']) && isset($_POST['items'])){
+						$supplierid = $_POST['supplier'];					
+						$date = $_POST['date'];
+						if (isset($_POST['items'])) {
+							$items = $_POST['items'];
+						}else{
+							$items = [];
+						}
+						$this->generatePurchaseOrder($supplierid, $date, $items);
+					}else{
+						echo 0;
+					}
+				
 				}elseif($operation == 'postGenPurchase'){
 					if(isset($_POST['supplier']) && isset($_POST['invno']) && isset($_POST['date']) && isset($_POST['items'])){
 						$supplierid = $_POST['supplier'];
@@ -155,6 +169,26 @@
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(Supplier::GetSupplier($id));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function generatePurchaseOrder($supplierid, $date, $items)
+		{
+			$supplier = Supplier::GetSupplier($supplierid);
+
+			$order = PurchaseOrder::CreateOrder($supplier, $date);
+
+			foreach ($items as $item) {
+				$ql = PurchaseOrderLine::Create($order->id, $item['item'], $item['qty'], $item['price']);
+		        $order->addToOrder($ql);
+			}
+
+			$voucher = $order->generate();
+
+			if ($voucher) {
+				echo json_encode($voucher);
 			}else{
 				echo 0;
 			}
