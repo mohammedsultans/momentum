@@ -177,8 +177,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             });
             
             setTimeout(function() {
-                $('.selectpicker').selectpicker();
-                $('.selectpicker').selectpicker('refresh');
+              $('.selectpicker').selectpicker();
+              $('.selectpicker').selectpicker('refresh');
             }, 300);
           });
           var uly = $('#projects');

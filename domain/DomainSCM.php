@@ -196,7 +196,7 @@ class PurchaseOrderLine
     }
 }
 
-class PurchaseOrder
+class PurchaseOrder 
 {
 	public $id;
 	public $date;
@@ -340,7 +340,7 @@ class PurchaseOrder
 			$sql = 'SELECT * FROM purchase_orders WHERE id = '.$id;
 			$res =  DatabaseHandler::GetRow($sql);
 			if (!empty($res['date'])) {
-				$supplier = Supplier::GetSupplier($res['party_id']);
+				$supplier = Supplier::GetSupplier($res['supplier_id']);
 				$order = self::initialize($res, $supplier);
 				if (!empty($res['project_id'])) {
 					$order->initProject($res['project_id']);
@@ -387,7 +387,7 @@ class PurchaseOrder
 	{
 		try {
 			$supplier = Supplier::GetSupplier($supplierid);
-			$sql = 'SELECT * FROM purchase_orders WHERE party_id = '.$supplierid.' AND status = 1';
+			$sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.$supplierid.' AND status = 1';
 			$res =  DatabaseHandler::GetAll($sql);
 			$orders = [];
 			foreach ($res as $item) {
@@ -426,6 +426,41 @@ class PurchaseOrder
 			
 		} catch (Exception $e) {
 			Logger::Log('PurchaseOrder', 'Exception', $e->getMessage());
+			return null;
+		}
+		
+	}
+
+	public static function GetAllOrders($dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM purchase_orders';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM purchase_orders WHERE stamp BETWEEN '.$lower.' AND '.$upper.'';
+		}
+
+		try {
+
+			$res =  DatabaseHandler::GetAll($sql);
+			$orders = [];
+			foreach ($res as $item) {
+				if (!empty($item['date'])) {
+					$supplier = Supplier::GetSupplier($item['supplier_id']);
+					$orders[] = self::initialize($item, $supplier);
+				}else{
+					
+				}
+			}
+			
+			return $orders;
+			
+		} catch (Exception $e) {
+			Logger::Log('Purchase Order', 'Exception', $e->getMessage());
 			return null;
 		}
 		
@@ -825,6 +860,31 @@ class PurchaseInvoice
 		}		
 	}
 
+	public static function GetAllInvoices($dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM purchase_invoices';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM purchase_invoices WHERE stamp BETWEEN '.$lower.' AND '.$upper.'';
+		}
+
+		try {
+			$res =  DatabaseHandler::GetAll($sql);
+
+			return $res;
+			
+		} catch (Exception $e) {
+			Logger::Log('Purchase Invoice', 'Exception', $e->getMessage());
+			return null;
+		}
+		
+	}
+
 	public static function Delete($id)
 	{
 		try {
@@ -845,6 +905,7 @@ class PurchaseVoucher
 	public $supplier;
 	public $date;
 	public $invno;
+	public $orders = [];
 	public $advices = [];
 	public $description;
 	public $tax;
@@ -876,12 +937,12 @@ class PurchaseVoucher
 		if ($orders != "" || $orders != null) {
 			$orders = explode(",", $orders);
 			foreach ($orders as $oid) {
-				$this->advices[] = PurchaseOrder::GetOrder($oid);
+				$this->orders[] = PurchaseOrder::GetOrder($oid);
 			}
-		}else{
-			$this->advices[] = PurchaseInvoice::GetInvoice($this->id);
 		}
-		
+
+		$this->advices[] = PurchaseInvoice::GetInvoice($this->id);
+				
 
 		$extras = new stdClass();
    		$extras->amount = $this->amt->amount;
@@ -1183,34 +1244,35 @@ class PurchaseTX extends FinancialTransaction
 		return true;
 	}
 
-	public static function RaiseOrderPurchase($supplierid, $invno, $date, $orders)
+	public static function RaiseOrderPurchase($supplierid, $invno, $date, $items)
 	{
-		$supplier = Supplier::GetSupplier($supplierid);
-
-		if ($scope == "G") {
-			$descr = "General Purchases";
-			$pid = 0;
-		}else{
-			$prj = Project::GetProject(intval($scope));
-			$descr = $prj->name.' Project';
-			$pid = intval($scope);
+		$ords;
+		foreach ($items as $item) {
+		    $ords[$item['order']] = 1;
 		}
 
-		$oids = implode(",", $orders);
+		$orders = [];
+		foreach ($ords as $key=>$oid) {
+		    $orders[] = $key;
+		    $order = PurchaseOrder::GetOrder($key);
+			$order->setPurchased();		
+		}
 
-		$invoice = PurchaseInvoice::CreateInvoice($supplier, $pid, $qids, $descr, $discount);		
+		$porders = implode(",", $orders);
+		$descr = "Ordered Purchases. Order No(s): ".$porders;
+		$supplier = Supplier::GetSupplier($supplierid);
+		$pid = 0;	
 
-		foreach ($oids as $oid) {
-			$order = Order::GetOrder($oid);
-			foreach ($order->lineItems as $item) {
-		    	$invoice->addToInvoice(PurchaseInvoiceLine::Create($invoice->id, $item->itemName, $item->itemDesc, $item->quantity, $item->unitPrice, $item->tax));
-			}			
+		$invoice = PurchaseInvoice::CreateInvoice($supplier, $pid, $porders, $invno, $descr, $date);
+
+		foreach ($items as $item) {
+		    $invoice->addToInvoice(PurchaseInvoiceLine::Create($invoice->id, $item['item'], $item['qty'], $item['price'], $item['tax'], $item['disc'], $item['ledger']));
 		}
 
 		if ($invoice->generate()) {
 			return new PurchaseTX($invoice, 'Purchase Order Invoice');
 		}else{
-			Logger::Log('PurchaseTX', 'Failed', 'Purchase order invoice transaction with id:'.$invoice->id.' and tx id:'.$this->transactionId.' could not be completed');
+			Logger::Log('PurchaseTX', 'Failed', 'Ordered purchase invoice transaction with id:'.$invoice->id.' and tx id:'.$this->transactionId.' could not be completed');
 			return false;
 		}		
 	}

@@ -31,10 +31,10 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-link="#" href="#">Profit & Loss Statement</a></td></tr>
-                <tr><td>2.</td><td><a data-link="#" href="#">Trial Balance</a></td></tr>
-                <tr><td>3.</td><td><a data-link="#" href="#">Balance Sheet</a></td></tr>
-                <tr><td>4.</td><td><a data-link="#" href="#">Statement of Cash flows</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="100" href="#">Profit & Loss Statement</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="101" href="#">Trial Balance</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="102" href="#">Balance Sheet</a></td></tr>
+                <tr><td>4.</td><td><a data-rid="103" href="#">Statement of Cash flows</a></td></tr>
               </tbody>
             </table>
           </div>
@@ -51,10 +51,10 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-link="http://code.dev/" href="#">Today's Transactions</a></td></tr>
-                <tr><td>2.</td><td><a data-link="http://code.dev/" href="#">Ledger Statement</a></td></tr>
-                <tr><td>3.</td><td><a data-link="http://code.dev/" href="#">Creditors List</a></td></tr>
-                <tr><td>4.</td><td><a data-link="http://code.dev/" href="#">Suppliers List</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="110" href="#">Today's Transactions</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="111" href="#">Ledger Statement</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="112" href="#">Debtors List</a></td></tr>
+                <tr><td>4.</td><td><a data-rid="113" href="#">Creditors List</a></td></tr>
               </tbody>
             </table>
           </div>
@@ -71,16 +71,16 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-link="#" href="#">Today's Sales</a></td></tr>
-                <tr><td>2.</td><td><a data-link="#" href="#">All Sales</a></td></tr>
-                <tr><td>3.</td><td><a data-link="#" href="#">Sales by Cashier</a></td></tr>
-                <tr><td>4.</td><td><a data-link="#" href="#">Sales by Item</a></td></tr>
-                <tr><td>5.</td><td><a data-link="#" href="#">Sales by Client</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="120" href="#">Today's Revenues</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="121" href="#">Revenue Report</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="122" href="#">Revenue by Cashier/Agent</a></td></tr>
+                <tr><td>4.</td><td><a data-rid="123" href="#">Revenue by Item</a></td></tr>
+                <tr><td>5.</td><td><a data-rid="124" href="#">Revenue by Client</a></td></tr>
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+      </div> 
       <div class="col-xs-6 col-sm-6">
         <div class="panel panel-default reports">
           <div class="panel-title">
@@ -92,11 +92,12 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-link="#" href="#">Today's Expenses</a></td></tr>
-                <tr><td>2.</td><td><a data-link="#" href="#">All Expenses</a></td></tr>
-                <tr><td>3.</td><td><a data-link="#" href="#">Expenses by Category</a></td></tr>
-                <tr><td>4.</td><td><a data-link="#" href="#">Expenses by Item</a></td></tr>
-                <tr><td>5.</td><td><a data-link="#" href="#">Expenses by Supplier</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="130" href="#">Today's Expenses</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="131" href="#">Expenses Report</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="132" href="#">Expenses by Category</a></td></tr>
+                <tr><td>4.</td><td><a data-rid="133" href="#">Expenses by Description</a></td></tr>
+                <tr><td>5.</td><td><a data-rid="134" href="#">Expenses by Supplier</a></td></tr>
+                <tr><td>6.</td><td><a data-rid="135" href="#">Claims per Employee</a></td></tr>
               </tbody>
             </table>
           </div>

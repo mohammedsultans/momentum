@@ -81,8 +81,8 @@ define(["app", "apps/procurement/show/show_view"], function(System, View){
         });
       },
 
-      receiveOrderedGoods: function(a){ 
-        var view = new View.GRN();
+      receiveOrder: function(){ 
+        var view = new View.OrderGRN();
         
         System.contentRegion.show(view);
 

@@ -1,6 +1,6 @@
-define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.tpl", "tpl!apps/templates/goodsreceived.tpl", 
+define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.tpl", "tpl!apps/templates/goodsreceived.tpl", "tpl!apps/templates/receiveorder.tpl",
   "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
-	function(System, supplierTpl, suppliersTpl, grnTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
+	function(System, supplierTpl, suppliersTpl, grnTpl, ordergrnTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
   System.module('ProcurementApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Suppliers = Marionette.CompositeView.extend({
@@ -530,6 +530,330 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
+    View.OrderGRN = Marionette.ItemView.extend({      
+
+        template: ordergrnTpl,
+
+        events: {
+          "change #suppliers": "fetchOrders",
+          "change #orders": "fetchItems",
+          "change #items": "selectItem",
+          "click .iadd": "addToGRN",
+          "click .idiscard": "discardGRN",
+          "click .igenerate": "generateGRN"
+        },
+
+        onShow: function(){
+          //$("#leadscont").unwrap();
+          $('.loading').hide();
+          this.setup();
+
+          this['grnitems'] = [];
+          this['orderitems'] = [];
+          this['tax'] = 0;
+          this['disc'] = 0;
+          this['subtotal'] = 0;
+          this['totalamt'] = 0;
+        },
+
+        setup: function(){
+          var ul = $('#suppliers');
+          ul.empty();
+          var uls = $('#ledgers');
+          uls.empty();
+          $.get(System.coreRoot + '/service/procurement/index.php?suppliers', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Supplier...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</span></option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/finance/index.php?purchaseLedgers', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-question-circle" value="0">Select Ledger...</option>');
+            tp.appendTo(uls);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-question-circle" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(uls);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+          $('#disc').val(0);
+          $('#total').val('');
+          $('#taxes').val('');
+          $('#amount').val('');
+          var ulx = $('tbody');
+          ulx.empty();
+
+          $('#date-picker').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY' }, function(start, end, label) {});
+
+          $('button').prop({disabled: false});
+        },
+
+        fetchOrders: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          data['supplier'] = parseInt(data['supplier'], 10);
+          
+          if (data['supplier']) {
+            this['grnitems'] = [];
+            var ulx = $('#orderitems');
+            ulx.empty();
+            var ul = $('#orders');
+            ul.empty();
+            $.get(System.coreRoot + '/service/procurement/index.php?porders&supplierid='+data['supplier'], function(result) {
+              var m = JSON.parse(result);
+              var tp = $('<option data-icon="fa fa-cubes">Select Order...</option>');
+              tp.appendTo(ul);
+              
+              m.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-cubes" value="'+elem['id']+'">ORDER-'+elem['id']+'</option>');
+                tpl.appendTo(ul);
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+
+          }else{
+            swal("Missing Details!", "Select a supplier first!", "info");
+          }
+        },
+
+        fetchItems: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          data['order'] = parseInt(data['order'], 10);
+          
+          if (data['order']) {
+            this['tax'] = 0;
+            this['disc'] = 0;
+            this['subtotal'] = 0;
+            this['totalamt'] = 0;
+            $('#amount').val('');
+            $('#taxes').val('');
+            $('#disc').val('');
+            $('#total').val('');
+
+            var THAT = this;
+            this['orderitems'] = [];
+            var ul = $('#items');
+            ul.empty();
+            $.get(System.coreRoot + '/service/procurement/index.php?porder&orderid='+data['order'], function(result) {
+              var m = JSON.parse(result);
+              var tp = $('<option data-icon="fa fa-cube" value="0">Select Item...</option>');
+              tp.appendTo(ul);
+              
+              m.lineItems.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-cube" value="'+elem.lineId+'">'+elem['itemName']+'</option>');
+                tpl.appendTo(ul);
+                THAT['orderitems'][elem.lineId] = elem;
+                //THAT['orderitems'].push(elem);
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+
+          }else{
+            swal("Missing Details!", "Select an order to fetch!", "warning");
+          }
+        },
+
+        selectItem: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi2")[0]);
+          //alert(JSON.stringify(data));
+          //data['project'] = parseInt(data['project'], 10);
+          //alert(JSON.stringify(data));
+          data['item'] = parseInt(data['item'], 10);
+
+          var item = this['orderitems'][data.item];
+
+          //alert(JSON.stringify(item));
+
+          $('#price').val(item.unitPrice);
+          $('#qty').val(item.quantity);
+
+
+          /*if (data['quote']) {
+            var qt = [];
+            qt = this['quotes'];
+            
+            if (!(_.contains(qt, data['quote']))) {
+              qt.push(data['quote']);
+              this['quotes'] = qt;
+              var THAT = this;
+              var ul = $('tbody');
+              $.get(System.coreRoot + '/service/operations/index.php?quote='+data['quote'], function(result) {                
+                var res = JSON.parse(result);
+
+                var items = res['lineItems'];
+                
+                items.forEach(function(elem){
+                  var total = parseInt(elem['quantity']) * parseFloat(elem['unitPrice']);
+                  var tpl = $('<tr><td>'+elem['itemName']+'<br><span style="font-style:italic; font-size:11px">'+elem['itemDesc']+'</span></td>'+
+                    '<td>'+elem['unitPrice']+'</td><td>'+elem['quantity']+'</td><td>Ksh. '+total+'</td></tr>');
+                  tpl.appendTo(ul);
+                });
+
+                THAT['amount'] +=  parseFloat(res['amount']);
+                THAT['total'] += parseFloat(res['total']);
+                THAT['tax'] += parseFloat(res['taxamt']);
+
+                $('#taxes').val(THAT['tax']);
+                $('#total').val(THAT['total']); 
+                $('#amount').val(THAT['amount']);
+ 
+                setTimeout(function() {
+                  $("select[name=quote] option[value='"+data['quote']+"']").css('display', 'none'); 
+                  $("select[name=quote]").val(0);  
+                  $('.selectpicker').selectpicker('refresh');
+                }, 100);  
+              });
+            };
+          }else{
+            swal("Misiing Details!", "Select a quotation to add!", "warning");
+          }*/
+        },
+
+        addToGRN: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          //var data = Backbone.Syphon.serialize($("#frmq1")[0]);
+          var data = Backbone.Syphon.serialize($("#frmi2")[0]);
+          data['order'] = parseInt($('#orders').val(), 10);
+          //_.extend(data, data2);
+          var ul = $('#orderitems');
+          //alert(JSON.stringify(data));
+          data['item'] = parseInt(data['item'], 10);
+
+          if (data['item'] && parseFloat(data['price']) && parseInt(data['qty'], 10) && parseInt(data['ledger'], 10)) {
+            var tax = 0; var disc = 0;
+            if (parseFloat(data['tax'])) {
+              tax = parseFloat(data['tax']);
+            };
+
+            if (parseFloat(data['discount'])) {
+              disc = parseFloat(data['discount']);
+            };
+
+            data['tax'] = tax;
+            data['disc'] = disc;
+
+            var itm = this['orderitems'][data.item];
+            data['item'] = itm.itemName;
+
+            var ar = [];
+            ar = this['grnitems'];
+            ar.push(data);
+            this['grnitems'] = ar;
+
+            var subtotal = parseFloat(data['qty']) * parseFloat(data['price']);
+            var taxamt = parseFloat(subtotal * tax/100);
+            var discamt = parseFloat((subtotal + taxamt) * disc/100);
+            var total = subtotal + taxamt - discamt;
+            this['disc'] += discamt;
+            this['tax'] += taxamt;
+            this['subtotal'] += subtotal;
+            this['totalamt'] += total;
+
+            $('#taxes').val(this['tax']);
+            $('#disc').val(this['disc']);
+            $('#amount').val(this['subtotal']);
+            $('#total').val(this['totalamt']);
+            
+            var tpl = $('<tr><td>'+data['item']+'</td><td>'+(parseFloat(data['price'])).formatMoney(2, '.', ',')+'</td><td>'+data['qty']+'</td><td>'+tax+'</td><td>'+disc+'</td><td>Ksh. '+(total).formatMoney(2, '.', ',')+'</td></tr>');
+            tpl.appendTo(ul);
+
+            setTimeout(function (){
+              $("select[name=item] option[value='"+data['item']+"']").css('display', 'none');
+              $('#ledgers option[value="0"]').prop('selected', true);
+              $('#items option[value="0"]').prop('selected', true);
+              $("#frmi2").find('input').val('');            
+              $('.selectpicker').selectpicker('refresh');
+            }, 150);
+
+          }else{
+            swal("Missing Details!", "Please enter all mandatory fields!", "warning");
+          }            
+        },
+
+        isInt: function (value){
+          return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseInt(value, 10));
+        },
+
+        generateGRN: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          var disc = Backbone.Syphon.serialize($("#frmi3")[0]);
+
+          data['supplier'] = parseInt(data['supplier'], 10);
+          if (disc['discount'] == "") {
+              disc['discount'] = 0;
+          };
+
+          var items = this['grnitems'];
+
+          if (data['supplier'] && data['invno'] && data['date'] && items.length > 0) {
+            data['items'] = items;
+            //alert(JSON.stringify(data));
+            this.trigger("post", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all supplier and invoice particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        onSuccess: function(voucher) { 
+          swal("Success!", "The purchase invoice has been posted.", "success");
+          //window.open("report.php?id=2&voucher=" + voucher);
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "grn.php";
+
+          voucher['user'] = System.user;
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+
+          rform.parentNode.removeChild(rform);          
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Goods received note generation failed! Try again later.", "error");
+          $('button').prop({disabled: false});
+        }
+    });
+
     View.GRO = Marionette.ItemView.extend({      
 
         template: grnTpl,
@@ -978,21 +1302,16 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
           if (voucher.type.toLowerCase().indexOf('payment') >= 0) {
             rform.action = "payment.php";
-          }else if(voucher.type.toLowerCase().indexOf('order') >= 0){
-            rform.action = "order.php";
-          }else{
+          }else if(voucher.type.toLowerCase().indexOf('purchase') >= 0){
             rform.action = "grn.php";
+          }else{
+            rform.action = "order.php";
           }
           
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
           rform.appendChild(vouch);
-
-          /*var id = document.createElement("input");
-          id.name = "id";
-          id.value = 2;
-          rform.appendChild(id);*/
 
           document.body.appendChild(rform);
 

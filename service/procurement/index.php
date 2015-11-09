@@ -68,16 +68,12 @@
 					}
 				
 				}elseif($operation == 'postOrderPurchase'){
-					if(isset($_POST['supplier']) && isset($_POST['invno']) && isset($_POST['date']) && isset($_POST['orders'])){
+					if(isset($_POST['supplier']) && isset($_POST['invno']) && isset($_POST['date']) && isset($_POST['items'])){
 						$supplierid = $_POST['supplier'];
 						$invno = $_POST['invno'];						
 						$date = $_POST['date'];
-						if (isset($_POST['orders'])) {
-							$orders = $_POST['orders'];
-						}else{
-							$orders = [];
-						}
-						$this->postOrderPurchase($supplierid, $invno, $date, $orders);
+						$items = $_POST['items'];
+						$this->postOrderPurchase($supplierid, $invno, $date, $items);
 					}else{
 						echo 0;
 					}
@@ -116,12 +112,16 @@
 				$this->getPending();
 			}elseif(isset($_GET['suppliers'])){
 				$this->getSuppliers();
+			}elseif(isset($_GET['porders']) && isset($_GET['supplierid'])){
+				$this->getPurchaseOrders($_GET['supplierid']);
+			}elseif(isset($_GET['porder']) && isset($_GET['orderid'])){
+				$this->getPurchaseOrder($_GET['orderid']);
 			}elseif(isset($_GET['unclearedinvoices']) && isset($_GET['supplier'])){
 				$this->getUnclearedInvoices($_GET['supplier']);
 			}elseif(isset($_GET['supplier']) && isset($_GET['supplierid'])){
 				$this->getSupplier($_GET['supplierid']);
 			}else{
-				echo 0;
+				echo 0; 
 			}
 		}
 		/* PROCUREMENT APPLICATION INTERFACE */
@@ -244,6 +244,24 @@
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(PurchaseInvoice::GetUnclearedInvoices($supplierid));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getPurchaseOrders($supplierid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(PurchaseOrder::GetSupplierOrders($supplierid));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getPurchaseOrder($orderid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(PurchaseOrder::GetOrder($orderid));
 			}else{
 				echo 0;
 			}

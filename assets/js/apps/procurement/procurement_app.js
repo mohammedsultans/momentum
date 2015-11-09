@@ -6,6 +6,7 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
         "suppliers" : "showSuppliers",
         "addSupplier" : "addSupplier",
         "receiveGoods" : "receiveGoods",
+        "receiveOrder" : "receiveOrder",
         "returnGoods" : "returnGoods",
         "paySupplier" : "paySupplier",
         "purchaseOrder" : "purchaseOrder",
@@ -35,6 +36,12 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
       receiveGoods: function(a){
         //System.contentRegion.show();
         showController.receiveGoods(a);
+        //System.execute("set:active:header", "Menu");
+      },
+
+      receiveOrder: function(){
+        //System.contentRegion.show();
+        showController.receiveOrder();
         //System.execute("set:active:header", "Menu");
       },
 

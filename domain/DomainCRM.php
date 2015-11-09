@@ -775,6 +775,44 @@ class Quotation
 		
 	}
 
+	public static function GetAllQuotations($dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM quotations';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM quotations WHERE stamp BETWEEN '.$lower.' AND '.$upper.'';
+		}
+
+		try {
+			$res =  DatabaseHandler::GetAll($sql);
+			$quotes = [];
+			foreach ($res as $item) {
+				if (!empty($item['date'])) {
+					$client = Client::GetClient($item['client_id']);
+					$quote = self::initialize($item, $client);
+					if (!empty($item['project_id'])) {
+						$quote->initProject($item['project_id']);
+					}
+					$quotes[] = $quote;
+				}else{
+					
+				}
+			}
+			
+			return $quotes;
+			
+		} catch (Exception $e) {
+			Logger::Log('Quotation', 'Exception', $e->getMessage());
+			return null;
+		}
+		
+	}
+
 	public static function Delete($id)
 	{
 		try {
@@ -1075,22 +1113,45 @@ class SalesInvoice
 			$client = Client::GetClient($clientid);
 			$sql = 'SELECT * FROM invoices WHERE client_id = '.$clientid.' AND status = 1 AND isnull(project_id)';
 			$res =  DatabaseHandler::GetAll($sql);
-			$invoice = [];
+			$invoices = [];
 			foreach ($res as $item) {
 				if (!empty($item['datetime'])) {
 					$invoice = new SalesInvoice($item['id'], $item['project_id'], $item['quotes'], $item['description'], $item['discount'], $item['datetime'], $item['status'], $client);
 					$invoice->initialize();
-					$invoice[] = $invoice;
-				}else{
-					
+					$invoices[] = $invoice;
 				}
 			}
 			
-			return $invoice;
+			return $invoices;
 			
 		} catch (Exception $e) {
 			return null;
 		}		
+	}
+
+	public static function GetAllInvoices($dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM invoices';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM invoices WHERE stamp BETWEEN '.$lower.' AND '.$upper.'';
+		}
+
+		try {
+			$res =  DatabaseHandler::GetAll($sql);
+
+			return $res;
+			
+		} catch (Exception $e) {
+			Logger::Log('Invoice', 'Exception', $e->getMessage());
+			return null;
+		}
+		
 	}
 
 	public static function Delete($id)

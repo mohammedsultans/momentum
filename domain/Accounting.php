@@ -1354,8 +1354,8 @@ class TransactionVouchers extends Artifact
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
-		    $lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
-		    $upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
 		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
 		}
 
@@ -1366,6 +1366,27 @@ class TransactionVouchers extends Artifact
 				$res =  DatabaseHandler::GetOne($sql2);
 				$tx['type'] = $res;
 			}
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+
+	public static function ClientQuotations($cid, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' ORDER BY id DESC';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM quotations WHERE client_id = '.intval($cid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);			
 			return $result;
 		} catch (Exception $e) {
 				
@@ -1441,8 +1462,8 @@ class TransactionVouchers extends Artifact
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
-		    $lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
-		    $upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
 		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
 		}
 
@@ -1453,6 +1474,27 @@ class TransactionVouchers extends Artifact
 				$res =  DatabaseHandler::GetOne($sql2);
 				$tx['type'] = $res;
 			}
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+
+	public static function SupplierOrders($sid, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.intval($sid).' ORDER BY id DESC';
+		}else{
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.intval($sid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);			
 			return $result;
 		} catch (Exception $e) {
 				

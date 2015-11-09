@@ -1756,7 +1756,7 @@ Invoice
 .invoice .table > thead > tr > td,
 .invoice .table > tbody > tr > td,
 .invoice .table > tfoot > tr > td {
-  padding: 5px 0;
+  padding: 5px;
 }
 .invoice .signature {
   border-top: 2px solid #E4E4E4;
