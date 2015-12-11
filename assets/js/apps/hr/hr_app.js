@@ -2,50 +2,33 @@ define(["app", "apps/hr/show/show_controller"], function(System, showController)
   System.module('HRApp', function(HRApp, System, Backbone, Marionette, $, _){
 
     HRApp.Router = Marionette.AppRouter.extend({
+
+      //controller: showController,
+
       appRoutes: {
         "employees" : "showEmployees",
         "addEmployee" : "addEmployee",
-        "enquiries" : "enquiries",
-        "pending" : "pendingQueries"
+        "postAllowance" : "postAllowance",
+        "postOvertime" : "postOvertime",
+        "salaryAdvance" : "salaryAdvance",
+        "payroll" : "payroll",
+        "paySalaries" : "paySalaries",
+        "exEmployees" : "exEmployees"
       }
     });
 
-    var API = {
-      showEmployees: function(){
-        //System.contentRegion.show();
-        showController.showEmployees();
-        //System.execute("set:active:header", "Menu");
-      },
-
-      addEmployee: function(a){
-        //System.contentRegion.show();
-        showController.addEmployee(a);
-        //System.execute("set:active:header", "Menu");
-      },
-
-      enquiries: function(a){
-        //System.contentRegion.show();
-        showController.enquiries(a);
-        //System.execute("set:active:header", "Menu");
-      },
-
-      pendingQueries: function(a){
-        //System.contentRegion.show();
-        showController.pendingQueries(a);
-        //System.execute("set:active:header", "Menu");
-      }
-    };
+    System.addInitializer(function(){
+      new HRApp.Router({
+        controller: showController
+      });
+    });
 
     System.on("employees:show", function(){
       System.navigate("employees");
-      API.showemployees();
+      showController.showemployees();
     });
     
-    System.addInitializer(function(){
-      new HRApp.Router({
-        controller: API
-      });
-    });
+    
   });
 
   return System.HRApp;

@@ -1302,7 +1302,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
           if (voucher.type.toLowerCase().indexOf('payment') >= 0) {
             rform.action = "payment.php";
-          }else if(voucher.type.toLowerCase().indexOf('purchase') >= 0){
+          }else if(voucher.type.toLowerCase().indexOf('invoice') >= 0){
             rform.action = "grn.php";
           }else{
             rform.action = "order.php";

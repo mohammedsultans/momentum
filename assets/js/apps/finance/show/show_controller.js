@@ -226,7 +226,7 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         System.contentRegion.show(view);
 
         view.on('post', function(data) {
-          data['operation'] = 'postExpense';
+          data['operation'] = 'injectCapital';
           $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
             if (result == 1) {
               view.triggerMethod("success");     

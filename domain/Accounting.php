@@ -379,13 +379,13 @@ class Transaction extends Action
 
 		try {
 			//Check for existing tx - refactor to micro/nano second timestamp [not applicable for batch transactions]
-			$sqlx = 'SELECT * FROM transactions WHERE stamp > '.($this->stamp - 2).' AND description = "'.$description.'"  ORDER BY stamp DESC LIMIT 0,1';
-			$resx = DatabaseHandler::GetRow($sqlx);
+			//$sqlx = 'SELECT * FROM transactions WHERE stamp > '.($this->stamp - 2).' AND description = "'.$description.'"  ORDER BY stamp DESC LIMIT 0,1';
+			//$resx = DatabaseHandler::GetRow($sqlx);
 
-			if ($resx['stamp']) {
-				Logger::Log(get_class($this), 'Missing', 'Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists');
+			//if ($resx['stamp']) {
+				//Logger::Log(get_class($this), 'Missing', 'Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists');
 	 			//throw new Exception('Blocked double entry. Similar transaction id:'.$resx['id'].' with timestamp '.$resx['stamp'].' exists '.json_encode($this));
-	 		}else{
+	 		//}else{
 	 			//Initialize transaction
 				$sql = 'INSERT INTO transactions (type, amount, datetime, stamp, status, description) VALUES ("'.$this->transactionType->name.'", '.floatval($amount->amount).', "'.$this->date.'", '.$this->stamp.', 0, "'.$this->description.'")';
 		 		DatabaseHandler::Execute($sql);	 		
@@ -394,7 +394,7 @@ class Transaction extends Action
 				// Execute the query and return the results
 				$res =  DatabaseHandler::GetRow($sql2);
 				$this->transactionId = $res['id'];
-	 		}
+	 		//}
 	 		
 		} catch (Exception $e) {
 			Logger::Log(get_class($this), 'Exception', $e->getMessage());
@@ -557,6 +557,26 @@ class TransactionProcessor// extends SystemAgent with TP role - Actor/Agent of t
 			return Voucher::CreateClaimVoucher($claim);
 		}else{
 			Logger::Log('TransactionProcessor', 'Failed', 'Claim transaction with tx id:'.$claim->transactionId.' could not be commited');
+			return false;
+		}	
+	}
+
+	public static function ProcessPayrollTx($tx)
+	{
+		if ($tx->commit()) {
+			return Voucher::CreatePayrollVoucher($tx);
+		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Payroll transaction employee id:'.$tx->partyId.' with tx id:'.$tx->transactionId.' could not be commited');
+			return false;
+		}	
+	}
+
+	public static function ProcessAdvanceTx($tx)
+	{
+		if ($tx->commit()) {
+			return Voucher::CreateAdvanceVoucher($tx);
+		}else{
+			Logger::Log('TransactionProcessor', 'Failed', 'Advance transaction employee id:'.$tx->partyId.' with tx id:'.$tx->transactionId.' could not be commited');
 			return false;
 		}	
 	}
@@ -1056,6 +1076,21 @@ class Ledger extends Artifact
 	public static function GetLedgers()
 	{	    
 	    try {
+			$sql = 'SELECT * FROM ledgers WHERE status = 1';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ledgers = [];
+			foreach ($res as $ledger) {
+				$ledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function GetAllLedgers()
+	{	    
+	    try {
 			$sql = 'SELECT * FROM ledgers';
 			$res =  DatabaseHandler::GetAll($sql);
 			$ledgers = [];
@@ -1071,7 +1106,37 @@ class Ledger extends Artifact
 	public static function GetPurchaseLedgers()
 	{	    
 	    try {
-			$sql = 'SELECT * FROM ledgers WHERE (type = "Asset" OR type = "Expense") AND category != "Bank"';
+			$sql = 'SELECT * FROM ledgers WHERE (type = "Asset" OR type = "Expense") AND category != "Bank" AND status = 1';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ledgers = [];
+			foreach ($res as $ledger) {
+				$ledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function GetPLLedgers()
+	{	    
+	    try {
+			$sql = 'SELECT * FROM ledgers WHERE (type = "Revenue" OR type = "Expense")';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ledgers = [];
+			foreach ($res as $ledger) {
+				$ledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function GetCashLedgers()
+	{	    
+	    try {
+			$sql = 'SELECT * FROM ledgers WHERE type = "Asset" AND category = "Bank"';
 			$res =  DatabaseHandler::GetAll($sql);
 			$ledgers = [];
 			foreach ($res as $ledger) {
@@ -1086,7 +1151,7 @@ class Ledger extends Artifact
 	public static function GetLedgerType($type)
 	{	    
 	    try {
-			$sql = 'SELECT * FROM ledgers WHERE type = '.$type;
+			$sql = 'SELECT * FROM ledgers WHERE type = '.$type.' AND status = 1';
 			$res =  DatabaseHandler::GetAll($sql);
 			$ledgers = [];
 			foreach ($res as $ledger) {
@@ -1101,7 +1166,7 @@ class Ledger extends Artifact
 	public static function GetLedger($id)
 	{	    
 	    try {
-			$sql = 'SELECT * FROM ledgers WHERE id = '.$id;
+			$sql = 'SELECT * FROM ledgers WHERE id = '.$id.' AND status = 1';
 			$res =  DatabaseHandler::GetRow($sql);
 			if (empty($res)) {
 				return false;
@@ -1116,7 +1181,7 @@ class Ledger extends Artifact
 	{	    
 	    try {
 	    	$name = (string)$name;//strval($name)
-			$sql = 'SELECT * FROM ledgers WHERE name = '.$name;
+			$sql = 'SELECT * FROM ledgers WHERE name = '.$name.' AND status = 1';
 			$res =  DatabaseHandler::GetRow($sql);
 			if (empty($res)) {
 				return false;
@@ -1130,7 +1195,7 @@ class Ledger extends Artifact
 	public static function GetBanks()
 	{	    
 	    try {
-			$sql = 'SELECT * FROM ledgers WHERE category = "Bank"';
+			$sql = 'SELECT * FROM ledgers WHERE category = "Bank" AND status = 1';
 			$res =  DatabaseHandler::GetAll($sql);
 			$ledgers = [];
 			foreach ($res as $ledger) {
@@ -1145,7 +1210,7 @@ class Ledger extends Artifact
 	public static function Delete($id)
     {
         try {
-        	$sql = 'DELETE FROM ledgers WHERE id = '.intval($id);
+        	$sql = 'UPDATE ledgers SET status = 0 WHERE id = '.intval($id);
         	$res =  DatabaseHandler::Execute($sql);
         	return true;
         } catch (Exception $e) {
@@ -1264,6 +1329,18 @@ class Voucher extends Artifact
 	public static function CreateClaimVoucher($claim){
 		$voucher = new Voucher($claim->transactionId, $claim->transactionType->name, $claim->transactionId, $claim->amount->amount, $claim->description, $claim->date, $claim->stamp);
 		return $voucher;
+	}
+
+	public static function CreatePayrollVoucher($tx){
+		$voucher = new Voucher($tx->id, $tx->transactionType->name, $tx->transactionId, $tx->amount->amount, $tx->description, $tx->date, $tx->stamp);
+		$voucher->persist();
+
+		if ($tx->transactionType->name == 'Salary Advance') {
+			return PayrollVoucher::GetAdvanceVoucher($tx->id);
+		}else{
+			return PayrollVoucher::GetVoucher($tx->id);
+		}
+		
 	}
 
 	public static function PaymentVoucher($payment){
@@ -1499,7 +1576,7 @@ class TransactionVouchers extends Artifact
 		} catch (Exception $e) {
 				
 		}
-	}	
+	}
 }
 
 class DirectPosting extends TransactionType
@@ -1674,6 +1751,337 @@ class GeneralTransaction extends FinancialTransaction
 		}
 		
 		return new GeneralTransaction($entries, $amount, $descr, "Bank Cash Transaction");
+	}
+}
+
+class FinancialStatements extends Artifact
+{
+	public static function GetPLStatement($date, $period)
+	{
+	    $ledgers = Ledger::GetPLLedgers();
+	    $today = date('d/m/Y');
+
+
+	    if ($date) {
+	    	if ($date == $today) {
+		    	foreach ($ledgers as &$ledger) {
+			    	$ledger->amount = $ledger->balance->amount;
+			    }
+			    return $ledgers;
+		    }else{
+			    $d1 = explode('/', $date);
+			    $stamp = $d1[2].$d1[1].$d1[0].'999999' + 0;
+			    foreach ($ledgers as &$ledger) {
+			    	try {
+			    		$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp <= '.$stamp.' ORDER BY stamp DESC LIMIT 0,1';
+				    	$res =  DatabaseHandler::GetRow($sql);
+				    	if ($res) {
+				    		$amount = $res['ledger_bal'];
+				    	}else{
+				    		$amount = 0;
+				    	}
+				    	$ledger->amount = $amount;
+			    	} catch (Exception $e) {
+			    		
+			    	}		    	
+			    }
+			    return $ledgers;
+			}
+	    }else{
+	    	$split = explode(' - ', $period);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    foreach ($ledgers as &$ledger) {
+		    	try {
+		    		$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY stamp ASC';
+			    	$res =  DatabaseHandler::GetAll($sql);
+			    	
+			    	$amount = 0.00;
+
+			    	foreach ($res as $tx) {
+			    		$amount += $tx['amount'];
+			    	}
+
+			    	$ledger->amount = $amount;
+		    	} catch (Exception $e) {
+		    		
+		    	}		    	
+		    }
+		    return $ledgers;
+	    }
+	}
+
+	public static function GetTrialBalance($date)
+	{
+	    $ledgers = Ledger::GetAllLedgers();
+	    $today = date('d/m/Y');
+
+
+	    if ($date == $today) {
+		    foreach ($ledgers as &$ledger) {
+			    $ledger->amount = $ledger->balance->amount;
+			}
+			return $ledgers;
+		}else{
+			$d1 = explode('/', $date);
+			$stamp = $d1[2].$d1[1].$d1[0].'999999' + 0;
+			//$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp <= '.$stamp.' ORDER BY stamp DESC LIMIT 0,1';
+			//$res =  DatabaseHandler::GetRow($sql);
+			foreach ($ledgers as &$ledger) {
+			    try {
+			    	$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp <= '.$stamp.' ORDER BY stamp DESC LIMIT 0,1';
+				    $res =  DatabaseHandler::GetRow($sql);
+				    if ($res) {
+				    	$ledger->amount = $res['ledger_bal'];
+				    }else{
+				    	$ledger->amount = 0;
+				    }
+			    } catch (Exception $e) {
+			    		
+			    }		    	
+			}
+			return $ledgers;
+		}
+	}
+
+	public static function GetBalanceSheet($date)
+	{
+	    $ledgers = Ledger::GetAllLedgers();
+	    $today = date('d/m/Y');
+
+
+	    if ($date == $today) {
+		    foreach ($ledgers as &$ledger) {
+			    $ledger->amount = $ledger->balance->amount;
+			}
+			return $ledgers;
+		}else{
+			$d1 = explode('/', $date);
+			$stamp = $d1[2].$d1[1].$d1[0].'999999' + 0;
+			foreach ($ledgers as &$ledger) {
+			    try {
+			    	$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp <= '.$stamp.' ORDER BY stamp DESC LIMIT 0,1';
+				    $res =  DatabaseHandler::GetRow($sql);
+				    if ($res) {
+				    	$ledger->amount = $res['ledger_bal'];
+				    }else{
+				    	$ledger->amount = 0;
+				    }
+			    } catch (Exception $e) {
+			    		
+			    }		    	
+			}
+			return $ledgers;
+		}
+	}
+
+	public static function GetCashFlows($date, $period)
+	{
+	    $ledgers = Ledger::GetAllLedgers();
+	    $today = date('d/m/Y');
+
+	    if ($date) {
+	    	if ($date == $today) {
+		    	foreach ($ledgers as &$ledger) {
+			    	$ledger->amount = $ledger->balance->amount;
+			    }
+			    return $ledgers;
+		    }else{
+			    $d1 = explode('/', $date);
+			    $stamp = $d1[2].$d1[1].$d1[0].'999999' + 0;
+			    foreach ($ledgers as &$ledger) {
+			    	try {
+			    		$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp <= '.$stamp.' ORDER BY stamp DESC LIMIT 0,1';
+				    	$res =  DatabaseHandler::GetRow($sql);
+				    	if ($res) {
+				    		$amount = $res['ledger_bal'];
+				    	}else{
+				    		$amount = 0;
+				    	}
+				    	$ledger->amount = $amount;
+			    	} catch (Exception $e) {
+			    		
+			    	}		    	
+			    }
+			    return $ledgers;
+			}
+	    }else{
+	    	//Get changes in the ledger balances within prescribed periods
+	    	$split = explode(' - ', $period);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    foreach ($ledgers as &$ledger) {
+		    	try {
+		    		$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger->id.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY stamp ASC';
+			    	$res =  DatabaseHandler::GetAll($sql);
+			    	
+			    	$amount = 0.00;
+
+			    	$keys = count($res);
+
+			    	//echo json_encode(value);
+
+			    	$init = 0.00;$final=0.00;
+			    	$count = 0;
+			    	foreach ($res as $key => $tx) {
+			    		if ($count == 0) {
+			    			$init = $tx['ledger_bal'];
+			    		}elseif ($count == ($keys-1)) {
+			    			$final =  $tx['ledger_bal'];
+			    		}
+			    		$count++;
+			    	}
+			    	$ledger->amount = $final - $init;
+			    	//$ledger->amount = $amount;
+		    	} catch (Exception $e) {
+		    		
+		    	}		    	
+		    }
+		    return $ledgers;
+	    }
+	}
+
+	public static function TransactionStatement($day, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM general_ledger_entries  ORDER BY id ASC';
+		}else if($day != ''){
+		    $d1 = explode('/', $day);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d1[2].$d1[1].$d1[0].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		}else if($dates != ''){
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);
+			/*foreach ($result as &$tx) {
+				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
+				$res =  DatabaseHandler::GetOne($sql2);
+				$tx['type'] = $res;
+			}*/
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+}
+
+class Auditor extends Artifact
+{
+	public static function AuditTransactions()
+	{	    
+	    $errors = [];
+	    try {
+			$sql = 'SELECT * FROM transactions ORDER BY id ASC';
+			//$sql = 'SELECT transaction_id, amount FROM general_ledger_entries ORDER BY transaction_id';
+			$res =  DatabaseHandler::GetAll($sql);
+
+			foreach ($res as $tx) {
+				try {
+					$sql2 = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.$tx['id'];
+					$ress =  DatabaseHandler::GetAll($sql2);
+					$defic = 0.00;
+					$tx['entr'] = count($ress);
+
+					foreach ($ress as $entry) {
+						if ($entry['effect'] == 'cr') {
+							$defic += $entry['amount'];
+						}else{
+							$defic -= $entry['amount'];
+						}
+					}
+
+					if ($defic != 0) {
+						$tx['defic'] = $defic;
+						$errors[] = $tx;
+					}
+				} catch (Exception $e) {
+			    		
+			    }
+			}
+
+			return $errors;
+		} catch (Exception $e) {
+			    		
+		}	
+	}
+
+	private static function UpdateTransaction($eid, $lid, $ledgers, $effect, $amount)
+	{	
+
+		foreach ($ledgers as &$ledger) {
+			if ($ledger->id == $lid) {
+				if ($ledger->type == 'Asset' || $ledger->type == 'Expense') {
+					if ($effect == 'cr') {
+						$ledger->amount -= $amount;
+					}else{
+						$ledger->amount += $amount;
+					}
+				}else{
+					if ($effect == 'dr') {
+						$ledger->amount -= $amount;
+					}else{
+						$ledger->amount += $amount;
+					}
+				}
+				$sql = 'UPDATE general_ledger_entries SET ledger_bal = '.$ledger->amount.' WHERE id = '.$eid;
+				DatabaseHandler::Execute($sql);
+			}
+		}
+	}
+
+	public static function ResetTransactionBalances()
+	{	
+		$ledgers = Ledger::GetLedgers(); 
+
+		foreach ($ledgers as &$ledger) {
+			$ledger->amount = 0;
+		}   
+	    $errors = [];
+	    try {
+			$sql = 'SELECT * FROM transactions ORDER BY id ASC';
+			//$sql = 'SELECT transaction_id, amount FROM general_ledger_entries ORDER BY transaction_id';
+			$res =  DatabaseHandler::GetAll($sql);
+			$steps = 0;
+			foreach ($res as $tx) {
+				try {
+					$sql2 = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.$tx['id'];
+					$ress =  DatabaseHandler::GetAll($sql2);
+					$defic = 0.00;
+					$tx['entr'] = count($ress);
+					
+					foreach ($ress as $entry) {
+						if ($entry['effect'] == 'cr') {
+							self::UpdateTransaction($entry['id'], $entry['ledger_id'], $ledgers, 'cr', $entry['amount']);
+						}else{
+							self::UpdateTransaction($entry['id'], $entry['ledger_id'], $ledgers, 'dr', $entry['amount']);
+						}
+						$steps++;
+					}
+				} catch (Exception $e) {
+			    		
+			    }
+			}
+
+			foreach ($ledgers as $ledger) {
+				$sql = 'UPDATE ledgers SET balance = '.$ledger->amount.' WHERE id = '.$ledger->id;
+				DatabaseHandler::Execute($sql);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			    		
+		}	
 	}
 }
 

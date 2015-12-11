@@ -119,6 +119,29 @@ class Supplier extends Party
     }
 }
 
+class SystemVendor extends Supplier
+{
+	//Refactor vendor to suppliers
+  	public $website;
+	public $contactPerson;
+
+	function __construct($id, $name, $telephone, $email, $address, $city, $country, $website, $contact)
+	{
+		//$type = new PartyType('SystemVendor');
+		//parent::__construct($type, $id, $name, $telephone, $email, $address);
+		parent::__construct($id, $name, $contact, $telephone, $email, $address, 0);
+		$this->city = $city;
+		$this->country = $country;
+		$this->website = $website;
+		$this->contactPerson = $contact;//PartyType('Account Manager');
+	}
+
+	public static function GetVendor()
+	{
+		return new SystemVendor(1, 'QET Systems Ltd.', '0727596626', 'support@qet.co.ke', 'Kigio Plaza 3rd Fl, Box 7685-01000, Thika CBD', 'Thika', 'Kenya', 'www.qet.co.ke', 'Alex Mbaka');
+	}
+}
+
 class PurchaseOrderLine
 {
 	public $lineId;

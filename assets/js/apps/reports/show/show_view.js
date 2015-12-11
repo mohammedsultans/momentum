@@ -4,8 +4,34 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
 
     View.Modals = {
 
-      dateModal: function(id){
-
+      dateModal: function(id, title){
+        swal({
+            title: title,
+            text: "<form class=\"form-horizontal\" id=\"frmi1\"><div class=\"form-group\"><label class=\"col-sm-2 control-label form-label\">As at</label>"+
+                "<div class=\"col-sm-10\"><div class=\"control-group\"><div class=\"controls\"><div class=\"input-prepend input-group\"><span class=\"add-on input-group-addon\"><i class=\"fa fa-calendar\"></i></span>"+
+                "<input type=\"text\" id=\"date-single\" class=\"form-control\" name=\"date\"/ value=\""+moment().format('DD/MM/YYYY')+"\"></div></div></div></div></div></form>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: "View Report",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+          },
+          function(isConfirm){
+              if (isConfirm) {
+                var day = $('#date-single').val();
+                //alert('reports.php?id='+rid+'&sid='+sid+'&period='+period+'&all='+all);
+                window.open('reports.php?id='+id+'&day='+day);             
+              } else {
+                swal("Cancelled", "Your have chosen not to view report.", "info");
+              }
+          }
+        );
+ 
+        setTimeout(function() {
+         $('#date-single').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY') }, function(start, end, label) {});
+          $('.sweet-alert').css('overflow', 'visible');
+          $('.daterangepicker.dropdown-menu').css('z-index', 300000);
+        }, 150);
       },
 
       rangeModal: function(id, title){
@@ -38,7 +64,9 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
         );
 
         setTimeout(function() {
-          $('#date-period').daterangepicker({ format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY')  }, function(start, end, label) {});
+          $('#date-period').daterangepicker({ format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY')  }, function(start, end, label) {
+
+          });
           $('.sweet-alert').css('overflow', 'visible');
           $('.daterangepicker.dropdown-menu').css('z-index', 300000);
         }, 150);
@@ -60,15 +88,10 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             },
             function(isConfirm){
               if (isConfirm) {
-                var rid = id; 
                 var period = $('#date-period').val();
                 var day = $('#date-single').val();
-                var all = '';
-                if($('#viewtoday').is(':checked')){
-                  all = 'true'
-                }
                 //alert('reports.php?id='+rid+'&sid='+sid+'&period='+period+'&all='+all);
-                window.open('reports.php?id='+id+'&period='+period+'&day='+day+'&all='+all);             
+                window.open('reports.php?id='+id+'&period='+period+'&day='+day);             
               } else {
                 swal("Cancelled", "Your have chosen not to view report.", "info");
               }
@@ -76,8 +99,12 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
         );
 
         setTimeout(function() {
-          $('#date-period').daterangepicker({ format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY')  }, function(start, end, label) {});
-          $('#date-single').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY') }, function(start, end, label) {});
+          $('#date-period').daterangepicker({ format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY')  }, function(start, end, label) {
+             $('#date-single').val('');
+          });
+          $('#date-single').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY') }, function(start, end, label) {
+            $('#date-period').val('');
+          });
           $('.sweet-alert').css('overflow', 'visible');
           $('.daterangepicker.dropdown-menu').css('z-index', 300000);
         }, 150);
@@ -168,11 +195,11 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             break;
 
           case 101:
-            View.Modals.dateRangeModal(id, 'Trial Balance');
+            View.Modals.dateModal(id, 'Trial Balance');
             break;
 
           case 102:
-            View.Modals.dateRangeModal(id, 'Balance Sheet');
+            View.Modals.dateModal(id, 'Balance Sheet');
             break;
 
           case 103:

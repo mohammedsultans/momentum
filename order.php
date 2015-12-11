@@ -111,7 +111,7 @@ $voucher = json_decode($_POST['voucher']);
       </tbody>
       <tfoot>
         <tr>
-          <td class="text-left" style="font-size:12px;">
+          <td class="text-left" style="font-size:10px;">
             <b>TERMS & CONDITIONS:</b><br>
             1. ALL PRICES ARE INCLUSIVE OF TAXES AND VAT WHERE APPLICABLE.<br>
             2. LPO EXPIRES WITHIN 45 DAYS.<br>

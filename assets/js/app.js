@@ -1,4 +1,4 @@
-define(["marionette", "plugins", "sweetalert"], function(Marionette){
+define(["marionette", "sweetalert"], function(Marionette){
   var System = new Marionette.Application();
 
   window.momentum = System;

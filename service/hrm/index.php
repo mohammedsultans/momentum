@@ -4,42 +4,14 @@
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
   	//require_once DOMAIN_DIR . 'Product.php';
 	
-	class CRM
+	class HRMApp
 	{
 		// Constructor reads query string parameter
 		public function __construct()
 		{
 			if(isset($_POST['operation'])){
 				$operation = $_POST['operation'];
-				if($operation == 'enquiry'){
-					if(isset($_POST['name']) && isset($_POST['tel'])){
-						$name = $_POST['name'];
-						$mobile = $_POST['tel'];
-						if (isset($_POST['service'])) {
-							$services = $_POST['service'];
-						}
-						$servs;
-						foreach ($services as $key => $serv) {
-							if ($key == 0) {
-								$servs = $serv;
-							}else{
-								$servs .= ', '.$serv;
-							}
-						}
-						$details = $_POST['details'];
-						$this->logEnquiry($name, $mobile, $servs, $details);
-					}else{
-						echo 0;
-					}
-				
-				}elseif($operation == 'checkenquiry'){
-					if(isset($_POST['stamp'])){
-						$this->checkEnquiry($_POST['stamp']);
-					}else{
-						echo 0;
-					}
-						
-				}elseif($operation == 'addEmployee'){
+				if($operation == 'addEmployee'){
 					if(isset($_POST['name']) && isset($_POST['tel']) && isset($_POST['department']) && isset($_POST['position']) && isset($_POST['salary'])){
 						$name = $_POST['name'];
 						$mobile = $_POST['tel'];
@@ -51,9 +23,8 @@
 						$salary = $_POST['salary'];
 						$this->createEmployee($name, $mobile, $email, $address, $gender, $department, $position, $salary);
 					}else{
-						echo 3;
-					}
-						
+						echo 0;
+					}						
 				}elseif($operation == 'editEmployee'){
 					if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['tel']) && isset($_POST['department']) && isset($_POST['position']) && isset($_POST['salary'])){
 						$employeeid = $_POST['id'];
@@ -77,54 +48,83 @@
 					}else{
 						echo 0;
 					}
-				}elseif($operation == 'logout'){
-					$this->logout();
-				}elseif($operation == 'checkauth'){
-					$this->check_auth();
+				}elseif($operation == 'postAllowance'){
+					if(isset($_POST['id']) && isset($_POST['date']) && isset($_POST['ledger']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						$empid = $_POST['id'];
+						$date = $_POST['date'];
+						$ledger = $_POST['ledger'];
+						$amount = $_POST['amount'];
+						$descr = $_POST['descr'];
+						$this->postAllowance($empid, $date, $ledger, $amount, $descr);
+					}else{
+						echo 0;
+					}				
+				}elseif($operation == 'postOvertime'){
+					if(isset($_POST['id']) && isset($_POST['date']) && isset($_POST['rate']) && isset($_POST['hours']) && isset($_POST['descr'])){
+						$empid = $_POST['id'];
+						$date = $_POST['date'];
+						$rate = $_POST['rate'];
+						$hours = $_POST['hours'];
+						$descr = $_POST['descr'];
+						$this->postOvertime($empid, $date, $rate, $hours, $descr);
+					}else{
+						echo 0;
+					}				
+				}elseif($operation == 'payAdvance'){
+					if(isset($_POST['id']) && isset($_POST['date']) && isset($_POST['amount']) && isset($_POST['ledger']) && isset($_POST['mode']) && isset($_POST['voucher']) && isset($_POST['descr'])){
+						$empid = $_POST['id'];
+						$date = $_POST['date'];
+						$amount = $_POST['amount'];
+						$descr = $_POST['descr'];
+						$ledger = $_POST['ledger'];
+						$mode = $_POST['mode'];
+						$voucher = $_POST['voucher'];
+						$this->payAdvance($empid, $date, $amount, $ledger, $mode, $voucher, $descr);
+					}else{
+						echo 0;
+					}	
+				}elseif($operation == 'previewPayroll'){
+					if(isset($_POST['month'])){
+						$month = $_POST['month'];
+						$this->previewPayroll($month);
+					}else{
+						echo 0;
+					}				
+				}elseif($operation == 'commitPayroll'){
+					if(isset($_POST['month'])){
+						$month = $_POST['month'];
+						$this->commitPayroll($month);
+					}else{
+						echo 0;
+					}				
+				}elseif($operation == 'paySalary'){
+					if(isset($_POST['employee']) && isset($_POST['slip']) && isset($_POST['ledger']) && isset($_POST['mode']) && isset($_POST['voucher'])){
+						$empid = $_POST['employee'];
+						$slip = $_POST['slip'];
+						$ledger = $_POST['ledger'];
+						$mode = $_POST['mode'];
+						$voucher = $_POST['voucher'];
+						$this->paySalary($empid, $slip, $ledger, $mode, $voucher);
+					}else{
+						echo 0;
+					}				
 				}else{ 
 					echo 0;
 				}
-			}elseif(isset($_GET['pending'])){
-				$this->getPending();
 			}elseif(isset($_GET['employees'])){
 				$this->getEmployees();
 			}elseif(isset($_GET['employee']) && isset($_GET['empid'])){
 				$this->getEmployee($_GET['empid']);
+			}elseif(isset($_GET['unclearedslips']) && isset($_GET['empid'])){
+				$this->getUnclearedPayslips($_GET['empid']);
+			}elseif(isset($_GET['exemployees'])){
+				$this->getExEmployees();
 			}else{
 				echo 0;
 			}
 		}
 		/* Calls business tier method to read Journals list and create
 		their links */
-
-		public function logEnquiry($name, $mobile, $services, $details)
-		{
-			if (Enquiry::Create($name, $mobile, $services, $details)) {
-				echo 1;
-			}else{
-				echo 0;
-			}
-		}
-
-		public function getPending()
-		{
-			if ($this->validateAdmin()) {
-				echo json_encode(Enquiry::GetPending());
-			}else{
-				echo 0;
-			}
-		}
-
-		public function checkEnquiry($stamp)
-		{
-			Enquiry::Check($stamp);
-			$enquiry = Enquiry::GetEnquiry($stamp);
-			if ($enquiry->status == 1) {
-				echo 1;
-			}else{
-				echo 0;
-			}
-		}
 
 		public function createEmployee($name, $mobile, $email, $address, $gender, $department, $position, $salary)
 		{
@@ -166,10 +166,98 @@
 			}
 		}
 
+		public function getExEmployees()
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Employee::GetExEmployees());
+			}else{
+				echo 0;
+			}
+		}
+
 		public function getEmployee($id)
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(Employee::GetEmployee($id));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postAllowance($empid, $date, $ledger, $amount, $descr)
+		{
+			$tx = Payroll::PostAllowance($empid, $date, $ledger, $amount, $descr);			
+
+			$voucher = $tx->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postOvertime($empid, $date, $rate, $hours, $descr)
+		{
+			$tx = Payroll::PostOvertime($empid, $date, $rate, $hours, $descr);			
+
+			$voucher = $tx->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function payAdvance($empid, $date, $amount, $ledger, $mode, $voucher, $descr)
+		{
+			$tx = Payroll::GiveAdvance($empid, $date, $amount, $ledger, $mode, $voucher, $descr);			
+
+			$voucher = $tx->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function previewPayroll($month)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Payroll::PreviewPayroll($month));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function commitPayroll($month)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Payroll::CommitPayroll($month));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function paySalary($empid, $slipid, $ledger, $mode, $voucher)
+		{
+			$tx = Payroll::PaySalary($empid, $slipid, $ledger, $mode, $voucher);			
+
+			$voucher = $tx->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getUnclearedPayslips($empid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Payslip::GetUncleared($empid));
 			}else{
 				echo 0;
 			}
@@ -221,7 +309,7 @@
 	    break;
 	}*/
 
-	$response = new CRM();
+	$response = new HRMApp();
 	//$response->init();
 	//echo json_encode($response->mJournals);
 ?>
