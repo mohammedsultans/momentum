@@ -454,6 +454,54 @@ class Transaction extends Action
 		//enter the 
 	}
 
+	public static function Reverse($txid)
+	{		
+		try {
+		    $sql2 = 'SELECT * FROM transactions WHERE id = '.$txid;
+			// Execute the query and return the results
+			$res =  DatabaseHandler::GetRow($sql2);
+			$this->transactionId = $res['id'];
+
+		} catch (Exception $e) {
+			Logger::Log(get_class($this), 'Exception', $e->getMessage());
+		}
+
+			$cr = 0.00; 
+			$dr = 0.00;
+			foreach ($this->entries as $entry) {
+				if ($entry->effect == 'cr') {
+					$cr = $cr + $entry->amount->amount;
+
+				}else if ($entry->effect == 'dr') {
+					$dr = $dr + $entry->amount->amount;
+					Logger::Log(get_class($this), 'Test', 'Debit '.$entry->account->accountName.': '.$entry->amount->amount);
+				}
+			}
+
+			if (($cr - $dr) == 0.00) {
+				foreach ($this->entries as $entry) {
+					$entry->post();
+				}
+				
+				try {
+					$sql = 'UPDATE transactions SET status = 1, entries = '.count($this->entries).', user = "'.SessionManager::GetUsername().'" WHERE id = '.$this->transactionId;
+				 	DatabaseHandler::Execute($sql);
+				    $this->posted = true;
+				    Logger::Log(get_class($this), 'Ok', 'Transaction id:'.$this->transactionId.' posted by '.SessionManager::GetUsername());
+					return true;
+				} catch (Exception $e) {
+						
+				}
+			}else{
+				//throw new Exception("The entries are not conservative. Probable system leak!");
+				Logger::Log(get_class($this), 'Exception', 'The entries are not conservative. Probable system leak! CR: '.$cr.', DR: '.$dr);
+				return false;
+			}
+		
+		//verify account and entry is of the same resource type;
+		//enter the 
+	}
+
 	public function rollback()
 	{
 
@@ -1426,14 +1474,14 @@ class TransactionVouchers extends Artifact
 	public static function ClientStatement($cid, $dates, $all)
 	{
 		if ($all == 'true'){
-			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" ORDER BY id ASC';
+			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" ORDER BY id DESC';
 		}else if($dates != ''){
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($cid).' AND ledger_name = "Debtors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
 		}
 
 		try {
@@ -1442,6 +1490,24 @@ class TransactionVouchers extends Artifact
 				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
 				$res =  DatabaseHandler::GetOne($sql2);
 				$tx['type'] = $res;
+				if ($tx['effect'] == 'dr') {
+					$sql3 = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.intval($tx['transaction_id']);
+					$res3 =  DatabaseHandler::GetOne($sql3);
+
+					//$sql4 = 'SELECT * FROM invoices WHERE id = '.$res3;
+					//$res4 =  DatabaseHandler::GetRow($sql4); $tx['description'].
+
+					$tx['descr'] = 'Invoice No: '.$res3;
+
+				}else{
+					$sql3 = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.intval($tx['transaction_id']);
+					$res3 =  DatabaseHandler::GetOne($sql3);
+
+					$sql4 = 'SELECT * FROM receipts WHERE id = '.$res3;
+					$res4 =  DatabaseHandler::GetRow($sql4);
+
+					$tx['descr'] = $res4['voucher_no'];
+				}
 			}
 			return $result;
 		} catch (Exception $e) {
@@ -1505,7 +1571,7 @@ class TransactionVouchers extends Artifact
 			} catch (Exception $e) {
 				
 			}
-		}else{//Quotations
+		}else{//orders
 			if ($all == 'true'){
 				$sql = 'SELECT * FROM purchase_orders WHERE supplier_id = '.intval($sid).' ORDER BY id DESC';
 			}else{
@@ -1534,14 +1600,14 @@ class TransactionVouchers extends Artifact
 	public static function SupplierStatement($sid, $dates, $all)
 	{
 		if ($all == 'true'){
-			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" ORDER BY id ASC';
+			$sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" ORDER BY id DESC';
 		}else if($dates != ''){
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE account_no = '.intval($sid).' AND ledger_name = "Creditors" AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
 		}
 
 		try {
@@ -1550,6 +1616,24 @@ class TransactionVouchers extends Artifact
 				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
 				$res =  DatabaseHandler::GetOne($sql2);
 				$tx['type'] = $res;
+				if ($tx['effect'] == 'dr') {
+					$sql3 = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.intval($tx['transaction_id']);
+					$res3 =  DatabaseHandler::GetOne($sql3);
+
+					$sql4 = 'SELECT * FROM payments WHERE id = '.$res3;
+					$res4 =  DatabaseHandler::GetRow($sql4);
+
+					$tx['descr'] = $res4['voucher_no'];
+
+				}else{
+					$sql3 = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.intval($tx['transaction_id']);
+					$res3 =  DatabaseHandler::GetOne($sql3);
+
+					$sql4 = 'SELECT * FROM purchase_invoices WHERE id = '.$res3;
+					$res4 =  DatabaseHandler::GetRow($sql4);
+
+					$tx['descr'] = 'Invoice no: '.$res4['invno'];
+				}
 			}
 			return $result;
 		} catch (Exception $e) {
@@ -1576,6 +1660,57 @@ class TransactionVouchers extends Artifact
 		} catch (Exception $e) {
 				
 		}
+	}
+
+	public static function GetEmployeeTransactions($eid, $dates, $all)
+	{
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' ORDER BY id DESC';
+			}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				$vouchers = [];
+				foreach ($res as $tx) {
+					//if ($tx['effect'] == 'dr') {
+					$voucher = PayrollVoucher::GetVoucherFromTx(intval($tx['tx_id']));
+					if ($voucher) {
+						$vouchers[] = $voucher;
+					}	
+				}
+
+				return $vouchers;
+			} catch (Exception $e) {
+				
+			}
+	}
+
+	public static function EmployeeStatement($eid, $dates, $all)
+	{
+			if ($all == 'true'){
+				$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' ORDER BY id ASC';
+			}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+			}
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				return $res;
+			} catch (Exception $e) {
+				
+			}
 	}
 }
 
@@ -1948,19 +2083,90 @@ class FinancialStatements extends Artifact
 	public static function TransactionStatement($day, $dates, $all)
 	{
 		if ($all == 'true'){
-			$sql = 'SELECT * FROM general_ledger_entries  ORDER BY id ASC';
+			$sql = 'SELECT * FROM general_ledger_entries  ORDER BY id DESC';
 		}else if($day != ''){
 		    $d1 = explode('/', $day);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d1[2].$d1[1].$d1[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
 		}else if($dates != ''){
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);
+			/*foreach ($result as &$tx) {
+				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
+				$res =  DatabaseHandler::GetOne($sql2);
+				$tx['type'] = $res;
+			}*/
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+
+	public static function LedgerStatement($ledger, $dates, $all)
+	{
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' ORDER BY id DESC';
+		}else if($dates != ''){
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
+		}
+
+		try {
+			$result = DatabaseHandler::GetAll($sql);
+			/*foreach ($result as &$tx) {
+				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
+				$res =  DatabaseHandler::GetOne($sql2);
+				$tx['type'] = $res;
+			}*/
+			return $result;
+		} catch (Exception $e) {
+				
+		}
+	}
+
+	public static function CashBook($dates, $all)
+	{
+		try {
+			$sql = 'SELECT * FROM ledgers WHERE category = "Bank" OR name LIKE "%Cash%"';//AND name NOT LIKE "%Discount%"
+			$banks =  DatabaseHandler::GetAll($sql);
+			$sql = 'SELECT * FROM ledgers WHERE type = "Asset" AND name LIKE "%Cash%"';
+			$cash =  DatabaseHandler::GetAll($sql);
+			//$sql = 'SELECT * FROM ledgers WHERE name LIKE "%discount%"';
+			//$disc =  DatabaseHandler::GetAll($sql);
+			$bledgers = [];
+			foreach ($banks as $ledger) {
+				$bledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			$cledgers = [];
+			foreach ($cash as $ledger) {
+				$cledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+		} catch (Exception $e) {
+			return false;
+		}
+
+		if ($all == 'true'){
+			$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' ORDER BY id ASC';
+		}else if($dates != ''){
+			$split = explode(' - ', $dates);
+		    $d1 = explode('/', $split[0]);
+		    $d2 = explode('/', $split[1]);
+		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
+		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
 		}
 
 		try {

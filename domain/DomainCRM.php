@@ -1196,7 +1196,7 @@ class SalesVoucher
 		$this->amt = new Money(floatval($amount), Currency::Get('KES'));
 		$this->amount = floatval($total);
 		$this->status = $status;
-		$this->description = $description;
+		$this->scope = $description;
 
 		if (intval($quotes) != 0) {
 			$quotes = explode(",", $quotes);
@@ -1205,6 +1205,13 @@ class SalesVoucher
 			}
 		}else{
 			$this->advices[] = SalesInvoice::GetInvoice($this->id);
+		}
+
+		$this->description = '';
+		foreach ($this->advices as $invoice) {
+			foreach ($invoice->lineItems as $item) {
+				$this->description .= $item->quantity.' x '.$item->itemName.' ('.$item->itemDesc.'), ';
+			}
 		}
 		
 
@@ -1373,7 +1380,7 @@ class QuotationVoucher
 		$this->amount = floatval($amount);
 		$this->tax = floatval($tax);
 		$this->total = floatval($total);
-		$this->description = 'Quotation for '.$this->party->name;
+		//$this->description = 'Quotation for '.$this->party->name;
 		if (is_null($user)) {
 			$this->user = SessionManager::GetUsername();
 		}else{
@@ -1381,6 +1388,11 @@ class QuotationVoucher
 		}
 		
 		$this->lineItems = QuotationLine::GetQuoteItems($quoteId);
+
+		$this->description = '';
+		foreach ($this->lineItems as $item) {
+			$this->description .= $item->quantity.' x '.$item->itemName.' ('.$item->itemDesc.'), ';
+		}
 	}	
 
 	public static function initialize($args){

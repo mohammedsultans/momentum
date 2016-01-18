@@ -1,6 +1,6 @@
 define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.tpl", "tpl!apps/templates/allowance.tpl", "tpl!apps/templates/overtime.tpl",
-   "tpl!apps/templates/advance.tpl", "tpl!apps/templates/salary.tpl", "tpl!apps/templates/payroll.tpl", "backbone.syphon"], 
-	function(System, employeesTpl, employeeTpl, allowanceTpl, overtimeTpl, advanceTpl, salaryTpl, payrollTpl){
+   "tpl!apps/templates/advance.tpl", "tpl!apps/templates/salary.tpl", "tpl!apps/templates/payroll.tpl", "tpl!apps/templates/employeetx.tpl", "backbone.syphon"], 
+	function(System, employeesTpl, employeeTpl, allowanceTpl, overtimeTpl, advanceTpl, salaryTpl, payrollTpl, employeeTxTpl){
   System.module('HRApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Employees = Marionette.CompositeView.extend({
@@ -198,7 +198,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
             $('#epos').val(m['position']);
             $('#egender option[value="'+m['gender']+'"]').prop('selected', true);
             $('select[name=gender2]').val(m['gender']);
-            $('#esalary').val(m['salary']);
+            $('#esalary').val(m['salary']['amount']);
 
             setTimeout(function() {
               $('.selectpicker').selectpicker('refresh');
@@ -761,6 +761,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
         commit: function(e) { 
           e.preventDefault();
           e.stopPropagation();
+          $('.pcommit').attr({disabled: true});
 
           var data = Backbone.Syphon.serialize(this);
           
@@ -769,6 +770,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
             this.trigger("commit", data);
           }else{
             swal("Missing Data!", "Please set month!", "info");
+            $('.pcommit').attr({disabled: false});
           }
         },
 
@@ -855,7 +857,135 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
         onEmpty: function(e) { 
           var el = $('tbody');
           el.empty();
-          swal("No Result!", "No entries found matching your parameters!", "error");          
+          swal("No Result!", "No entries found matching your parameters!", "error");
+          $('.pcommit').attr({disabled: true});     
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Search failed! try again later.", "error");
+          $('.pcommit').attr({disabled: true});    
+        }
+    });
+
+    View.EmployeeTx = Marionette.ItemView.extend({      
+
+        template: employeeTxTpl,
+
+        events: {
+          "click .fsearch": "search",
+          "change #date-range-picker": "resetScope"
+        },
+
+        onShow: function(){                  
+          $('.loading').hide();
+          var THAT = this;
+          require(["money"], function(){
+            THAT.setup();
+          });
+        },
+
+        setup: function(){
+          var THAT = this;
+          var ulx = $('#results');
+          ulx.empty();
+
+          var ul = $('#employees');
+          ul.empty();
+          $.get(System.coreRoot + '/service/hrm/index.php?employees', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select employee...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $('form input').val('');
+
+          $('#date-range-picker').daterangepicker(null, function(start, end, label) {});
+        },
+
+        resetScope: function(e) {
+          $('#vall').prop('checked', false);
+        },
+
+        search: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+
+          var data = Backbone.Syphon.serialize(this);
+          data['employee'] = parseInt(data['employee'], 10);
+          
+          if (data['employee'] && (data['dates'] != '' || data['vall'] != false)) {
+            //alert(JSON.stringify(data));
+            this.trigger("search", data);
+          }else{
+            swal("Error!", "Please set all search paramenters!", "error");
+          }
+        },
+
+        onSuccess: function(result) {
+          this['entries'] = result;
+          swal("Results!", result.length + " entries found.", "success");
+          var THAT = this;
+          var el = $('#results');
+          el.empty();
+
+          result.forEach(function(entry, i){
+            var tpl = $('<tr><td>'+entry['transactionId']+'</td><td>'+entry['date']+'</td><td>'+entry['type']+'</td><td>'+entry['effect'].toUpperCase()+'</td><td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td>'+
+                '<td>'+entry['description']+'</td></td><td>'+entry['user']+'</td><td><p class="eid" style="display: none;">'+i+'</p><a class="btn btn-info vprint" href="#"><i class="fa fa-print" style="margin: 0px;"></i></a></td></tr>');
+           
+           tpl.appendTo(el);
+          });
+
+          setTimeout(function() {
+            $('.vprint').on('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var eid = $(this).parent().find('.eid').text();
+              THAT.printVoucher(eid);                  
+            });
+          }, 500);
+        },
+
+        printVoucher: function(eid) {
+          var voucher = this['entries'][eid]; 
+          voucher['user'] = System.user;
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "empvoucher.php";
+          /*if (voucher.type.toLowerCase().indexOf('payment') >= 0) {
+            rform.action = "payment.php";
+          }else if(voucher.type.toLowerCase().indexOf('invoice') >= 0){
+            rform.action = "grn.php";
+          }else{
+            rform.action = "order.php";
+          }*/
+          
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+          rform.parentNode.removeChild(rform);
+          //window.open("report.php?id=1&voucher=" + voucher);
+        },
+
+        onEmpty: function(e) { 
+          var el = $('#results');
+          el.empty();
+          swal("No Result!", "No transactions found matching your parameters!", "error");          
         },
 
         onError: function(e) { 

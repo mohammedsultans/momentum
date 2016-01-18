@@ -1,6 +1,6 @@
 define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.tpl", "tpl!apps/templates/goodsreceived.tpl", "tpl!apps/templates/receiveorder.tpl",
-  "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
-	function(System, supplierTpl, suppliersTpl, grnTpl, ordergrnTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
+  "tpl!apps/templates/paysuppliergrn.tpl", "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
+	function(System, supplierTpl, suppliersTpl, grnTpl, ordergrnTpl, paySupplierGRNTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
   System.module('ProcurementApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Suppliers = Marionette.CompositeView.extend({
@@ -48,6 +48,11 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
               });
               
             });
+
+            setTimeout(function() {
+              $('#suppliers').DataTable();
+              $('button').prop({disabled: false});
+            }, 700);
             
           });
         },
@@ -1021,9 +1026,9 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
     
-    View.PaySupplier = Marionette.ItemView.extend({      
+    View.PaySupplierWithGRN = Marionette.ItemView.extend({      
 
-        template: paySupplierTpl,
+        template: paySupplierGRNTpl,
 
         events: {
           "change #suppliers": "fetchInvoices",
@@ -1173,6 +1178,116 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
             this.trigger("post", data);
           }else{
             swal("Missing Details!", "Ensure you have details and are paying at least one invoice!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        onSuccess: function(voucher) { 
+
+          swal("Success!", "The payment has been remitted.", "success");
+          //window.open("report.php?id=2&voucher=" + voucher);
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "payment.php";
+
+          voucher['user'] = System.user;
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+
+          rform.parentNode.removeChild(rform);          
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Payment could not be made! Try again later.", "error");
+        }
+    });
+
+    View.PaySupplier = Marionette.ItemView.extend({      
+
+        template: paySupplierTpl,
+
+        events: {
+          "click .idiscard": "discard",
+          "click .ipay": "makePayment"
+        },
+
+        onShow: function(){
+          //$("#leadscont").unwrap();
+          $('.loading').hide();
+          this.setup();
+
+          this['payments'] = {};
+        },
+
+        setup: function(){
+          var ul = $('#suppliers');
+          ul.empty();
+          var uls = $('#banks');
+          uls.empty();
+          $.get(System.coreRoot + '/service/procurement/index.php?suppliers', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Supplier...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/finance/index.php?banks', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-question-circle" value="">Select Account...</option>');
+            tp.appendTo(uls);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-question-circle" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(uls);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+          $('input').val('');
+          var ulx = $('#paysup');
+          ulx.empty();
+          $('button').prop({disabled: false});
+          $('#totamt').text('Ksh.'); 
+          $('#totbal').text('Ksh.'); 
+          $('#totpay').text('Ksh.'); 
+        },
+
+
+        makePayment: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          $('button').prop({disabled: true});
+          var data = Backbone.Syphon.serialize(this);
+
+          data['supplier'] = parseInt(data['supplier'], 10);
+
+          //alert(Object.keys(ar).length);
+          //alert(JSON.stringify(data));
+          if (data['supplier'] && data['account'] && data['mode'] && parseFloat(data['amount']) && data['descr']) {
+            //alert(JSON.stringify(data));
+            this.trigger("post", data);
+          }else{
+            swal("Missing Details!", "Ensure you set all mandatory details!", "warning");
             $('button').prop({disabled: false});
           }
         },

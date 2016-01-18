@@ -58,7 +58,7 @@ $voucher = json_decode($_POST['voucher']);
   <!-- Start Invoice -->
   <div class="invoice row">
     <div class="receiptname">RECEIPT</div>
-    <div class="logo">
+    <div class="logo" style="font-weight:bold">
       <img alt="logo" src="img/geoland.png"><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
       <b>Site:</b> <?php  echo $web ?> <b>Email:</b> <?php  echo $email ?>
@@ -76,7 +76,7 @@ $voucher = json_decode($_POST['voucher']);
     </div>
 
     <div class="line row row3">
-      <div class="col-md-6 col-xs-6 padding-0 text-left">
+      <div class="col-md-12 col-xs-12 padding-0 text-left">
         <h4>RECEIVED FROM</h4>
         <h2><?php echo $voucher->party->name; ?></h2>
       </div>

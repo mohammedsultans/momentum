@@ -5,10 +5,8 @@ define(["app", "apps/clients/show/show_view"], function(System, View){
         var view = new View.Clients();
         System.contentRegion.show(view);
 
-        view.on('deleter', function(id) {
-          var data = {};
+        view.on('del', function(data) {
           data['operation'] = 'deleteClient';
-          data['id'] = id;
           $.post(System.coreRoot + '/service/crm/index.php', data, function(result) {
             if (result == 1) {
               view.triggerMethod("delete");
@@ -17,19 +15,6 @@ define(["app", "apps/clients/show/show_view"], function(System, View){
             }
           });
         });
-        /*require(["apps/entities/inventory"], function(){
-          $.when(System.request("product:featured")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Slides({ collection: response });
-            layout.slidesRegion.show(view); 
-          });
-
-          $.when(System.request("product:latest")).done(function(response){
-            //alert(JSON.stringify(response.length));
-            var view = new View.Latest({ collection: response });
-            layout.latestRegion.show(view); 
-          });
-        }); */
 	    },
 
       enquiries: function(a){ 
@@ -96,19 +81,6 @@ define(["app", "apps/clients/show/show_view"], function(System, View){
 
       addClient: function(a){ 
         var view = new View.Client();
-        
-
-        /*if (a) {
-          var x = Backbone.Model.extend({
-            urlRoot: "presentation/blog",
-          });
-          var model = new x;
-          model.set('name', a.name);
-          model.set('phone', a.phone);
-          view = new View.AddContactLead({model: model});
-        }else{
-          view = new View.AddLead();
-        }*/
         
         System.contentRegion.show(view);
 

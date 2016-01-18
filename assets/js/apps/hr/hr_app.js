@@ -13,7 +13,8 @@ define(["app", "apps/hr/show/show_controller"], function(System, showController)
         "salaryAdvance" : "salaryAdvance",
         "payroll" : "payroll",
         "paySalaries" : "paySalaries",
-        "exEmployees" : "exEmployees"
+        "exEmployees" : "exEmployees",
+        "employeeTx" : "employeeTx"
       }
     });
 

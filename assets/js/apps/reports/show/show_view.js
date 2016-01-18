@@ -1,5 +1,5 @@
-define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clientRpts.tpl", "tpl!apps/templates/procurementRpts.tpl"], 
-	function(System, financialRptsTpl, clientRptsTpl, procurementRptsTpl){
+define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clientRpts.tpl", "tpl!apps/templates/procurementRpts.tpl", "tpl!apps/templates/hrRpts.tpl"], 
+	function(System, financialRptsTpl, clientRptsTpl, procurementRptsTpl, hrRptsTpl){
   System.module('ReportsApp.Show.View', function(View, System, Backbone, Marionette, $, _){
 
     View.Modals = {
@@ -29,6 +29,69 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
  
         setTimeout(function() {
          $('#date-single').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY', maxDate: moment().format('DD/MM/YYYY') }, function(start, end, label) {});
+          $('.sweet-alert').css('overflow', 'visible');
+          $('.daterangepicker.dropdown-menu').css('z-index', 300000);
+        }, 150);
+      },
+
+      monthModal: function(id, title){
+        swal({
+            title: title,
+            text: "<form class=\"form-horizontal\" id=\"frmi1\"><div class=\"form-group\"><label class=\"col-sm-2 control-label form-label\">Month</label>"+
+                "<div class=\"col-sm-10\"><div class=\"control-group\"><div class=\"controls\"><div class=\"input-prepend input-group\"><span class=\"add-on input-group-addon\"><i class=\"fa fa-calendar\"></i></span>"+
+                "<input type=\"text\" id=\"month-single\" class=\"form-control\" name=\"month\"/ value=\""+moment().format('MM/YYYY')+"\"></div></div></div></div></div></form>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: "View Report",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+          },
+          function(isConfirm){
+              if (isConfirm) {
+                var month = $('#month-single').val();
+                //alert('reports.php?id='+rid+'&sid='+sid+'&period='+period+'&all='+all);
+                window.open('reports.php?id='+id+'&month='+month);             
+              } else {
+                swal("Cancelled", "Your have chosen not to view report.", "info");
+              }
+          }
+        );
+ 
+        setTimeout(function() {
+         //$('#month-single').daterangepicker({ singleDatePicker: true, format: 'MM/YYYY', maxDate: moment().format('MM/YYYY') }, function(start, end, label) {});
+          $('#month-single').daterangepicker({
+            singleDatePicker: true,
+            format: 'MM/YYYY',
+          }).on('hide.daterangepicker', function (ev, picker) {
+            $('.table-condensed tbody tr:nth-child(2) td').click();
+            //setTimeout(alert(picker.startDate.format('MM/YYYY')), 100)
+            //alert(picker.startDate.format('MM/YYYY'))
+            //alert($('.table-condensed thead .month').text())
+            //$('#month-picker').val(picker.startDate.format('MM/YYYY'));
+            var mon = moment().format('MM/YYYY');
+            var mon2 = picker.startDate.format('MM/YYYY');
+
+            var a1 = mon.split('/');
+            var a2 = mon2.split('/');
+            
+           // alert(parseInt(a2[1], 10)+' - '+parseInt(a1[1], 10));
+             //|| (parseInt(a2[1], 10) == parseInt(a1[1], 10) && parseInt(a2[0], 10) > parseInt(a1[0], 10))
+             //(parseInt(a2[1], 10) > parseInt(a1[1], 10))
+             //alert(parseInt(a2[0], 10) +'>'+ parseInt(a1[0], 10));
+            if ((parseInt(a2[1], 10) > parseInt(a1[1], 10)) || ((parseInt(a2[1], 10) == parseInt(a1[1], 10)) && (parseInt(a2[0], 10) > parseInt(a1[0], 10)))) {
+              
+              $('#month-single').val('');
+            }
+            
+            $('.table-condensed thead tr:nth-child(2)').hide();
+            $('.table-condensed tbody').hide();
+          }).on('show.daterangepicker', function (ev, picker) {
+            $('.table-condensed thead tr:nth-child(2)').hide();
+            $('.table-condensed tbody').hide();
+          }).on('showCalendar.daterangepicker', function (ev, picker) {
+            $('.table-condensed thead tr:nth-child(2)').hide();
+            $('.table-condensed tbody').hide();
+          });
           $('.sweet-alert').css('overflow', 'visible');
           $('.daterangepicker.dropdown-menu').css('z-index', 300000);
         }, 150);
@@ -370,6 +433,47 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
           case 304:
             //Supplier Quotations
             View.Modals.rangeModal(id, 'Purchase Orders');
+            break;
+
+          default:
+            //statements_def
+            break;
+        }
+      }   
+    });
+
+    View.HRReports = Marionette.CompositeView.extend({
+
+      template: hrRptsTpl,
+
+      events: {
+        'click .reports tr > td:nth-child(2)': 'selectModal'
+      },
+
+      onShow: function(){
+        //this.setup();
+      },
+
+      selectModal: function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+        var id = parseInt($(e.currentTarget).find('a').data('rid'), 10);
+
+        switch(id){
+          case 400:
+            //Supplier register
+            window.open('reports.php?id='+id);
+            break;
+
+          case 401:
+            //Supplier quotations
+            View.Modals.subjectRangeModal(id, 'Employee Statement', '/service/hrm/index.php?employees');
+            break;
+
+          case 402:
+            //Supplier statements
+            View.Modals.monthModal(id, 'Payroll Summary');
             break;
 
           default:

@@ -8,6 +8,7 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
         "receiveGoods" : "receiveGoods",
         "receiveOrder" : "receiveOrder",
         "returnGoods" : "returnGoods",
+        "paySupplierGRN" : "paySupplierGRN",
         "paySupplier" : "paySupplier",
         "purchaseOrder" : "purchaseOrder",
         "supplierTx" : "supplierTx"
@@ -48,6 +49,12 @@ define(["app", "apps/procurement/show/show_controller"], function(System, showCo
       returnGoods: function(a){
         //System.contentRegion.show();
         showController.returnGoods(a);
+        //System.execute("set:active:header", "Menu");
+      },
+
+      paySupplierGRN: function(){
+        //System.contentRegion.show();
+        showController.paySupplierGRN();
         //System.execute("set:active:header", "Menu");
       },
 

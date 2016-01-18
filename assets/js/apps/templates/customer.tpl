@@ -46,16 +46,16 @@
                       <input type="text" name="tel" class="form-control" id="">
                     </div>
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" style="display:none">
                     <label class="col-sm-2 control-label form-label">E-Mail</label>
                     <div class="col-sm-10">
-                      <input type="email" name="email" class="form-control" id="">
+                      <input type="email" name="email" class="form-control" id="" value="">
                     </div>
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" style="display:none">
                     <label class="col-sm-2 control-label form-label">Address</label>
                     <div class="col-sm-10">
-                      <textarea class="form-control" name="address" rows="3"></textarea>
+                      <textarea class="form-control" name="address" rows="3" value=""></textarea>
                     </div>
                   </div>
                   <div class="form-group">
@@ -112,16 +112,16 @@
                   <input type="text" name="tel2" class="form-control" id="etel">
                 </div>
               </div>
-              <div class="form-group">
+              <div class="form-group" style="display:none">
                 <label class="col-sm-2 control-label form-label">E-Mail</label>
                 <div class="col-sm-10">
-                  <input type="text" name="email2" class="form-control" id="eemail">
+                  <input type="text" name="email2" class="form-control" id="eemail" value="">
                 </div>
               </div>
-              <div class="form-group">
+              <div class="form-group" style="display:none">
                 <label class="col-sm-2 control-label form-label">Address</label>
                 <div class="col-sm-10">
-                  <textarea class="form-control" name="address2" rows="3" id="eadd"></textarea>
+                  <textarea class="form-control" name="address2" rows="3" id="eadd" value=""></textarea>
                 </div>
               </div>
               <div class="form-group">

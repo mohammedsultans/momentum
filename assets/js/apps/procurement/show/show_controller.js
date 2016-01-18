@@ -104,6 +104,29 @@ define(["app", "apps/procurement/show/show_view"], function(System, View){
         });
       },
 
+      paySupplierGRN: function(a){ 
+        var view = new View.PaySupplierWithGRN();
+        
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'makePaymentGRN';
+          $.post(System.coreRoot + '/service/procurement/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
       paySupplier: function(a){ 
         var view = new View.PaySupplier();
         

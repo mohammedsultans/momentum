@@ -108,6 +108,15 @@
 					}else{
 						echo 0;
 					}				
+				}elseif($operation == 'findEmployeeEntries'){
+					if(isset($_POST['employee'])){
+						$employee = $_POST['employee'];
+						$dates = $_POST['dates'];
+						$all = $_POST['vall'];
+						$this->findEmployeeEntries($employee, $dates, $all);
+					}else{
+						echo 0;
+					}				
 				}else{ 
 					echo 0;
 				}
@@ -258,6 +267,15 @@
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(Payslip::GetUncleared($empid));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function findEmployeeEntries($employeeid, $dates, $all)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(TransactionVouchers::GetEmployeeTransactions($employeeid, $dates, $all));
 			}else{
 				echo 0;
 			}

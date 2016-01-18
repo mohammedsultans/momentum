@@ -7,7 +7,10 @@ define(["app", "apps/operations/show/show_controller"], function(System, showCon
         "viewproject" : "viewProject",
         "quotation" : "createQuote",
         "filereport" : "fileReport",
-        "billables" : "setBillables"
+        "billables" : "setBillables",
+        "documentTypes" : "setDocumentTypes",
+        "documentRegistry" : "documentRegistry",
+        "findDocuments" : "findDocuments"
       }
     });
 
@@ -40,7 +43,26 @@ define(["app", "apps/operations/show/show_controller"], function(System, showCon
         //System.contentRegion.show();
         showController.setBillables();
         //System.execute("set:active:header", "Menu");
+      },
+
+      setDocumentTypes: function(){
+        //System.contentRegion.show();
+        showController.setDocumentTypes();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      documentRegistry: function(){
+        //System.contentRegion.show();
+        showController.documentRegistry();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      findDocuments: function(){
+        //System.contentRegion.show();
+        showController.findDocuments();
+        //System.execute("set:active:header", "Menu");
       }
+
     };
 
     System.on("add:project", function(){

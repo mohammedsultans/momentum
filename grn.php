@@ -83,7 +83,7 @@ $voucher = json_decode($_POST['voucher']);
       </div>
       <div class="col-md-6 col-xs-6 padding-0 text-right">
         <h4>DESCRIPTION</h4>
-        <h2><?php echo $voucher->description; ?></h2>
+        <h2><?php echo $voucher->scope; ?></h2>
       </div>
     </div>
 
@@ -144,9 +144,9 @@ $voucher = json_decode($_POST['voucher']);
         echo "( Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>)";
         }else { echo "Ksh. <script>document.writeln((".$voucher->party->balance->amount.").formatMoney(2, '.', ','));</script>"; }?>
       </p>
-      <p style="padding:10px 15px;">RECEIVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
-      <p style="padding:10px 15px;">CHECKED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
-      <p style="padding:10px 15px;">APPROVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">RECEIVED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">CHECKED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">APPROVED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
     <div class="invfoot">
       <div class="signature">
         <p>GRN Prepared By: <b><?php echo $voucher->user; ?></b></p>

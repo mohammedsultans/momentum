@@ -78,7 +78,7 @@
 						echo 0;
 					}
 				
-				}elseif($operation == 'makePayment'){
+				}elseif($operation == 'makePaymentGRN'){
 					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments'])){
 						$supplierid = $_POST['supplier'];
 						$amount = $_POST['amount'];
@@ -86,7 +86,20 @@
 						$mode = $_POST['mode'];
 						$voucher =  $_POST['voucher'];
 						$payments = $_POST['payments'];
-						$this->makePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
+						$this->makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments);
+					}else{
+						echo 0;
+					}
+						
+				}elseif($operation == 'makePayment'){
+					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						$supplierid = $_POST['supplier'];
+						$amount = $_POST['amount'];
+						$account = $_POST['account'];
+						$mode = $_POST['mode'];
+						$voucher =  $_POST['voucher'];
+						$descr = $_POST['descr'];
+						$this->makePayment($supplierid, $amount, $account, $mode, $voucher, $descr);
 					}else{
 						echo 0;
 					}
@@ -220,9 +233,20 @@
 			}
 		}
 
-		public function makePayment($supplierid, $amount, $account, $mode, $voucher, $payments)
+		public function makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments)
 		{
-			$payment = PaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
+			$payment = GRNPaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
+			$voucher = $payment->submit();
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function makePayment($supplierid, $amount, $account, $mode, $voucher, $description)
+		{
+			$payment = PaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $description);
 			$voucher = $payment->submit();
 			if ($voucher) {
 				echo json_encode($voucher);

@@ -127,8 +127,8 @@ $voucher = json_decode($_POST['voucher']);
       
     </table>
     <p style="padding:5px 15px;">PRICES INCLUSIVE OF VAT WHERE APPLICABLE</p>
-      <p style="padding:10px 15px;">AUTHORIZED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
-      <p style="padding:10px 15px;">APPROVED BY:   __________________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">AUTHORIZED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">APPROVED BY:   _____________________________ DATE: ___________ SIGN: _____________</p>
     <div class="invfoot">
       <div class="signature">
         <p>Order Prepared By: <b><?php echo $voucher->user; ?></b></p>

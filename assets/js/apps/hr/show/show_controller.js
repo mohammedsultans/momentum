@@ -238,6 +238,29 @@ define(["app", "apps/hr/show/show_view"], function(System, View){
             }
           });
         });
+      },
+
+      employeeTx: function(a){ 
+        var view = new View.EmployeeTx();
+        
+        System.contentRegion.show(view);
+
+        view.on('search', function(data) {
+          data['operation'] = 'findEmployeeEntries';
+          $.post(System.coreRoot + '/service/hrm/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res.length) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("empty");
+              }                
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
       }
       
     };

@@ -109,7 +109,104 @@ define(["app", "apps/operations/show/show_view"], function(System, View){
             }
           });
         });
-      }
+      },
+
+      setDocumentTypes: function(){ 
+        var view = new View.DocumentTypes();
+        
+        System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'createService';
+          $.post(System.coreRoot + '/service/operations/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("success");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+
+        view.on('deleteServ', function(name) {
+          var data = {};
+          data['operation'] = 'deleteService';
+          data['name'] = name;
+          $.post(System.coreRoot + '/service/operations/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
+      documentRegistry: function(){ 
+        var view = new View.DocumentRegistry();
+        
+        System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'addClient';
+            $.post(System.coreRoot + '/service/crm/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('edit', function(data) {
+          data['operation'] = 'editClient';
+            $.post(System.coreRoot + '/service/crm/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('delete', function(data) {
+          data['operation'] = 'deleteClient';
+            $.post(System.coreRoot + '/service/crm/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("delete");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+      },
+
+      findDocuments: function(){ 
+        var view = new View.FindDocuments();
+        
+        System.contentRegion.show(view);
+
+        view.on('search', function(data) {
+          data['operation'] = 'findEntries';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res.length) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("empty");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
+
+
+
+
     };
   });
 

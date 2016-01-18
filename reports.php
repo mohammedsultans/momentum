@@ -1,5 +1,5 @@
 <?php
-	//error_reporting(0);
+	error_reporting(0);
   	require_once 'include/config.php';
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
 	
@@ -72,7 +72,7 @@
 
 				case 111:
 					$this->header('Ledger Statements');
-					FinancialReports::LedgerStatements();				
+					FinancialReports::LedgerStatement();				
 					break;
 
 				case 112:
@@ -199,6 +199,22 @@
 					$this->header('All Purchase Orders');
 					Body::PurchaseOrders();				
 					break;
+
+				case 400:
+					$this->header('Employee Register');
+					Body::EmployeeRegister();	
+					break;
+
+				case 401:
+					$this->header('Employee Statement');
+					Body::EmployeeStatement();
+					break;
+
+				case 402:
+					$this->header('Payroll Summary');
+					Body::PayrollSummary();
+					break;
+
 				
 				default:
 					# code...
@@ -757,6 +773,125 @@
 			          <td>CR</td>
 			          <td>DESCRIPTION</td>
 					  <td>LEDGER BALANCE</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$cr = 0.00; $dr = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width:90px">'.$item['when_booked'].'</td>
+			      <td style="width: 100px">'.$item['ledger_name'].'</td>';
+
+			    if ($item['effect'] == 'cr') {
+			    	$cr += $item['amount'];
+			    	echo '<td style="width: 100px"></td>
+			      	<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
+			    }else{
+			    	$dr += $item['amount'];
+			    	echo '<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      	<td style="width: 100px"></td>';
+			    }
+
+			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.$dr.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.$cr.').formatMoney(2, \'.\', \',\'));</script></b></p>			    
+				    <p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($dr - $cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function LedgerStatement()
+		{
+			$statement = FinancialStatements::LedgerStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+            $ledger = Account::GetLedger($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$ledger->ledgerName.' LEDGER STATEMENT</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>DR</td>
+			          <td>CR</td>
+			          <td>DESCRIPTION</td>
+			          <td>BALANCE</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$cr = 0.00; $dr = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width:90px">'.$item['when_booked'].'</td>
+			      <td style="width: 100px">'.$item['transaction_id'].'</td>';
+
+			    if ($item['effect'] == 'cr') {
+			    	$cr += $item['amount'];
+			    	echo '<td style="width: 100px"></td>
+			      	<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
+			    }else{
+			    	$dr += $item['amount'];
+			    	echo '<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      	<td style="width: 100px"></td>';
+			    }
+
+			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.$dr.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.$cr.').formatMoney(2, \'.\', \',\'));</script></b></p>			    
+				    <p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($dr - $cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function CashBook()
+		{
+			$statement = FinancialStatements::LedgerStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+            $ledger = Account::GetLedger($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$ledger->ledgerName.' LEDGER STATEMENT</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>LEDGER</td>
+			          <td>DR - DISC</td>
+			          <td>DR - CASH</td>
+			          <td>DR - BANK</td>
+			          <td>CR - DISC</td>
+			          <td>CR - CASH</td>
+			          <td>CR - BANK</td>
 			        </tr>
 			      </thead>
 			      <tbody>';
@@ -1487,7 +1622,7 @@
 			      	<td style="width: 100px"></td>';
 			    }
 
-			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			    echo '<td style="max-width: 220px;">'.$item['descr'].'</td>
 			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
 			    </tr>';
 			}
@@ -1692,12 +1827,12 @@
 			      <td>'.$item['date'].'</td>
 			      <td>'.$item['id'].'</td>';
 
-			    if ($item['project_id'] != null && $item['project_id'] != "") {
-			    	$project = Project::GetProject($item['project_id']);
-			    	echo '<td>'.$project->name.'</td>';
-			    }else{
-			    	echo '<td></td>';
-			    }
+			    $sql = 'SELECT * FROM purchase_orders WHERE id = '.$item['id'];
+			      $res = DatabaseHandler::GetRow($sql);
+
+			      $vc = PurchaseOrderVoucher::initialize($res);
+					
+					echo '<td>'.$vc->description.'</td>';
 
 			    if ($item['status'] == 1) {
 			    	echo '<td style="color:#232836">CREATED</td>';
@@ -1764,7 +1899,7 @@
 			      	<td style="width: 100px"></td>';
 			    }
 
-			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			    echo '<td style="max-width: 220px;">'.$item['descr'].'</td>
 			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
 			    </tr>';
 			}
@@ -1813,20 +1948,19 @@
 			      <td>'.$item->date.'</td>
 			      <td>'.$item->id.'</td>
 			      <td>'.$item->party->name.'</td>';
+			      $sql = 'SELECT * FROM purchase_orders WHERE id = '.$item->id;
+			      $res = DatabaseHandler::GetRow($sql);
 
-			    if ($item->projectId != null && $item->projectId != "" && $item->projectId != 0) {
-			    	$project = Project::GetProject($item->projectId);
-			    	echo '<td>'.$project->name.'</td>';
-			    }else{
-			    	echo '<td></td>';
-			    }
+			      $vc = PurchaseOrderVoucher::initialize($res);
+					
+					echo '<td>'.$vc->description.'</td>';
 
-			    if ($item->status == 1) {
-			    	echo '<td style="color:#232836">CREATED</td>';
-			    }else{
-			    	echo '<td style="color:#27c97b">ORDERED</td>';
-			    	$invoiced += $item->total;
-			    }
+				    if ($item->status == 1) {
+				    	echo '<td style="color:#232836">CREATED</td>';
+				    }else{
+				    	echo '<td style="color:#27c97b">ORDERED</td>';
+				    	$invoiced += $item->total;
+				    }
 
 			    echo '<td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item->total.').formatMoney(2, \'.\', \',\'));</script></td>
 			    </tr>';
@@ -1861,9 +1995,9 @@
 			      <thead class="title">
 			        <tr>
 			          <td>DATE</td>
-			          <td>GRN INV NO</td>
+			          <td>GRN NO</td>
+			          <td>INV NO</td>
 			          <td>COMPANY</td>
-			          <td>PURPOSE</td>
 					  <td>TOTAL</td>
 			        </tr>
 			      </thead>
@@ -1877,14 +2011,9 @@
 			    echo '<tr>
 			      <td>'.$item['date'].'</td>
 			      <td>'.$item['id'].'</td>
+			      <td>'.$item['invno'].'</td>
 			      <td>'.$party->name.'</td>
-				  <td>'.$item['description'];
-				  if ($item['invno'] != 0) {
-				  	echo 'Supplier Invoice No: '.$item['invno'];
-				  }
-				  echo '</td>';
-
-			    echo '<td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['total'].').formatMoney(2, \'.\', \',\'));</script></td>
+				<td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['total'].').formatMoney(2, \'.\', \',\'));</script></td>
 			    </tr>';
 
 			    $total += $item['total'];
@@ -1897,6 +2026,159 @@
 			    	<p style="margin: 5px 0 0 5px">Total Invoices: <b>'.$itms.'</b></p>
 					<p style="margin: 5px 0 0 5px">Total Invoiced: <b>Ksh. <script>document.writeln(('.($total).').formatMoney(2, \'.\', \',\'));</script></b></p>
 				</div>';
+		}
+
+		public static function EmployeeRegister()
+		{
+			$collection = Employee::GetAllEmployees();
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>ALL EMPLOYEES</h4>';
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NAME</td>
+			          <td>DEPARTMENT</td>
+			          <td>POSITION</td>
+					  <td>TELEPHONE</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			foreach ($collection as $model) {
+			    echo '<tr>
+			      <td>'.$model->name.'</td>
+			      <td>'.$model->department.'</td>
+			      <td>'.$model->position.'</td>
+			      <td>'.$model->telephone.'</td>
+			      </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>';
+		}
+
+		public static function EmployeeStatement()
+		{
+			$statement = TransactionVouchers::EmployeeStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+			$employee = Employee::GetEmployee($_GET['sid']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>'.$employee->name.'</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}			  
+			
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TYPE</td>
+			          <td>Month</td>
+			          <td>DR</td>
+			          <td>CR</td>
+			          <td>DESCRIPTION</td>
+					  <td>BALANCE</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$cr = 0.00; $dr = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width:90px">'.$item['datetime'].'</td>
+			      <td style="width: 100px">'.$item['type'].'</td>
+			      <td style="width: 100px">'.$item['month'].'</td>';
+
+			    if ($item['effect'] == 'cr') {
+			    	$cr += $item['amount'];
+			    	echo '<td style="width: 100px"></td>
+			      	<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
+			    }else{
+			    	$dr += $item['amount'];
+			    	echo '<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      	<td style="width: 100px"></td>';
+			    }
+
+			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.($cr - $dr).').formatMoney(2, \'.\', \',\'));</script></td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.$cr.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
+			    <p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.$dr.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				<p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($cr - $dr).').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+		//Payroll::PreviewPayroll($month)
+		public static function PayrollSummary()
+		{
+			$payroll = Payroll::PreviewPayroll($_GET['month']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>PAYROLL SUMMARY</h4>
+				  <h5 style="margin-top:-10px">Month: '.$_GET['month'].'</h5>
+				</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NAME</td>
+			          <td>ROLE</td>
+			          <td>BASIC SALARY</td>
+			          <td>ADDITIONS</td>
+			          <td>DEDUCTIONS</td>
+			          <td>NET PAY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$totsalary = 0.00; $totadd = 0.00;$totded = 0.00;$totnet = 0.00;
+
+			foreach ($payroll->slips as $slip) {
+			    echo '<tr>
+			      <td style="width:90px">'.$slip->employee->name.'</td>
+			      <td style="width: 100px">'.$slip->employee->position.' [Department: '.$slip->employee->department.']</td>
+			      <td style="width: 100px"><script>document.writeln(('.$slip->salary.').formatMoney(2, \'.\', \',\'));</script></td>
+				  <td style="width: 100px"><script>document.writeln(('.$slip->t_additions.').formatMoney(2, \'.\', \',\'));</script></td>
+				  <td style="width: 100px"><script>document.writeln(('.$slip->t_deductions.').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 100px"><script>document.writeln(('.$slip->netpay.').formatMoney(2, \'.\', \',\'));</script></td>
+			    </tr>';
+			    $totsalary += $slip->salary;
+			    $totadd += $slip->t_additions;
+			    $totded += $slip->t_deductions;
+			    $totnet += $slip->netpay;
+
+			}
+			        
+			echo '</tbody>
+				  <tfoot>
+			        <tr>
+			          <td></td>
+			          <td>TOTALS:</td>
+			          <td><script>document.writeln(('.$totsalary.').formatMoney(2, \'.\', \',\'));</script></td>
+			          <td><script>document.writeln(('.$totadd.').formatMoney(2, \'.\', \',\'));</script></td>
+			          <td><script>document.writeln(('.$totded.').formatMoney(2, \'.\', \',\'));</script></td>
+			          <td><script>document.writeln(('.$totnet.').formatMoney(2, \'.\', \',\'));</script></td>
+			        </tr>
+			      </tfoot>
+			    </table>
+
+			    <div class="logo">
+			    <p style="margin: 5px 0 0 5px">Total Payable for '.$_GET['month'].': <b>Ksh. <script>document.writeln(('.$totnet.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
+			    </div>';
 		}
 	}
 

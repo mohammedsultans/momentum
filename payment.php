@@ -112,9 +112,9 @@ $voucher = json_decode($_POST['voucher']);
       </tbody>
           
     </table>
-      <p style="padding:10px 15px;">CHECKED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
-      <p style="padding:10px 15px;">APPROVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
-      <p style="padding:10px 15px;">RECEIVED BY: __________________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">CHECKED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">APPROVED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
+      <p style="padding:10px 15px;">RECEIVED BY: _____________________________ DATE: ___________ SIGN: _____________</p>
     
     <div class="invfoot">
       <div class="signature">

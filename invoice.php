@@ -83,7 +83,7 @@ $voucher = json_decode($_POST['voucher']);
       </div>
       <div class="col-md-6 col-xs-6 padding-0 text-right">
         <h4>SCOPE</h4>
-        <h2><?php echo $voucher->description; ?></h2>
+        <h2><?php echo $voucher->scope; ?></h2>
       </div>
     </div>
 

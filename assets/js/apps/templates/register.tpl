@@ -21,49 +21,48 @@
     <!-- Start Row -->
     <div class="row">
       <!-- Start Panel -->
-    <div class="col-md-12">
-      <div class="panel panel-default">
-        <div class="panel-title">
-          Client List
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-title">
+            Client List
+          </div>
+          <div class="panel-body table-responsive">
+
+              <table id="example0" class="table display">
+                  <thead>
+                      <tr>
+                          <th>Name</th>
+                          <th>Telephone</th>
+                          <!--th>E-mail</th>
+                          <th>Address</th-->
+                          <th>Balance</th>
+                          <th>Options</th>
+                      </tr>
+                  </thead>
+               
+                  <tfoot>
+                      <tr>
+                          <th>Name</th>
+                          <th>Telephone</th>
+                          <!--th>E-mail</th>
+                          <th>Address</th-->
+                          <th>Balance</th>
+                          <th>Options</th>
+                      </tr>
+                  </tfoot>
+               
+                  <tbody>
+                  </tbody>
+              </table>
+
+
+          </div>
+
         </div>
-        <div class="panel-body table-responsive">
-
-            <table id="example0" class="table display">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Telephone</th>
-                        <th>E-mail</th>
-                        <th>Address</th>
-                        <th>Balance</th>
-                        <th>Options</th>
-                    </tr>
-                </thead>
-             
-                <tfoot>
-                    <tr>
-                        <th>Name</th>
-                        <th>Telephone</th>
-                        <th>E-mail</th>
-                        <th>Address</th>
-                        <th>Balance</th>
-                        <th>Options</th>
-                    </tr>
-                </tfoot>
-             
-                <tbody>
-                </tbody>
-            </table>
-
-
-        </div>
-
       </div>
+      <!-- End Panel -->
     </div>
-    <!-- End Panel -->
-    </div>
-    </div>
-    <!-- End Row -->
   </div>
+    <!-- End Row -->
 </div>
 

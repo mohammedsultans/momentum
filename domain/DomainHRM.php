@@ -510,7 +510,7 @@ class Payroll
 
 			try {
 				if ($payroll->status == "UNPROCESSED") {
-					$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.$employee->id.' AND status <> 2 ORDER BY id';
+					$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.$employee->id.' AND status <> 2 AND type <> "Salary Payment" ORDER BY id';
 				}else{
 					$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.$employee->id.' AND month = "'.$month.'" AND status = 2 ORDER BY id';
 				}
@@ -519,6 +519,8 @@ class Payroll
 				foreach ($entries as $entry) {
 					if ($entry['type'] != 'Basic Salary' && $entry['amount'] != 0.00) {
 						$slip->includeEntry($entry['type'], $entry['effect'], $entry['amount']);
+					}elseif ($payroll->status != "UNPROCESSED" && $entry['type'] == 'Basic Salary') {
+						$slip->overrideSalary($entry['amount']);
 					}
 				}
 
@@ -830,6 +832,11 @@ class PaySlip
 		$date = new DateTime();
 		$this->date = $date->format('d/m/Y');
 		//$this->includeEntry('Basic Salary', 'cr', $salary);
+	}
+
+	public function overrideSalary($amount)
+	{
+		$this->salary = $amount;
 	}
 
 	public function populate($id)

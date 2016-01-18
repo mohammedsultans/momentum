@@ -28,17 +28,17 @@
         </div>
         <div class="panel-body table-responsive">
 
-            <table id="example0" class="table display">
+            <table id="suppliers" class="table display">
                 <thead>
-                    <tr>
-                        <th>Supplier</th>
-                        <th>Contact Person</th>
-                        <th>Telephone</th>
-                        <th>E-mail</th>
-                        <th>Address</th>
-                        <th>Balance</th>
-                        <th>Options</th>
-                    </tr>
+                  <tr>
+                      <th>Supplier</th>
+                      <th>Contact Person</th>
+                      <th>Telephone</th>
+                      <th>E-mail</th>
+                      <th>Address</th>
+                      <th>Balance</th>
+                      <th>Options</th>
+                  </tr>
                 </thead>
              
                 <tfoot>

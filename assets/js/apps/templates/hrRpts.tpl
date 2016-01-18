@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Procurement Reports</h1>
+    <h1 class="title">Employee Reports</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -23,7 +23,7 @@
       <div class="col-xs-6 col-sm-6">
         <div class="panel panel-default reports">
           <div class="panel-title">
-            Procurement Reports
+            Employee Reports
           </div>
           <div class="panel-body table-responsive">
             <table class="table table-hover table-striped">
@@ -31,11 +31,9 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-rid="300" href="#">Supplier Register</a></td></tr>
-                <tr><td>2.</td><td><a data-rid="301" href="#">Supplier Orders</a></td></tr>
-                <tr><td>3.</td><td><a data-rid="302" href="#">Supplier Statement</a></td></tr>
-                <tr><td>4.</td><td><a data-rid="303" href="#">Purchase Invoices</a></td></tr>
-                <tr><td>5.</td><td><a data-rid="304" href="#">Purchase Orders</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="400" href="#">Employee Register</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="401" href="#">Employee Statement</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="402" href="#">Payroll Summary</a></td></tr>
               </tbody>
             </table>
           </div>

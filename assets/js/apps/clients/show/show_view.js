@@ -1,4 +1,6 @@
-define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tpl", "tpl!apps/templates/waiting.tpl", "tpl!apps/templates/addcontactlead.tpl", "tpl!apps/templates/searchhead.tpl", "tpl!apps/templates/contact.tpl", "tpl!apps/templates/contacts.tpl", "tpl!apps/templates/customer.tpl", "backbone.syphon"], 
+define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tpl", "tpl!apps/templates/waiting.tpl", 
+  "tpl!apps/templates/addcontactlead.tpl", "tpl!apps/templates/searchhead.tpl", "tpl!apps/templates/contact.tpl", 
+  "tpl!apps/templates/contacts.tpl", "tpl!apps/templates/customer.tpl", "backbone.syphon"], 
 	function(System, registerTpl, enquiryTpl, waitingTpl, addcontactleadTpl, searchheadTpl, contactTpl, contactsTpl, customerTpl){
   System.module('ClientsApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
@@ -20,7 +22,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
             var m = JSON.parse(result);
             m.forEach(function(elem){
-              var tpl = $('<tr><td>'+elem['name']+'</td><td>'+elem['telephone']+'</td><td>'+elem['email']+'</td><td>'+elem['address']+'</td><td>Ksh. '+(elem['balance']['amount']).formatMoney(2, '.', ',')+'</td>'
+              var tpl = $('<tr><td>'+elem['name']+'<span style="font-size: 10px"> ['+elem['details']+']</span></td><td>'+elem['telephone']+'</td><td>Ksh. '+(elem['balance']['amount']).formatMoney(2, '.', ',')+'</td>'
                 +'<td><p class="xid" style="display: none;">'+elem['id']+'</p><a class="btn btn-small js-edit xcheck" href="#"><i class="icon-pencil"></i>Delete</a></td></tr>');
               tpl.appendTo(ul);
             });
@@ -28,8 +30,8 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
             $('.xcheck').on('click', function(e){
               e.preventDefault();
               e.stopPropagation();
-              var id = $(this).parent().find('.xid');
-              id = parseInt(id.text());
+              var data = {};
+              data['id'] = parseInt($(this).parent().find('.xid').text());
               swal({
                 title: "Are you sure?",
                 text: "You will not be able to recover this record!",
@@ -43,20 +45,27 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
               },
               function(isConfirm){
                 if (isConfirm) {
-                  THAT.trigger("deleteRecord", id);                             
+                  THAT.deleteRecord(data);
+                  alert(data.id);  
                 } else {
                   swal("Cancelled", "Your record is safe :)", "error");
                 }
               });
               
             });
+
+            setTimeout(function() {
+              $('#example0').DataTable();
+              $('button').prop({disabled: false});
+            }, 700);
             
           });
         },
 
-        deleteRecord: function(id) { 
+        deleteRecord: function(data) { 
           //alert(JSON.stringify(data));
-          //this.trigger("delete", data);
+          $('button').prop({disabled: true});
+          this.trigger("del", data);
         },
 
         onDelete: function(e) { 
@@ -68,6 +77,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
 
         onError: function(e) { 
           swal("Error!", "Transaction failed! Try again later.", "error");
+          $('button').prop({disabled: false});
           //alert(JSON.stringify(data));
           //this.trigger("create", data);
         }
