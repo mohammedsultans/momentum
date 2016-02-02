@@ -1,6 +1,22 @@
 <!-- START CONTENT -->
 <div id="leadscont" class="">
 
+  <style type="text/css">
+    .upload-img {
+        background: rgba(0, 0, 0, 0) url("documents/dragdrop.png") no-repeat scroll 50% center / 60% auto;
+        border: 3px dashed #7a7c7f;
+        color: #808080;
+        height: 300px;
+        width: calc(83.33% - 40px);
+        float: right;
+        right: 20px;
+        margin: 15px auto;
+    }
+    .upload-img.hover {
+        border: 3px dashed #f00;
+    }
+  </style>
+
   <!-- Start Page Header -->
   <div class="page-header">
     <h1 class="title">Document Origination</h1>
@@ -100,7 +116,7 @@
           </div>
 
           <div class="panel-body">
-            <form class="form-horizontal" id="docform2">
+            <form class="form-horizontal scanneddoc" id="docform2">
                  
               <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Search</label>
@@ -148,6 +164,13 @@
                 <label class="col-sm-2 control-label form-label">Details</label>
                 <div class="col-sm-10">
                   <textarea class="form-control" id="ddetails" name="details" rows="3"></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Upload</label>
+                <div class="col-sm-10 upload-img">
+                  <input type="file" value="" name="scandoc" style="display:none" id="scandoc">
+                  <span></span>
                 </div>
               </div>
               <div class="form-group">

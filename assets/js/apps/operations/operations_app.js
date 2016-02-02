@@ -8,9 +8,10 @@ define(["app", "apps/operations/show/show_controller"], function(System, showCon
         "quotation" : "createQuote",
         "filereport" : "fileReport",
         "billables" : "setBillables",
-        "documentTypes" : "setDocumentTypes",
-        "documentRegistry" : "documentRegistry",
-        "findDocuments" : "findDocuments"
+        "docOrigination" : "docOrigination",
+        "docRegistry" : "docRegistry",
+        "docArchive" : "docArchive",        
+        "docTypes" : "setDocTypes"      
       }
     });
 
@@ -45,21 +46,27 @@ define(["app", "apps/operations/show/show_controller"], function(System, showCon
         //System.execute("set:active:header", "Menu");
       },
 
-      setDocumentTypes: function(){
+      docOrigination: function(){
         //System.contentRegion.show();
-        showController.setDocumentTypes();
+        showController.docOrigination();
         //System.execute("set:active:header", "Menu");
       },
 
-      documentRegistry: function(){
+      docRegistry: function(){
         //System.contentRegion.show();
-        showController.documentRegistry();
+        showController.docRegistry();
         //System.execute("set:active:header", "Menu");
       },
 
-      findDocuments: function(){
+      docArchive: function(){
         //System.contentRegion.show();
-        showController.findDocuments();
+        showController.docArchive();
+        //System.execute("set:active:header", "Menu");
+      },
+
+      setDocTypes: function(){
+        //System.contentRegion.show();
+        showController.setDocTypes();
         //System.execute("set:active:header", "Menu");
       }
 

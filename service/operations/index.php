@@ -97,6 +97,54 @@
 					}else{
 						echo 0;
 					}
+				}elseif($operation == 'addDocument'){
+					if(isset($_POST['client']) && isset($_POST['name']) && isset($_POST['type']) && isset($_POST['serial']) && isset($_POST['parcel']) && isset($_POST['status'])){
+						$client = $_POST['client'];
+						$name = $_POST['name'];
+						$type = $_POST['type'];
+						$serial = $_POST['serial'];
+						$parcel = $_POST['parcel'];
+						$details = $_POST['details'];
+						$status = $_POST['status'];
+						$this->createDocument($client, $name, $type, $serial, $parcel, $details, $status);
+					}else{
+						echo 0;
+					}						
+				}elseif($operation == 'editDocument'){
+					if(isset($_POST['id']) && isset($_POST['client']) && isset($_POST['name']) && isset($_POST['type']) && isset($_POST['serial']) && isset($_POST['parcel']) && isset($_POST['status'])){
+						$id = $_POST['id'];
+						$client = $_POST['client'];
+						$name = $_POST['name'];
+						$type = $_POST['type'];
+						$serial = $_POST['serial'];
+						$parcel = $_POST['parcel'];
+						$details = $_POST['details'];
+						$status = $_POST['status'];
+						$file = $_POST['file'];
+						$thumbnail = $_POST['thumbnail'];
+						$this->updateDocument($id, $client, $name, $type, $serial, $parcel, $details, $status, $file, $thumbnail);
+					}else{
+						echo 0;
+					}
+				
+				}elseif($operation == 'deleteDocument'){
+					if(isset($_POST['id'])){
+						$this->deleteDocument($_POST['id']);
+					}else{
+						echo 0;
+					}
+				}elseif($operation == 'createDocType'){
+					if(isset($_POST['name'])){
+						$this->createDocumentType($_POST['name']);
+					}else{
+						echo 0;
+					}						
+				}elseif($operation == 'deleteDocType'){
+					if(isset($_POST['id'])){
+						$this->deleteDocumentType($_POST['id']);
+					}else{
+						echo 0;
+					}
 				}elseif($operation == 'logout'){
 					$this->logout();
 				}elseif($operation == 'checkauth'){
@@ -124,6 +172,14 @@
 				$this->getGeneralQuotes($_GET['genquotes']);
 			}elseif(isset($_GET['project'])){
 				$this->getProject($_GET['project']);
+			}elseif(isset($_GET['documents'])){
+				$this->getDocuments();
+			}elseif(isset($_GET['document']) && isset($_GET['docid'])){
+				$this->getDocument($_GET['docid']);
+			}elseif(isset($_GET['clientdocuments']) && isset($_GET['id'])){
+				$this->getClientDocuments($_GET['id']);
+			}elseif(isset($_GET['doctypes'])){
+				$this->getDocumentTypes();
 			}else{
 				echo 0;
 			}
@@ -308,6 +364,95 @@
 			}
 		}
 
+		public function getDocuments()
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(LandsDocument::GetAll());
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getClientDocuments($cid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(LandsDocument::GetClientDocuments($cid));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getDocument($id)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(LandsDocument::Get($id));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function createDocument($client, $name, $type, $serial, $parcel, $details, $status)
+		{
+			if (LandsDocument::Create($client, $name, $type, $serial, $parcel, $details, $status)) {
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function updateDocument($id, $client, $name, $type, $serial, $parcel, $details, $status, $file, $thumbnail)
+		{
+			if (LandsDocument::Update($id, $client, $name, $type, $serial, $parcel, $details, $status, $file, $thumbnail)) {
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function deleteDocument($id)
+		{
+			if ($this->validateAdmin()) {
+				if (LandsDocument::Delete($id)) {
+					echo 1;
+				}else{
+					echo 0;
+				}
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getDocumentTypes()
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(DocumentType::GetAll());
+			}else{
+				echo 0;
+			}
+		}
+
+		public function createDocumentType($name)
+		{
+			if (DocumentType::Create($name)) {
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function deleteDocumentType($id)
+		{
+			if ($this->validateAdmin()) {
+				if (DocumentType::Delete($id)) {
+					echo 1;
+				}else{
+					echo 0;
+				}
+			}else{
+				echo 0;
+			}
+		}
+
 
 		//Helper Functions
 
@@ -320,26 +465,6 @@
 				//Development override
 				return true;
 			}
-		}
-		
-		private function getUserIdentifier()
-		{
-			session_start();
-			if (isset($_SESSION['oauth_id'])){
-	      		return $_SESSION['oauth_id'];
-				//echo 1; 
-	  		}elseif (isset($_COOKIE['cookie_key'])){
-	  			return $_COOKIE['cookie_key'];
-	      		//echo $_COOKIE['session_key'].'23';
-				//echo 1; 
-	  		}elseif (isset($_SESSION['session_key'])){				
-	      		return $_SESSION['session_key'];
-	      		//echo $_SESSION['session_key'].'46';
-				//echo 1; 
-	  		}else{
-	  			echo 0;
-	  		}
-					 
 		}
 		
 	}

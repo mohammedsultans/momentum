@@ -317,7 +317,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "empvoucher.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -401,7 +401,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "empvoucher.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -503,7 +503,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "empvoucher.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -957,7 +957,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
 
         printVoucher: function(eid) {
           var voucher = this['entries'][eid]; 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate

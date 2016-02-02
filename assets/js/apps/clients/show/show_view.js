@@ -183,7 +183,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
                   
                              
                 } else {
-                  swal("Cancelled", "Your record is safe :)", "error");
+                  swal("Cancelled", "Your record is safe :)", "info");
                 }
               });
           

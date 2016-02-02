@@ -77,7 +77,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
     });
 
-    View.Supplier = Marionette.ItemView.extend({      
+    View.Supplier = Marionette.ItemView.extend({ 
 
         template: supplierTpl,
 
@@ -224,7 +224,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.PurchaseOrder = Marionette.ItemView.extend({      
+    View.PurchaseOrder = Marionette.ItemView.extend({ 
 
         template: purchOrderTpl,
 
@@ -354,7 +354,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.GRN = Marionette.ItemView.extend({      
+    View.GRN = Marionette.ItemView.extend({ 
 
         template: grnTpl,
 
@@ -515,7 +515,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "grn.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -535,7 +535,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.OrderGRN = Marionette.ItemView.extend({      
+    View.OrderGRN = Marionette.ItemView.extend({ 
 
         template: ordergrnTpl,
 
@@ -839,7 +839,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "grn.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -859,7 +859,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.GRO = Marionette.ItemView.extend({      
+    View.GRO = Marionette.ItemView.extend({ 
 
         template: grnTpl,
 
@@ -1007,7 +1007,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "invoice.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -1026,7 +1026,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
     
-    View.PaySupplierWithGRN = Marionette.ItemView.extend({      
+    View.PaySupplierWithGRN = Marionette.ItemView.extend({ 
 
         template: paySupplierGRNTpl,
 
@@ -1191,7 +1191,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "payment.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -1210,7 +1210,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.PaySupplier = Marionette.ItemView.extend({      
+    View.PaySupplier = Marionette.ItemView.extend({ 
 
         template: paySupplierTpl,
 
@@ -1301,7 +1301,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "payment.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -1320,7 +1320,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
         }
     });
 
-    View.SupplierTx = Marionette.ItemView.extend({      
+    View.SupplierTx = Marionette.ItemView.extend({ 
 
         template: supplierTxTpl,
 
@@ -1386,7 +1386,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
         onSuccess: function(result) {
           this['entries'] = result;
-          swal("Results!", result.length + " entries found.", "success");
+          swal("Results!", result.length + " entries found.", "info");
           var THAT = this;
           var el = $('#results');
           el.empty();
@@ -1410,7 +1410,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
         printVoucher: function(eid) {
           var voucher = this['entries'][eid]; 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate

@@ -815,4 +815,206 @@ class ExpenseVoucher
     }
 }
 
+class DocumentType
+{
+	public $name;
+
+	function __construct($name)
+ 	{
+ 		$this->name = $name;
+ 	}
+
+	public static function Create($name)
+	{
+		//Called and stored in a session object
+		try {
+			$sql = 'INSERT IGNORE INTO doctypes (name) VALUES ("'.$name.'")';
+	 		DatabaseHandler::Execute($sql);
+	 		
+	 		$sql = 'SELECT * FROM doctypes WHERE name = "'.$name.'" ';
+			$res =  DatabaseHandler::GetRow($sql);
+
+			return new DocumentType($res['name']);
+
+		} catch (Exception $e) {
+			return false;
+		}
+
+
+	}
+
+	public static function Get($name)
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM doctypes WHERE name = "'.$name.'"';
+			$res =  DatabaseHandler::GetRow($sql);
+
+			return new DocumentType($res['name']);
+
+		} catch (Exception $e) {
+			
+		}
+	}
+
+	public static function GetAll()
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM doctypes';
+			$res =  DatabaseHandler::GetAll($sql);
+			$doctypes = [];
+			foreach ($res as $dtype) {
+				$doctypes[] = new DocumentType($dtype['name']);
+			}
+			return $doctypes;
+
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function Delete($name)
+    {
+      try {
+        $sql = 'DELETE FROM doctypes WHERE name = "'.$name.'"';			
+		DatabaseHandler::Execute($sql);
+		return true;
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+}
+
+class LandsDocument
+{
+	public $id;
+	public $client;
+	public $name;
+	public $type;
+	public $serial;
+	public $parcel;
+	public $details;
+	public $status;
+	public $lastUpdated;
+	public $timestamp;
+	public $file;
+	public $thumbnail;
+
+	function __construct($id, $clientid, $name, $type, $serial, $parcel, $details, $status, $lastUpdated, $timestamp, $file, $thumbnail)
+ 	{
+ 		$this->id = $id;
+ 		$this->client = Client::GetClient($clientid);
+ 		$this->name = $name;
+ 		$this->type = DocumentType::Get($type);
+ 		$this->serial = $serial;
+ 		$this->parcel = $parcel;
+ 		$this->details = $details;
+ 		$this->status = $status;
+ 		$this->lastUpdated = $lastUpdated;
+ 		$this->timestamp = $timestamp;
+ 		$this->file = $file;
+ 		$this->thumbnail = $thumbnail;
+ 	}
+
+ 	private static function initialize($args)
+    {
+    	return new LandsDocument($args['id'], $args['client_id'], $args['name'], $args['type'], $args['serial'], $args['parcel'], $args['details'], $args['status'], $args['last_updated'], $args['stamp'], $args['file'], $args['thumbnail']);
+    }
+
+	public static function Create($clientid, $name, $type, $serial, $parcel, $details, $status)
+	{
+		//Called and stored in a session object
+		try {
+			$sql = 'SELECT * FROM land_docs WHERE serial = "'.$serial.'" AND type = "'.$type.'"';
+	  	    // Execute the query and return the results
+	  	    $res =  DatabaseHandler::GetRow($sql);
+	  	    if (!empty($res['id'])) {
+	  	    	Logger::Log('LandsDocument', 'Exists', 'A document with the serial: '.$serial.' and of type:'.$type.' already exists');
+	  	    	return false;
+	  	    }else{
+	  	    	$datetime = new DateTime();
+				$sql = 'INSERT INTO land_docs (client_id, name, type, serial, parcel, details, status, last_updated, stamp, thumbnail) VALUES ('.$clientid.', "'.$name.'", "'.$type.'", "'.$serial.'", "'.$parcel.'", "'.$details.'", "'.$status.'", "'.$datetime->format('d/m/Y H:ia').'", '.$datetime->format('YmdHis').', "dragdrop.png")';
+		 		DatabaseHandler::Execute($sql);
+				return true;
+			}
+		} catch (Exception $e) {
+			return false;
+		}
+
+
+	}
+
+	public static function Update($id, $client, $name, $type, $serial, $parcel, $details, $status, $file, $thumbnail)
+  	{      	
+  		try {
+  			$datetime = new DateTime();
+	        $sql = 'UPDATE land_docs SET client_id = '.$client.', name = "'.$name.'", type = "'.$type.'", serial = "'.$serial.'", parcel = "'.$parcel.'", details = "'.$details.'", status = "'.$status.'", last_updated = "'.$datetime->format('d/m/Y H:ia').'", stamp = '.$datetime->format('YmdHis').', file = "'.$file.'", thumbnail = "'.$thumbnail.'" WHERE id = '.$id;
+	        DatabaseHandler::Execute($sql);
+	        return true;
+	    } catch (Exception $e) {
+	        return false;
+	    }
+  	}
+
+	public static function Get($id)
+	{
+		try {	 		
+	 		$sql = 'SELECT * FROM land_docs WHERE id = '.$id.'';
+			$res =  DatabaseHandler::GetRow($sql);
+
+			return self::initialize($res);
+
+		} catch (Exception $e) {
+			
+		}
+	}
+
+	public static function GetAll()
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM land_docs';
+			$res =  DatabaseHandler::GetAll($sql);
+			$land_docs = [];
+			foreach ($res as $document) {
+				$land_docs[] = self::initialize($document);
+			}
+			return $land_docs;
+
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function GetClientDocuments($cid)
+	{
+		try {
+	 		
+	 		$sql = 'SELECT * FROM land_docs WHERE client_id ='.intval($cid);
+			$res =  DatabaseHandler::GetAll($sql);
+			$land_docs = [];
+			foreach ($res as $document) {
+				$land_docs[] = self::initialize($document);
+			}
+			return $land_docs;
+
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
+	public static function Delete($id)
+    {
+      try {
+        $sql = 'DELETE FROM land_docs WHERE id = "'.$id.'"';			
+		DatabaseHandler::Execute($sql);
+		return true;
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+}
 ?>

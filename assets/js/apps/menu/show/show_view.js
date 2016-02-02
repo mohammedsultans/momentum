@@ -28,9 +28,10 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
         setup: function() { 
           var dom = $('#presentation');
           dom.empty();
-          var name = this.model.get('user');
-          System.user = name['record']['name'];
-          System.interfaces = name['role']['presentation'];
+          var data = this.model.get('user');
+          System.role = data.role;
+          System.username = data.record.name;
+          System.interfaces = data.role.presentation;
           //alert(JSON.stringify(System.views));          
           $.each(System.interfaces, function(i, module){
             var tpl = $('<li><a href="#"><span class="icon color11-bg"><i class="fa '+module['logo']+'"></i></span>'+module['name']+'<span class="caret"></span></a><ul id="mod'+i+'"><ul></li>');
@@ -42,7 +43,7 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
               itpl.appendTo(idom);
             });
           });
-          $('#username').text(System.user);
+          $('#username').text(System.username);
           var THAT = this;
           setTimeout(function() {
             THAT.activateMenu();

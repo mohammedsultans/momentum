@@ -517,7 +517,7 @@ class Payroll
 				$entries =  DatabaseHandler::GetAll($sql);
 
 				foreach ($entries as $entry) {
-					if ($entry['type'] != 'Basic Salary' && $entry['amount'] != 0.00) {
+					if ($entry['type'] != 'Basic Salary' && $entry['amount'] != 0.00 && $entry['type'] != 'Salary Payment') {
 						$slip->includeEntry($entry['type'], $entry['effect'], $entry['amount']);
 					}elseif ($payroll->status != "UNPROCESSED" && $entry['type'] == 'Basic Salary') {
 						$slip->overrideSalary($entry['amount']);
@@ -565,7 +565,7 @@ class Payroll
 				self::RecoverAdvance($employee->id, $month);
 	
 				//stamp >= '.$lstamp.' AND stamp <= '.$ustamp.'
-		 		$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.$employee->id.' AND status = 1 ORDER BY type ASC, id DESC';
+		 		$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.$employee->id.' AND status <> 2 AND type <> "Salary Payment" ORDER BY type ASC, id DESC';
 				$entries =  DatabaseHandler::GetAll($sql);
 
 				foreach ($entries as $entry) {					
@@ -688,8 +688,8 @@ class Payroll
 	{
 		try {
 			$payslip = PaySlip::GetSlip($slipid);
-	
-			$descr = "Salary remittance for ".$payslip->month;
+
+			$descr = "Salary remittance for ".$payslip->month."";
 
 			$sql = 'INSERT INTO payroll_entries (party_id, month, type, effect, amount, ledger_id, mode, voucher_no, description) VALUES 
 			('.$payslip->employee->id.', "'.$payslip->month.'", "Salary Payment", "dr", '.$payslip->netpay.', '.$ledger.', "'.$mode.'", "'.$voucher.'", "'.$descr.'")';
@@ -699,9 +699,11 @@ class Payroll
 			$entry =  DatabaseHandler::GetRow($sql2);
 
 			//return new PayrollTX($payment, 'Salary Payment');
-			$payslip->clear();
+			$payslip->clearPayment();
 
 			$txtype = new EmployeePayment($ledger, $payslip->employee->id, 'Salary Payment');
+
+			$entry['description'] = "PN no: ".$empid."_".$voucher_no;
 
 			return PayrollTX::Initialize($entry, $txtype, 'payroll_entries');
 
@@ -847,8 +849,10 @@ class PaySlip
 			$entries =  DatabaseHandler::GetAll($sql);
 			
 			foreach ($entries as $entry) {					
-				if ($entry['type'] != 'Basic Salary') {
+				if ($entry['type'] != 'Basic Salary' && $entry['type'] != 'Salary Payment') {
 					$this->includeEntry($entry['type'], $entry['effect'], $entry['amount']);
+				}elseif ($entry['type'] == 'Basic Salary'){
+					$this->overrideSalary($entry['amount']);
 				}
 			}
 
@@ -859,7 +863,7 @@ class PaySlip
 		}
 	}
 
-	public function clear()
+	public function clearPayment()
 	{
 		try {
 			$sql = 'UPDATE payslips SET status = 2 WHERE id = '.$this->id;

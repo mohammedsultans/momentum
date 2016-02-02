@@ -115,7 +115,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "receipt.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -378,7 +378,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "invoice.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -579,7 +579,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           rform.method = "POST"; // or "post" if appropriate
           rform.action = "invoice.php";
 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var vouch = document.createElement("input");
           vouch.name = "voucher";
           vouch.value = JSON.stringify(voucher);
@@ -1689,7 +1689,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         printVoucher: function(eid) {
           var voucher = this['entries'][eid]; 
-          voucher['user'] = System.user;
+          voucher['user'] = System.username;
           var rform = document.createElement("form");
           rform.target = "_blank";
           rform.method = "POST"; // or "post" if appropriate

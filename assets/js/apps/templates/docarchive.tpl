@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Client Documents Registry<span id="clientname"></span></h1>
+    <h1 class="title">Document Archive</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -18,40 +18,17 @@
  <!-- //////////////////////////////////////////////////////////////////////////// --> 
   <!-- START CONTAINER -->
   <div class="container-padding">
-    <div class="row">
-      <div class="col-xs-12 col-sm-12">
-        <div class="panel panel-default">
-
-              <div class="panel-body">
-                <form class="form-horizontal">
-                  <div class="form-group col-sm-5">
-                    <label class="col-sm-2 control-label form-label">Client:</label>
-                    <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px">
-                        <option data-icon="fa fa-user" value="0">Select Client ... </option>
-                      </select>  
-                    </div>              
-                  </div>
-                  <!--div class="form-group col-sm-1">
-                    <button type="submit" class="btn btn-default fsearch"><i class="fa fa-search"></i></button>
-                  </div-->
-                </form>
-
-              </div>
-
-        </div>
-      </div>
-    </div>
     <!-- Start Row -->
     <div class="row">
       <!-- Start Panel -->
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-body table-responsive">
-              <table id="example1" class="table display">
+              <table id="example0" class="table display">
                   <thead>
                       <tr>
                           <th>Name</th>
+                          <th>Client</th>
                           <th>Type</th>
                           <th>Serial No</th>
                           <th>Parcel No</th>
@@ -64,6 +41,7 @@
                   <tfoot>
                       <tr>
                           <th>Name</th>
+                          <th>Client</th>
                           <th>Type</th>
                           <th>Serial No</th>
                           <th>Parcel No</th>
