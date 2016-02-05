@@ -1230,12 +1230,14 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
               var m = JSON.parse(result);
               swal("Query Complete!", m.length + " document(s) found.", "info");
               m.forEach(function(elem){
+                
                 var filing = '';
                 if (elem.file != null && elem.file != '') {
                   filing += '<p class="fid" style="display: none;">'+elem.file+'</p><a class="btn btn-small btn-option2 js-edit fcheck" href="#" style="margin:5px"><i class="fa fa-cloud-download"></i></a>';
                 }else{
                   filing = '';
                 }
+                
                 var tpl = $('<tr><td>'+elem.name+'</td><td>'+elem.type.name+'</td><td>'+elem.serial+'</td><td>'+elem.parcel+'</td><td>'+elem.status+'</td><td>'+elem.lastUpdated+'</td>'+
                   '<td>'+filing+'<p class="xid" style="display: none;">'+elem.id+'</p><a class="btn btn-small btn-danger js-edit xcheck" href="#" style="margin:5px"><i class="fa fa-trash"></i></a></td></tr>');
                 tpl.appendTo(ul);

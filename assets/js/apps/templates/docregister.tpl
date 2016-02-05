@@ -27,7 +27,7 @@
                   <div class="form-group col-sm-5">
                     <label class="col-sm-2 control-label form-label">Client:</label>
                     <div class="col-sm-10">
-                      <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px">
+                      <select class="selectpicker form-control" name="client" id="clients" style="padding-left:5px" data-live-search="true">
                         <option data-icon="fa fa-user" value="0">Select Client ... </option>
                       </select>  
                     </div>              
