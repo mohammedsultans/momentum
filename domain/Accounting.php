@@ -1809,7 +1809,7 @@ class GeneralTransaction extends FinancialTransaction
 		return new GeneralTransaction($entries, $amount, $descr, "Project Claim");
 	}
 
-	public static function PostExpense($crid, $drid, $amount, $descr)
+	public static function PostExpense($party, $crid, $drid, $amount, $descr)
 	{
 		$entries = [];
 		//Debit entry
@@ -1823,8 +1823,16 @@ class GeneralTransaction extends FinancialTransaction
 		$entry['effect'] = 'cr';
 		$entry['amount'] = $amount;
 		$entries[] = $entry;
+		$voucher = ExpenseVoucher::CreateProjectExpense($party, $amount, $drid, $descr);
+		if ($voucher) {
+			$tx = new GeneralTransaction($entries, $amount, $descr, "General Expenses");
+			$tx->expVoucher = $voucher;
+			return $tx;
+		}else{
+			return false;
+		}
 		
-		return new GeneralTransaction($entries, $amount, $descr, "General Expenses");
+		
 	}
 
 	public static function InjectCapital($crid, $drid, $amount, $descr)

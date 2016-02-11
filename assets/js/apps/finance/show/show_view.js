@@ -1368,6 +1368,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           uld.empty();
           var ulc = $('#expenses');
           ulc.empty();
+          var ule = $('#context');
+          ule.empty();
 
           $.get(System.coreRoot + '/service/finance/index.php?banks', function(result) {
             var m = JSON.parse(result);
@@ -1402,6 +1404,25 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             $('button').prop({disabled: false});
           });  
 
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Context...</option>');
+            tp.appendTo(ule);
+            var tpa = $('<option data-icon="fa fa-user" value="office">Office Expense</option>');
+            tpa.appendTo(ule);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'</option>');
+              tpl.appendTo(ule);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+            $('button').prop({disabled: false});
+          });  
+
           $('form input, form textarea').val('');
         },
 
@@ -1412,9 +1433,10 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           var data = Backbone.Syphon.serialize(this);
           
           var THAT = this;
+          //data['client'] = parseInt($('#context').data('client'), 10);
 
           setTimeout(function() {
-            if (data['credit'] && data['debit'] && data['amount'] != 0 && data['descr'] != "") {
+            if (data['context'] && data['credit'] && data['debit'] && data['amount'] != 0 && data['descr'] != "") {
               //alert(JSON.stringify(data));
               THAT.trigger("post", data);
             }else{

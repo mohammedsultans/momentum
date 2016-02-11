@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Office Expenses</h1>
+    <h1 class="title">Expenses Management</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -32,6 +32,14 @@
 
               <div class="panel-body">
                 <form class="form-horizontal" id="frm1">
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Context<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <select class="selectpicker form-control" name="context" id="context" style="padding-left:5px" data-live-search="true">
+                        <option data-icon="fa fa-archive">Select context...</option>
+                      </select>  
+                    </div>
+                  </div>
                   <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Bank Account<span class="color10">*</span></label>
                     <div class="col-sm-10">

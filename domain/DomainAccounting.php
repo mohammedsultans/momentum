@@ -1196,7 +1196,7 @@ class InvoiceVoucher
 		$this->amt = new Money(floatval($amount), Currency::Get('KES'));
 		$this->amount = floatval($total);
 		$this->status = $status;
-		$this->description = $description;
+		$this->description = 'Invoice no. '.$id;//$description;
 
 		if (intval($quotes) != 0) {
 			$quotes = explode(",", $quotes);
@@ -1313,7 +1313,7 @@ class ReceiptVoucher
 	}
 
 	private static function initialize($args){
-		$receipt =  new ReceiptVoucher($args['id'], $args['client_id'], $args['datetime'], $args['amount'], $args['description'], $args['status']);
+		$receipt =  new ReceiptVoucher($args['id'], $args['client_id'], $args['datetime'], $args['amount'], $args['voucher_no'], $args['status']);
 		return $receipt;
 	}
 
@@ -1430,7 +1430,7 @@ class TransactionVouchers extends Artifact
 				}
 
 				return $vouchers;
-			} catch (Exception $e) {
+			} catch (Exception $e) { 
 				
 			}
 		}else{//Quotations

@@ -1,5 +1,5 @@
 define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clientRpts.tpl", "tpl!apps/templates/procurementRpts.tpl", "tpl!apps/templates/hrRpts.tpl"], 
-	function(System, financialRptsTpl, clientRptsTpl, procurementRptsTpl, hrRptsTpl){
+	function(System, financialRptsTpl, clientRptsTpl, procurementRptsTpl, hrRptsTpl, projectRptsTpl){
   System.module('ReportsApp.Show.View', function(View, System, Backbone, Marionette, $, _){
 
     View.Modals = {
@@ -474,6 +474,47 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
           case 402:
             //Supplier statements
             View.Modals.monthModal(id, 'Payroll Summary');
+            break;
+
+          default:
+            //statements_def
+            break;
+        }
+      }   
+    });
+
+    View.ProjectReports = Marionette.CompositeView.extend({
+
+      template: projectRptsTpl,
+
+      events: {
+        'click .reports tr > td:nth-child(2)': 'selectModal'
+      },
+
+      onShow: function(){
+        //this.setup();
+      },
+
+      selectModal: function(e){
+        e.preventDefault();
+        e.stopPropagation();
+
+        var id = parseInt($(e.currentTarget).find('a').data('rid'), 10);
+
+        switch(id){
+          case 500:
+            //Projects register
+            window.open('reports.php?id='+id);
+            break;
+
+          case 501:
+            //Project Report
+            View.Modals.subjectRangeModal(id, 'Project Report', '/service/operations/index.php?allProjects');
+            break;
+
+          case 502:
+             //Project Report
+            View.Modals.subjectRangeModal(id, 'Project Expenses', '/service/operations/index.php?allProjects');
             break;
 
           default:

@@ -1207,12 +1207,14 @@ class SalesVoucher
 			$this->advices[] = SalesInvoice::GetInvoice($this->id);
 		}
 
-		$this->description = '';
+		/*$this->description = '';
 		foreach ($this->advices as $invoice) {
 			foreach ($invoice->lineItems as $item) {
 				$this->description .= $item->quantity.' x '.$item->itemName.' ('.$item->itemDesc.'), ';
 			}
-		}
+		}*/
+
+		$this->description = 'Invoice no. '.$id;
 		
 
 		$extras = new stdClass();
@@ -1309,7 +1311,7 @@ class ReceiptVoucher
 			if (is_null($this->user)) {
 				$this->user = SessionManager::GetUsername();
 			}
-			$this->type = $res['tx_type'];
+			$this->type = $res['tx_type']; 
 
 			$sql = 'SELECT * FROM general_ledger_entries WHERE transaction_id = '.intval($this->transactionId).' AND account_no = '.intval($clientId);
 			$res2 =  DatabaseHandler::GetRow($sql);
@@ -1320,7 +1322,7 @@ class ReceiptVoucher
 	}
 
 	private static function initialize($args){
-		$receipt =  new ReceiptVoucher($args['id'], $args['client_id'], $args['datetime'], $args['amount'], $args['description'], $args['status']);
+		$receipt =  new ReceiptVoucher($args['id'], $args['client_id'], $args['datetime'], $args['amount'], $args['voucher_no'], $args['status']);
 		return $receipt;
 	}
 

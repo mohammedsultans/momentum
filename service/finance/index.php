@@ -96,12 +96,18 @@
 						echo 0;
 					}				
 				}elseif($operation == 'postExpense'){
-					if(isset($_POST['credit']) && isset($_POST['debit']) && isset($_POST['amount']) && isset($_POST['descr'])){
+					if(isset($_POST['context']) && isset($_POST['credit']) && isset($_POST['debit']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						$party = $_POST['context'];
+						if ($party == 'office') {
+							$party = 0;
+						}else{
+							$party == intval($party);
+						}
 						$credit = $_POST['credit'];
 						$debit = $_POST['debit'];
 						$amount = $_POST['amount'];
 						$descr = $_POST['descr'];
-						$this->postExpense($credit, $debit, $amount, $descr);
+						$this->postExpense($party, $credit, $debit, $amount, $descr);
 					}else{
 						echo 0;
 					}				
@@ -304,11 +310,12 @@
 			}
 		}
 
-		public function postExpense($credit, $debit, $amount, $descr)
+		public function postExpense($party, $credit, $debit, $amount, $descr)
 		{
-			$tx = GeneralTransaction::PostExpense($credit, $debit, $amount, $descr);
+			$tx = GeneralTransaction::PostExpense($party, $credit, $debit, $amount, $descr);
 
 			if ($tx->post()) {
+				$tx->expVoucher->authorize($tx->transactionId);
 				echo 1;
 			}else{
 				echo 0;

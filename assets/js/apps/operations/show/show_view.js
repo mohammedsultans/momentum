@@ -987,7 +987,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
             tp.appendTo(uld);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-file-pdf-o" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-file-pdf-o" value="'+elem['id']+'">'+elem['name']+' ['+elem['parcel']+']</option>');
               tpl.appendTo(uld);
             });
             setTimeout(function() {

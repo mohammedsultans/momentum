@@ -3,7 +3,7 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Client Reports</h1>
+    <h1 class="title">Project Reports</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
@@ -23,7 +23,7 @@
       <div class="col-xs-6 col-sm-6">
         <div class="panel panel-default reports">
           <div class="panel-title">
-            Client Reports
+            Project Reports
           </div>
           <div class="panel-body table-responsive">
             <table class="table table-hover table-striped">
@@ -31,12 +31,9 @@
                 <tr><td>No.</td><td>Report Name</td></tr>
               </thead>
               <tbody>
-                <tr><td>1.</td><td><a data-rid="200" href="#">Client Register</a></td></tr>
-                <tr><td>2.</td><td><a data-rid="201" href="#">Client Quotations</a></td></tr>
-                <tr><td>3.</td><td><a data-rid="202" href="#">Client Statement</a></td></tr>
-                <tr><td>4.</td><td><a data-rid="203" href="#">Sales Invoices</a></td></tr>
-                <tr><td>5.</td><td><a data-rid="204" href="#">All Quotations</a></td></tr>
-                <tr><td>6.</td><td><a data-rid="205" href="#">Client Expenses</a></td></tr>
+                <tr><td>1.</td><td><a data-rid="500" href="#">All Projects</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="501" href="#">Project Report</a></td></tr>
+                <tr><td>3.</td><td><a data-rid="502" href="#">Project Expenses</a></td></tr>
               </tbody>
             </table>
           </div>
