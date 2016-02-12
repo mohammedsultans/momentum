@@ -1476,7 +1476,6 @@ class GRNPaymentTX extends FinancialTransaction
 			$res =  DatabaseHandler::GetRow($sql2);
 
 			return self::initialize($res, $payments);
-
 		} catch (Exception $e) {
 			
 		}
@@ -1594,7 +1593,7 @@ class PaymentTX extends FinancialTransaction//without grn
 		return $payment;
 	}
 
-	public static function MakePayment($supplierid, $amount, $ledgerId, $mode, $voucher, $descr)
+	public static function MakePayment($party, $supplierid, $amount, $ledgerId, $mode, $voucher, $descr)
 	{
 		try {
 			$supplier = Supplier::GetSupplier($supplierid);
@@ -1603,7 +1602,7 @@ class PaymentTX extends FinancialTransaction//without grn
 			/*foreach ($payments as $key => $payment) {
 				$grns .= $key.",";
 			}*/
-			$descr .= '('.$voucher.')';
+			$descr .= ' ('.$voucher.')';
 
 			$sql = 'INSERT INTO payments (party_id, grns, amount, ledger_id, mode, voucher_no, description, status) VALUES 
 			('.$supplierid.', "'.$grns.'", '.$amount.', '.$ledgerId.', "'.$mode.'", "'.$voucher.'", "'.$descr.'", 0)';
@@ -1611,6 +1610,18 @@ class PaymentTX extends FinancialTransaction//without grn
 	 		
 	 		$sql2 = 'SELECT * FROM payments WHERE party_id = '.$supplierid.' ORDER BY id DESC LIMIT 0,1';
 			$res =  DatabaseHandler::GetRow($sql2);
+
+			$acc = Account::GetAccountByNo($supplierid, 'suppliers', 'Creditors');
+
+			$expv = ExpenseVoucher::CreateProjectExpense($party, $amount, $acc->ledgerId, $descr);
+
+			if ($expv) {
+				$tx = self::initialize($res); 
+				$tx->expVoucher = $expv;
+				return $tx;
+			}else{
+				return false;
+			}
 
 			return self::initialize($res);
 

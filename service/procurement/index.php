@@ -92,14 +92,20 @@
 					}
 						
 				}elseif($operation == 'makePayment'){
-					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
+					if(isset($_POST['context']) && isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						$party = $_POST['context'];
+						if ($party == 'office') {
+							$party = 0;
+						}else{
+							$party == intval($party);
+						}
 						$supplierid = $_POST['supplier'];
 						$amount = $_POST['amount'];
 						$account = $_POST['account'];
 						$mode = $_POST['mode'];
 						$voucher =  $_POST['voucher'];
 						$descr = $_POST['descr'];
-						$this->makePayment($supplierid, $amount, $account, $mode, $voucher, $descr);
+						$this->makePayment($party, $supplierid, $amount, $account, $mode, $voucher, $descr);
 					}else{
 						echo 0;
 					}
@@ -244,10 +250,11 @@
 			}
 		}
 
-		public function makePayment($supplierid, $amount, $account, $mode, $voucher, $description)
+		public function makePayment($party, $supplierid, $amount, $account, $mode, $voucher, $description)
 		{
-			$payment = PaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $description);
+			$payment = PaymentTX::MakePayment($party, $supplierid, $amount, $account, $mode, $voucher, $description);
 			$voucher = $payment->submit();
+			$payment->expVoucher->authorize($payment->transactionId);
 			if ($voucher) {
 				echo json_encode($voucher);
 			}else{

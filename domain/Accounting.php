@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once 'FourthDimension.php';
 require_once 'Protocol.php';
 require_once 'Event.php';

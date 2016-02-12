@@ -36,7 +36,6 @@
                 <tr><td>3.</td><td><a data-rid="202" href="#">Client Statement</a></td></tr>
                 <tr><td>4.</td><td><a data-rid="203" href="#">Sales Invoices</a></td></tr>
                 <tr><td>5.</td><td><a data-rid="204" href="#">All Quotations</a></td></tr>
-                <tr><td>6.</td><td><a data-rid="205" href="#">Client Expenses</a></td></tr>
               </tbody>
             </table>
           </div>

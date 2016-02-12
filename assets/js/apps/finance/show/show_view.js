@@ -1401,7 +1401,6 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                 $('.selectpicker').selectpicker();
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
-            $('button').prop({disabled: false});
           });  
 
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {

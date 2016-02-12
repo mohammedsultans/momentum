@@ -33,6 +33,14 @@
           <div class="panel-body">
             <form class="form-horizontal" id="frmp1">
               <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Context<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="context" id="context" style="padding-left:5px" data-live-search="true">
+                    <option data-icon="fa fa-archive">Select context...</option>
+                  </select>  
+                </div>
+              </div>
+              <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Supplier<span class="color10">*</span></label>
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="supplier" id="suppliers" data-live-search="true" >

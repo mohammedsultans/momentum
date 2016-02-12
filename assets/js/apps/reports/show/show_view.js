@@ -1,4 +1,5 @@
-define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clientRpts.tpl", "tpl!apps/templates/procurementRpts.tpl", "tpl!apps/templates/hrRpts.tpl"], 
+define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clientRpts.tpl", "tpl!apps/templates/procurementRpts.tpl", 
+  "tpl!apps/templates/hrRpts.tpl", "tpl!apps/templates/projectRpts.tpl"], 
 	function(System, financialRptsTpl, clientRptsTpl, procurementRptsTpl, hrRptsTpl, projectRptsTpl){
   System.module('ReportsApp.Show.View', function(View, System, Backbone, Marionette, $, _){
 

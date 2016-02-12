@@ -34,6 +34,7 @@
                 <tr><td>1.</td><td><a data-rid="500" href="#">All Projects</a></td></tr>
                 <tr><td>2.</td><td><a data-rid="501" href="#">Project Report</a></td></tr>
                 <tr><td>3.</td><td><a data-rid="502" href="#">Project Expenses</a></td></tr>
+                <tr><td>4.</td><td><a data-rid="503" href="#">Client Expenses - Minor Works</a></td></tr>
               </tbody>
             </table>
           </div>

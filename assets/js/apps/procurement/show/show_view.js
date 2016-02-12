@@ -1232,6 +1232,9 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           ul.empty();
           var uls = $('#banks');
           uls.empty();
+          var ule = $('#context');
+          ule.empty();
+
           $.get(System.coreRoot + '/service/procurement/index.php?suppliers', function(result) {
             var m = JSON.parse(result);
             var tp = $('<option data-icon="fa fa-user">Select Supplier...</option>');
@@ -1263,6 +1266,25 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
                 $('.selectpicker').selectpicker('refresh');
             }, 300);
           });
+
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select Context...</option>');
+            tp.appendTo(ule);
+            var tpa = $('<option data-icon="fa fa-user" value="office">Office Expense</option>');
+            tpa.appendTo(ule);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'</option>');
+              tpl.appendTo(ule);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
           $('input').val('');
           var ulx = $('#paysup');
           ulx.empty();
@@ -1283,7 +1305,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
           //alert(Object.keys(ar).length);
           //alert(JSON.stringify(data));
-          if (data['supplier'] && data['account'] && data['mode'] && parseFloat(data['amount']) && data['descr']) {
+          if (data['context'] && data['supplier'] && data['account'] && data['mode'] && parseFloat(data['amount']) && data['descr']) {
             //alert(JSON.stringify(data));
             this.trigger("post", data);
           }else{
