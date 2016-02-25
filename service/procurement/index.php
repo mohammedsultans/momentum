@@ -92,12 +92,18 @@
 					}
 						
 				}elseif($operation == 'makePayment'){
-					if(isset($_POST['context']) && isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
+					if(isset($_POST['context']) && isset($_POST['scope']) && isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
 						$party = $_POST['context'];
 						if ($party == 'office') {
 							$party = 0;
 						}else{
 							$party == intval($party);
+						}
+						$scope = $_POST['scope'];
+						if ($scope == 'office') {
+							$scope = 0;
+						}else{
+							$scope == intval($scope);
 						}
 						$supplierid = $_POST['supplier'];
 						$amount = $_POST['amount'];
@@ -105,7 +111,7 @@
 						$mode = $_POST['mode'];
 						$voucher =  $_POST['voucher'];
 						$descr = $_POST['descr'];
-						$this->makePayment($party, $supplierid, $amount, $account, $mode, $voucher, $descr);
+						$this->makePayment($party, $scope, $supplierid, $amount, $account, $mode, $voucher, $descr);
 					}else{
 						echo 0;
 					}
@@ -250,9 +256,9 @@
 			}
 		}
 
-		public function makePayment($party, $supplierid, $amount, $account, $mode, $voucher, $description)
+		public function makePayment($party, $scope, $supplierid, $amount, $account, $mode, $voucher, $description)
 		{
-			$payment = PaymentTX::MakePayment($party, $supplierid, $amount, $account, $mode, $voucher, $description);
+			$payment = PaymentTX::MakePayment($party, $scope, $supplierid, $amount, $account, $mode, $voucher, $description);
 			$voucher = $payment->submit();
 			$payment->expVoucher->authorize($payment->transactionId);
 			if ($voucher) {

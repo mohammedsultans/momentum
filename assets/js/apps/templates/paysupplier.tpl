@@ -41,6 +41,15 @@
                 </div>
               </div>
               <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Scope<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <select class="selectpicker form-control" name="scope" id="scope" style="padding-left:5px" data-live-search="true">
+                    <option data-icon="fa fa-briefcase">Select Scope...</option>
+                    <option data-icon="fa fa-briefcase" value="office">Office Supplies</option>
+                  </select>  
+                </div>
+              </div>
+              <div class="form-group">
                 <label class="col-sm-2 control-label form-label">Supplier<span class="color10">*</span></label>
                 <div class="col-sm-10">
                   <select class="selectpicker form-control" name="supplier" id="suppliers" data-live-search="true" >

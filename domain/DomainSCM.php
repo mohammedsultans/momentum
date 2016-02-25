@@ -1593,7 +1593,7 @@ class PaymentTX extends FinancialTransaction//without grn
 		return $payment;
 	}
 
-	public static function MakePayment($party, $supplierid, $amount, $ledgerId, $mode, $voucher, $descr)
+	public static function MakePayment($party, $scope, $supplierid, $amount, $ledgerId, $mode, $voucher, $descr)
 	{
 		try {
 			$supplier = Supplier::GetSupplier($supplierid);
@@ -1613,7 +1613,7 @@ class PaymentTX extends FinancialTransaction//without grn
 
 			$acc = Account::GetAccountByNo($supplierid, 'suppliers', 'Creditors');
 
-			$expv = ExpenseVoucher::CreateProjectExpense($party, $amount, $acc->ledgerId, $descr);
+			$expv = ExpenseVoucher::CreateSupplierProjectExpense($party, $scope, $amount, $acc->ledgerId, $descr);
 
 			if ($expv) {
 				$tx = self::initialize($res); 

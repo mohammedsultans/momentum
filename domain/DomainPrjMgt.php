@@ -761,6 +761,27 @@ class ExpenseVoucher
 
     }
 
+    public static function CreateSupplierProjectExpense($party, $scope, $amount, $account, $description)
+    {
+      try {
+      	$datetime = new DateTime();
+		$sql = 'INSERT IGNORE INTO expense_vouchers (project_id, party_id, date, stamp, status) 
+		VALUES ('.$scope.', '.$party.', "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
+		DatabaseHandler::Execute($sql);
+
+		$sql = 'SELECT * FROM expense_vouchers WHERE stamp = '.$datetime->format('YmdHis');
+		$res =  DatabaseHandler::GetRow($sql);
+
+        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], 0, $res['date'], $res['stamp'], $res['status']);
+        $voucher->addItem(ExpenseItem::Create($res['id'], $scope, $description, $account, $amount));
+
+        return $voucher;
+      } catch (Exception $e) {
+        return false;
+      }
+
+    }
+
     public static function GetVoucher($vid)
     {
       try {

@@ -1712,6 +1712,27 @@ class TransactionVouchers extends Artifact
 				
 			}
 	}
+
+	public static function PayrollCategoryReport($eid, $month, $category)
+	{
+			//if ($all == 'true'){
+				$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' and month = "'.$month.'" and type = "'.$category.'" ORDER BY id ASC';
+			/*}else if($dates != ''){
+				$split = explode(' - ', $dates);
+		    	$d1 = explode('/', $split[0]);
+		    	$d2 = explode('/', $split[1]);
+		    	$lower = $d1[2].$d1[0].$d1[1].'000000' + 0;
+		    	$upper = $d2[2].$d2[0].$d2[1].'999999' + 0;
+		    	$sql = 'SELECT * FROM payroll_entries WHERE party_id = '.intval($eid).' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+			}*/
+
+			try {
+				$res = DatabaseHandler::GetAll($sql);
+				return $res;
+			} catch (Exception $e) {
+				
+			}
+	}
 }
 
 class DirectPosting extends TransactionType

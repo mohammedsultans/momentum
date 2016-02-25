@@ -202,17 +202,32 @@
 
 				case 400:
 					$this->header('Employee Register');
-					Body::EmployeeRegister();	
+					HRReports::EmployeeRegister();	
 					break;
 
 				case 401:
 					$this->header('Employee Statement');
-					Body::EmployeeStatement();
+					HRReports::EmployeeStatement();
 					break;
 
-				case 402:
+				case 410:
+					$this->header('Employee Advances');
+					HRReports::EmployeeAdvances();	
+					break;
+
+				case 411:
+					$this->header('Employee Allowances');
+					HRReports::EmployeeAllowances();
+					break;
+
+				case 412:
+					$this->header('Employee Overtime');
+					HRReports::EmployeeOvertime();
+					break;
+
+				case 413:
 					$this->header('Payroll Summary');
-					Body::PayrollSummary();
+					HRReports::PayrollSummary();
 					break;
 
 				
@@ -2027,6 +2042,18 @@
 					<p style="margin: 5px 0 0 5px">Total Invoiced: <b>Ksh. <script>document.writeln(('.($total).').formatMoney(2, \'.\', \',\'));</script></b></p>
 				</div>';
 		}
+	}
+
+	class HRReports
+	{
+		private static function signate($amount)
+		{
+			if ($amount < 0) {
+				echo '(<script>document.writeln(('.(-1*$amount).').formatMoney(2, \'.\', \',\'));</script>)';
+			}else{
+				echo '<script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script>';
+			}			
+		}
 
 		public static function EmployeeRegister()
 		{
@@ -2042,9 +2069,11 @@
 			      <thead class="title">
 			        <tr>
 			          <td>NAME</td>
+			          <td>TELEPHONE</td>
+					  <td>GENDER</td>
 			          <td>DEPARTMENT</td>
 			          <td>POSITION</td>
-					  <td>TELEPHONE</td>
+					  <td>SALARY</td>
 			        </tr>
 			      </thead>
 			      <tbody>';
@@ -2052,9 +2081,11 @@
 			foreach ($collection as $model) {
 			    echo '<tr>
 			      <td>'.$model->name.'</td>
+			      <td>'.$model->telephone.'</td>
+			      <td>'.$model->gender.'</td>
 			      <td>'.$model->department.'</td>
 			      <td>'.$model->position.'</td>
-			      <td>'.$model->telephone.'</td>
+			      <td><script>document.writeln(('.$model->salary->amount.').formatMoney(2, \'.\', \',\'));</script></td>
 			      </tr>';
 			}
 			        
@@ -2121,6 +2152,135 @@
 				<p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($cr - $dr).').formatMoney(2, \'.\', \',\'));</script></b></p>
 				</div>';
 		}
+
+		public static function EmployeeAllowances()
+		{
+			$statement = TransactionVouchers::PayrollCategoryReport($_GET['sid'], $_GET['month'], 'Allowance');
+			$employee = Employee::GetEmployee($_GET['sid']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>ALLOWANCES: '.$employee->name.'</h4>
+				  <h5 style="margin-top:-10px">Month: '.$_GET['month'].'</h5>';
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$tot = 0.00;
+
+			foreach ($statement as $item) {
+				$tot += $item['amount'];
+			    echo '<tr>
+			      <td style="width:90px">'.$item['datetime'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="max-width: 220px;">'.$item['description'].'</td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <p style="margin: 5px 0 0 5px">Total Allowances: <b>Ksh. <script>document.writeln(('.$tot.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
+			    </div>';
+		}
+
+		public static function EmployeeAdvances()
+		{
+			$statement = TransactionVouchers::PayrollCategoryReport($_GET['sid'], $_GET['month'], 'Salary Advance');
+			$employee = Employee::GetEmployee($_GET['sid']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>SALARY ADVANCES: '.$employee->name.'</h4>
+				  <h5 style="margin-top:-10px">Month: '.$_GET['month'].'</h5>';
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>AMOUNT</td>
+			          <td>PAY MODE</td>
+			          <td>REF No</td>
+			          <td>DESCRIPTION</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$tot = 0.00;
+
+			foreach ($statement as $item) {
+				$tot += $item['amount'];
+			    echo '<tr>
+			      <td style="width:90px">'.$item['datetime'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 100px">'.$item['mode'].'</td>
+			      <td style="width: 100px">'.$item['voucher_no'].'</td>
+			      <td style="max-width: 220px;">'.$item['description'].'</td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <p style="margin: 5px 0 0 5px">Total Advances: <b>Ksh. <script>document.writeln(('.$tot.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
+			    </div>';
+		}
+
+		public static function EmployeeOvertime()
+		{
+			$statement = TransactionVouchers::PayrollCategoryReport($_GET['sid'], $_GET['month'], 'Overtime');
+			$employee = Employee::GetEmployee($_GET['sid']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>OVERTIME: '.$employee->name.'</h4>
+				  <h5 style="margin-top:-10px">Month: '.$_GET['month'].'</h5>';
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>HOURS</td>
+			          <td>RATE</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$tot = 0.00;
+
+			foreach ($statement as $item) {
+				$tot += $item['amount'];
+			    echo '<tr>
+			      <td style="width:90px">'.$item['datetime'].'</td>
+			      <td style="width: 100px">'.$item['qty'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['rate'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="max-width: 220px;">'.$item['description'].'</td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <p style="margin: 5px 0 0 5px">Total Advances: <b>Ksh. <script>document.writeln(('.$tot.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
+			    </div>';
+		}
+
 		//Payroll::PreviewPayroll($month)
 		public static function PayrollSummary()
 		{

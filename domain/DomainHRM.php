@@ -666,8 +666,8 @@ class Payroll
 
 		    $ledger = Account::GetAccount('Overtime');
 
-			$sql = 'INSERT INTO payroll_entries (party_id, month, type, effect, amount, ledger_id,description) VALUES 
-			('.$employee->id.', "'.$month.'", "Overtime", "cr", '.floatval($amount).', '.$ledger->ledgerId.', "'.$descr.'")';
+			$sql = 'INSERT INTO payroll_entries (party_id, month, type, effect, qty, rate, amount, ledger_id,description) VALUES 
+			('.$employee->id.', "'.$month.'", "Overtime", "cr", '.intval($hours).', '.floatval($rate).', '.floatval($amount).', '.$ledger->ledgerId.', "'.$descr.'")';
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql2 = 'SELECT * FROM payroll_entries WHERE party_id = '.$empid.' ORDER BY id DESC LIMIT 0,1';
@@ -703,7 +703,7 @@ class Payroll
 
 			$txtype = new EmployeePayment($ledger, $payslip->employee->id, 'Salary Payment');
 
-			$entry['description'] = "PN no: ".$empid."_".$voucher_no;
+			$entry['description'] = "PN no: ".$empid."_".$voucher;
 
 			return PayrollTX::Initialize($entry, $txtype, 'payroll_entries');
 

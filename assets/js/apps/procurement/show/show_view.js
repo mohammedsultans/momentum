@@ -74,7 +74,6 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           //alert(JSON.stringify(data));
           //this.trigger("create", data);
         }
-
     });
 
     View.Supplier = Marionette.ItemView.extend({ 
@@ -1216,6 +1215,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
         events: {
           "click .idiscard": "discard",
+          "change #context": "fetchProject",
           "click .ipay": "makePayment"
         },
 
@@ -1275,7 +1275,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
             tpa.appendTo(ule);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'<span style="font-size: 1px"> ['+elem.details+']</span></option>');
               tpl.appendTo(ule);
             });
             
@@ -1294,6 +1294,39 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
           $('#totpay').text('Ksh.'); 
         },
 
+        fetchProject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmp1")[0]);
+          data['client'] = parseInt(data['context'], 10)
+          if (data['client']) {
+            var ul = $('#scope');
+            ul.empty();
+            var THAT = this;
+            $.get(System.coreRoot + '/service/operations/index.php?projects&clientid='+data['client'], function(result) {
+              var m = JSON.parse(result);
+
+              var tp = $('<option data-icon="fa fa-briefcase">Select Scope...</option>');
+              tp.appendTo(ul);
+              var tpa = $('<option data-icon="fa fa-briefcase" value="office">Office Supplies</option>');
+              tpa.appendTo(ul);
+              
+              m.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-briefcase" value="'+elem['id']+'">'+elem['name']+'</option>');
+                tpl.appendTo(ul);
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+          }else if (data['context'] == 'office'){
+            //Office has been selected
+            swal("Info!", "Office has been selected", "info");
+          }else{
+            swal("Error!", "Select a client first!", "error");
+          }
+        },
 
         makePayment: function(e) { 
           e.preventDefault();
@@ -1305,7 +1338,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
 
           //alert(Object.keys(ar).length);
           //alert(JSON.stringify(data));
-          if (data['context'] && data['supplier'] && data['account'] && data['mode'] && parseFloat(data['amount']) && data['descr']) {
+          if (data['context'] && data['scope'] && data['supplier'] && data['account'] && data['mode'] && parseFloat(data['amount']) && data['descr']) {
             //alert(JSON.stringify(data));
             this.trigger("post", data);
           }else{
