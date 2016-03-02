@@ -1411,7 +1411,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             tpa.appendTo(ule);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               tpl.appendTo(ule);
             });
             

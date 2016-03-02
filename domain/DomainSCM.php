@@ -1460,13 +1460,13 @@ class GRNPaymentTX extends FinancialTransaction
 		try {
 			$supplier = Supplier::GetSupplier($supplierid);
 
-			$descr = "Items purchased. Reference GRN(s) - ";
+			/*$descr = "Items purchased. Reference GRN(s) - ";
 			$grns = "";
 			foreach ($payments as $key => $payment) {
 				$descr .= "no: ".$key." amount: ".floatval($payment)."; ";
 				$grns .= $key.",";
-			}
-			$descr .= "from ".$supplier->name;
+			}*/
+			$descr = $supplier->name.'_'.$voucher;
 
 			$sql = 'INSERT INTO payments (party_id, grns, amount, ledger_id, mode, voucher_no, description, status) VALUES 
 			('.$supplierid.', "'.$grns.'", '.$amount.', '.$ledgerId.', "'.$mode.'", "'.$voucher.'", "'.$descr.'", 0)';
