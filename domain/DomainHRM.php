@@ -718,7 +718,7 @@ class Payroll
 		try {
 			$employee = Employee::GetEmployee($empid);
 
-			$descr = "Salary advanced on ".$date." for ".$desc;
+			$descr = "Salary advance_P/N:".$empid."_".$desc;
 
 			$d = explode('/', $date);
 		    $month = $d[1].'/'.$d[2];

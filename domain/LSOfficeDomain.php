@@ -262,16 +262,25 @@ class User
   	public static function Create($pid, $username, $password, $role)
     {
       	try {
-      		$sql = 'INSERT INTO users (username, password, category, party_id, role_id, access) VALUES ("'.$username.'", sha1("'.$password.'"), "Employee", '.$pid.', '.$role.', 1)';
-	        //$sql = 'UPDATE users SET username = "'.$username.'", password = sha1("'.$password.'"), role_id = '.$role.', access = 1 WHERE id = '.$pid;
-	        DatabaseHandler::Execute($sql);
 
-	        Logger::Log(get_class(self), 'OK', 'User created with username : '.$username.'; Party type: Employees');
-	        
-	        $sql2 = 'SELECT * FROM users WHERE party_id = '.$pid.' AND category = "Employee"';
-			// Execute the query and return the results
-			$res =  DatabaseHandler::GetRow($sql2);
-			return self::initialize($res);
+          $sqla = 'SELECT * FROM users WHERE party_id = '.$pid.' AND category = "Employee"';
+          // Execute the query and return the results
+          $resa =  DatabaseHandler::GetRow($sqla);
+
+          if ($resa['party_id']) {
+            return false;
+          }else{
+            $sql = 'INSERT INTO users (username, password, category, party_id, role_id, access) VALUES ("'.$username.'", sha1("'.$password.'"), "Employee", '.$pid.', '.$role.', 1)';
+            //$sql = 'UPDATE users SET username = "'.$username.'", password = sha1("'.$password.'"), role_id = '.$role.', access = 1 WHERE id = '.$pid;
+            DatabaseHandler::Execute($sql);
+
+            Logger::Log(get_class(self), 'OK', 'User created with username : '.$username.'; Party type: Employees');
+            
+            $sql2 = 'SELECT * FROM users WHERE party_id = '.$pid.' AND category = "Employee"';
+            // Execute the query and return the results
+            $res =  DatabaseHandler::GetRow($sql2);
+            return self::initialize($res);
+          }
 	    } catch (Exception $e) {
 	        return false;
 	    }
