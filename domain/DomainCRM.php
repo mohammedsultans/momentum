@@ -10,23 +10,25 @@ require_once('Inventory.php');
 //require_once('Expenses.php');// claims, purchases, bills, salaries, loan interests
 class Client extends Party
 {
+  	public $idno;
   	public $creditRating;
   	public $accounts = array();
   	public $balance;
   	public $details;
   	//public $stockAccountNumber;
-  	function __construct($id, $name, $telephone, $email, $address, $bal, $details)
+  	function __construct($id, $name, $telephone, $idno, $email, $address, $bal, $details)
   	{
   		$type = new PartyType('Client');
+  		$this->idno = $idno;
   		$this->balance = new Money(floatval($bal), Currency::Get('KES'));
   		$this->details = $details;
   		parent::__construct($type, $id, $name, $telephone, $email, $address);
   	}
 
-  	public static function Update($id, $name, $telephone, $email, $address, $details)
+  	public static function Update($id, $name, $telephone, $idno, $email, $address, $details)
   	{      	
   		try {
-	        $sql = 'UPDATE clients SET name = "'.$name.'", telephone = "'.$telephone.'", email = "'.$email.'", address = "'.$address.'", details = "'.$details.'" WHERE id = '.$id;
+	        $sql = 'UPDATE clients SET name = "'.$name.'", telephone = "'.$telephone.'", idno = "'.$idno.'", email = "'.$email.'", address = "'.$address.'", details = "'.$details.'" WHERE id = '.$id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
@@ -43,10 +45,10 @@ class Client extends Party
   		//$latestReceipt = $invoice->payments[count($invoice->payments) - 1];
   	}
 
-  	public static function Create($name, $telephone, $email, $address, $bal, $details)
+  	public static function Create($name, $telephone, $idno, $email, $address, $bal, $details)
   	{      	
   		$type = new PartyType('Client');
-  		$client = new Client($type, $name, $telephone, $email, $address, $bal, $details);
+  		$client = new Client($type, $name, $telephone, $idno, $email, $address, $bal, $details);
   		
   		if ($client->save()) {
   			return $client;
@@ -97,7 +99,7 @@ class Client extends Party
         $args['id'] = 65824;//use random number, more especially a uuid
       }
 
-      $party = new Client($args['id'], $args['name'], $args['telephone'], $args['email'], $args['address'], $args['balance'], $args['details']);
+      $party = new Client($args['id'], $args['name'], $args['telephone'],  $args['idno'], $args['email'], $args['address'], $args['balance'], $args['details']);
       
       return $party;
     }
@@ -107,18 +109,25 @@ class Client extends Party
       //ClientStore::Save($this)
       //ClientStore::SaveProperty('name', $this->name)
       try {
+      	$sqla = 'SELECT * FROM clients WHERE idno = "'.$this->idno.'"';
+  	    // Execute the query and return the results
+  	    $resa =  DatabaseHandler::GetRow($sqla);
+
         $sql = 'SELECT * FROM clients WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';
   	    // Execute the query and return the results
   	    $res =  DatabaseHandler::GetRow($sql);
-  	    if (!empty($res['id'])) {
+  	    if (!empty($resa['id'])) {
+  	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and idno:'.$this->idno.' already exists');
+  	    	return false;
+  	    }elseif (!empty($res['id'])) {
   	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and phone number:'.$this->telephone.' already exists');
   	    	return false;
   	    }else{
-  	    	$sql = 'INSERT INTO clients (type, name, telephone, address, email, details) 
-  	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->address.'", "'.$this->email.'", "'.$this->details.'")';
+  	    	$sql = 'INSERT INTO clients (type, name, telephone, idno, address, email, details) 
+  	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->idno.'", "'.$this->address.'", "'.$this->email.'", "'.$this->details.'")';
   	        DatabaseHandler::Execute($sql);
   	        if ($this->balance->amount != 0) {
-  	        	$sql = 'SELECT * FROM clients WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';
+  	        	$sql = 'SELECT * FROM clients WHERE idno = "'.$this->idno.'"';
   		        // Execute the query and return the results
   		        $res =  DatabaseHandler::GetRow($sql);
   	        	return $this->transferBalance($res['id'], $this->balance);
@@ -1489,7 +1498,7 @@ class SalesTX extends FinancialTransaction
 		$client = Client::GetClient($clientId);
 
 		if ($scope == "G") {
-			$descr = "General Services";
+			$descr = "General Sales";
 			$pid = 0;
 		}else{
 			$prj = Project::GetProject(intval($scope));
@@ -1521,7 +1530,7 @@ class SalesTX extends FinancialTransaction
 		$client = Client::GetClient($clientId);
 
 		if ($scope == "G") {
-			$descr = "General Services";
+			$descr = "General Sales";
 			$pid = 0;
 		}else{
 			$prj = Project::GetProject(intval($scope));
@@ -1609,7 +1618,7 @@ class ReceiptTX extends FinancialTransaction
 	public function update()
 	{
 		try {
-	        $sql = 'UPDATE receipts SET datetime = "'.$this->date.'", stamp = '.$this->stamp.' WHERE id = '.$this->id;
+	        $sql = 'UPDATE receipts SET datetime = "'.$this->date.'", stamp = '.$this->stamp.', user = "'.SessionManager::GetUsername().'" WHERE id = '.$this->id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
@@ -1643,10 +1652,7 @@ class ReceiptTX extends FinancialTransaction
 	}
 
 	private function prepare()
-	{		
-		//
-
-
+	{
 		for ($i=0; $i < count($this->transactionType->drAccounts); $i++) { 
 			$amount = new Money(floatval($this->amount->amount * $this->transactionType->drRatios[$i]), $this->amount->unit);
 			$this->add(new AccountEntry($this, $this->transactionType->drAccounts[$i], $amount, $this->date, 'dr'));

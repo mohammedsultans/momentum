@@ -87,65 +87,55 @@
 
 				case 114:
 					$this->header('Debtors List');
-					Body::DebtorsList();				
+					FinancialReports::DebtorsRegister();					
 					break;
 
 				case 115:
 					$this->header('Creditors List');
-					Body::CreditorsList();				
+					FinancialReports::CreditorsRegister();				
 					break;
 
 				case 120:
-					$this->header("Today's Sales");
-					Body::TodaysSales();	
+					$this->header('Revenue Report');
+					FinancialReports::SalesReport();	
 					break;
 
 				case 121:
-					$this->header('Sales Report');
-					Body::SalesReport();	
+					$this->header('Revenue By User');
+					FinancialReports::SalesByUser();		
 					break;
 
 				case 122:
-					$this->header('Sales By Cashier');
-					Body::SalesByCashier();		
+					$this->header('Revenue By Item');
+					FinancialReports::SalesByItem();		
 					break;
 
 				case 123:
-					$this->header('Sales By Item');
-					Body::SalesByItem();		
-					break;
-
-				case 124:
-					$this->header('Sales By Client');
-					Body::SalesByClient();		
+					$this->header('Revenue By Client');
+					FinancialReports::SalesByClient();		
 					break;
 
 				case 130:
-					$this->header("Today's Expenses");
-					Body::TodaysExpenses();	
+					$this->header('Expenses Report');
+					FinancialReports::ExpensesReport();	
 					break;
 
 				case 131:
-					$this->header('Expenses Report');
-					Body::ExpensesReport();	
+					$this->header('Expenses By Category');
+					FinancialReports::ExpensesByCategory();		
 					break;
 
 				case 132:
-					$this->header('Expenses By Cashier');
-					Body::ExpensesByCashier();		
+					$this->header('Expenses By Description');
+					FinancialReports::ExpensesByDescription();		
 					break;
 
 				case 133:
-					$this->header('Expenses By Description');
-					Body::ExpensesByDescription();		
+					$this->header('Expenses By Context');
+					FinancialReports::ExpensesByContext();		
 					break;
 
 				case 134:
-					$this->header('Expenses By Supplier');
-					Body::ExpensesBySupplier();		
-					break;
-
-				case 135:
 					$this->header('Claims Per Employee');
 					Body::ClaimsPerEmployee();		
 					break;
@@ -942,13 +932,13 @@
 				</div>';
 		}
 
-		public static function ClientRegister()
+		public static function DebtorsRegister()
 		{
 			$collection = Client::GetAllClients();
 			echo '
 				<div class="logo">
 				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>ALL CLIENTS</h4>';
+				  <h4>ALL DEBTORS</h4>';
 
 			echo '</div>
 
@@ -980,13 +970,13 @@
 				</div>';
 		}
 
-		public static function SupplierRegister()
+		public static function CreditorsRegister()
 		{
 			$collection = Supplier::GetAllSuppliers();
 			echo '
 				<div class="logo">
 				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>ALL SUPPLIERS</h4>';
+				  <h4>ALL CREDITORS</h4>';
 
 			echo '</div>
 
@@ -1019,6 +1009,481 @@
 				    <p style="margin: 5px 0 0 5px">Total Credit: <b>Ksh. <script>document.writeln(('.($total).').formatMoney(2, \'.\', \',\'));</script></b></p>
 				</div>';
 		}
+
+		public static function SalesReport()
+		{
+			$statement = FinancialStatements::RevenueStatement('', $_GET['period'], $_GET['all']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">REVENUE REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>INV No.</td>
+			          <td>CLIENT</td>
+			          <td>AMOUNT</td>
+			          <td>SERVED BY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width: 150px">'.$item['datetime'].'</td>
+			      <td style="width: 100px">'.$item['id'].'</td>';
+			      $client = Client::GetClient($item['client_id']);
+			      echo '<td style="width: 220px">'.$client->name.'</td>';
+			      	$sql = 'SELECT * FROM vouchers WHERE tx_type LIKE "%Invoice%" AND voucher_id = '.$item['id'].' LIMIT 0,1';
+			      	$result = DatabaseHandler::GetRow($sql);
+			      echo '<td style="width: 150px"><script>document.writeln(('.$result['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="padding: 0 5px;">'.$result['cashier'].'</td>
+			    </tr>';
+
+			    $total += $result['amount'];
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Revenue: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function SalesByUser()
+		{
+			$statement = FinancialStatements::RevenueStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+			$user = User::GetUser($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$user->record->name.' REVENUE REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>INV No.</td>
+			          <td>CLIENT</td>
+			          <td>AMOUNT</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+				$sql = 'SELECT * FROM vouchers WHERE tx_type LIKE "%Invoice%" AND voucher_id = '.$item['id'].' AND cashier = "'.$user->record->name.'" LIMIT 0,1';
+			    $result = DatabaseHandler::GetRow($sql);
+
+			    if (!empty($result['id'])) {
+			    	echo '<tr>
+				      <td style="width: 150px">'.$item['datetime'].'</td>
+				      <td style="width: 100px">'.$item['id'].'</td>';
+				      $client = Client::GetClient($item['client_id']);
+				      echo '<td style="width: 220px">'.$client->name.'</td>
+				      <td style="width: 150px"><script>document.writeln(('.$result['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+				    </tr>';
+
+				    $total += $result['amount'];
+			    }
+			    
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">User\'s Revenue: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function SalesByItem()
+		{
+			$statement = FinancialStatements::ItemRevenueStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+			$service = BillableService::Get($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$service->name.' REVENUE REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>INV No.</td>
+			          <td>DESCRIPTION</td>
+			          <td>QTY</td>
+			          <td>ITEMS TOTAL</td>
+			          <td>SERVED BY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+				$sqla = 'SELECT * FROM invoices WHERE id = '.$item['invoice_id'].' LIMIT 0,1';
+			    $resa = DatabaseHandler::GetRow($sqla);
+			    echo '<tr>
+			      <td style="width: 100px">'.$resa['datetime'].'</td>
+			      <td style="width: 60px">'.$resa['id'].'</td>
+			      <td style="width: 250px">'.$item['item_desc'].'</td>
+			      <td style="width: 50px">'.$item['quantity'].'</td>';
+			      	$sql = 'SELECT * FROM vouchers WHERE tx_type LIKE "%Invoice%" AND voucher_id = '.$resa['id'].' LIMIT 0,1';
+			      	$result = DatabaseHandler::GetRow($sql);
+			      echo '<td style="width: 150px"><script>document.writeln(('.$item['quantity']*$item['unit_price'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="padding: 0 5px;">'.$result['cashier'].'</td>
+			    </tr>';
+
+			    $total += ($item['quantity'] * $item['unit_price']);
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Revenue: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function SalesByClient()
+		{
+			$statement = FinancialStatements::RevenueStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+			$client = Client::GetClient($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$client->name.' REVENUE REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>INV No.</td>
+			          <td>AMOUNT</td>
+			          <td>TRANSACTION</td>
+			          <td>SERVED BY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+				$sql = 'SELECT * FROM vouchers WHERE tx_type LIKE "%Invoice%" AND voucher_id = '.$item['id'].' LIMIT 0,1';
+			    $result = DatabaseHandler::GetRow($sql);
+
+			    if (!empty($result['id'])) {
+			    	echo '<tr>
+				      <td style="width: 150px">'.$item['datetime'].'</td>
+				      <td style="width: 100px">'.$item['id'].'</td>
+				      <td style="width: 150px"><script>document.writeln(('.$result['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+				      <td style="width: 120px">'.$result['tx_type'].'</td>
+				      <td style="padding: 0 5px;">'.$result['cashier'].'</td>
+				    </tr>';
+
+				    $total += $result['amount'];
+			    }
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Revenue: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function ExpensesReport()
+		{
+			$statement = FinancialStatements::ExpensesStatement('', $_GET['period'], $_GET['all']);
+
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">EXPENSES REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>LEDGER</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>
+			          <td>TX BY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width: 100px">'.$item['when_charged'].'</td>
+			      <td style="width: 70px">'.$item['transaction_id'].'</td>
+			      <td style="width: 100px">'.$item['ledger_name'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 200px">'.$item['description'].'</td>';
+			      $sql = 'SELECT user FROM transactions WHERE id =  '.$item['transaction_id'].' LIMIT 0,1';
+			      $result = DatabaseHandler::GetOne($sql);
+			      echo '<td style="padding: 0 5px;">'.$result.'</td>
+			    </tr>';
+
+			    $total += $item['amount'];
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Expenses: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function ExpensesByCategory()
+		{
+			$statement = FinancialStatements::LedgerStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+            $ledger = Account::GetLedger($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$ledger->ledgerName.' LEDGER STATEMENT</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>
+			          <td>BALANCE</td>
+			          <td>TX BY</td>
+			          
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width: 100px">'.$item['when_charged'].'</td>
+			      <td style="width: 70px">'.$item['transaction_id'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 200px">'.$item['description'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['ledger_bal'].').formatMoney(2, \'.\', \',\'));</script></td>';
+			      $sql = 'SELECT user FROM transactions WHERE id =  '.$item['transaction_id'].' LIMIT 0,1';
+			      $result = DatabaseHandler::GetOne($sql);
+			      echo '<td style="padding: 0 5px;">'.$result.'</td>
+				</tr>';
+
+				$total += $item['amount'];
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Account Expenses: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function ExpensesByDescription()
+		{
+			$statement = FinancialStatements::ExpenseDescrStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">Description: '.$_GET['sid'].'</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>LEDGER</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>			          
+			          <td>TX BY</td>
+			          
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width: 100px">'.$item['when_charged'].'</td>
+			      <td style="width: 70px">'.$item['transaction_id'].'</td>
+			      <td style="width: 150px">'.$item['ledger_name'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 200px">'.$item['description'].'</td>';
+			      $sql = 'SELECT user FROM transactions WHERE id =  '.$item['transaction_id'].' LIMIT 0,1';
+			      $result = DatabaseHandler::GetOne($sql);
+			      echo '<td style="padding: 0 5px;">'.$result.'</td>
+				</tr>';
+
+				$total += $item['amount'];
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Account Expenses: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function ExpensesByContext()
+		{
+			$statement = FinancialStatements::ExpensesStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+			if ($_GET['sid'] != 0) {
+				$supplier = Supplier::GetSupplier($_GET['sid']);
+				$name = $supplier->name;
+			}else{
+				$name = 'OFFICE';
+			}
+			
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$name.' EXPENSES REPORT</h4>';
+				if ($_GET['period'] != '' && $_GET['period'] ) {
+					echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+				}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>LEDGER</td>
+			          <td>AMOUNT</td>
+			          <td>DESCRIPTION</td>
+			          <td>TX BY</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$total = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width: 100px">'.$item['when_charged'].'</td>
+			      <td style="width: 70px">'.$item['transaction_id'].'</td>
+			      <td style="width: 100px">'.$item['ledger_name'].'</td>
+			      <td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td style="width: 200px">'.$item['description'].'</td>';
+			      $sql = 'SELECT user FROM transactions WHERE id =  '.$item['transaction_id'].' LIMIT 0,1';
+			      $result = DatabaseHandler::GetOne($sql);
+			      echo '<td style="padding: 0 5px;">'.$result.'</td>
+			    </tr>';
+
+			    $total += $item['amount'];
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Expenses: <b>Ksh. <script>document.writeln(('.$total.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
+
+		public static function ClaimsPerEmployee()
+		{
+			$statement = FinancialStatements::LedgerStatement($_GET['sid'], $_GET['period'], $_GET['all']);
+            $ledger = Account::GetLedger($_GET['sid']);
+            echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4 style="text-transform:uppercase">'.$ledger->ledgerName.' LEDGER STATEMENT</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>DATE</td>
+			          <td>TX ID</td>
+			          <td>DR</td>
+			          <td>CR</td>
+			          <td>DESCRIPTION</td>
+			          <td>BALANCE</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$cr = 0.00; $dr = 0.00;
+
+			foreach ($statement as $item) {
+			    echo '<tr>
+			      <td style="width:90px">'.$item['when_booked'].'</td>
+			      <td style="width: 100px">'.$item['transaction_id'].'</td>';
+
+			    if ($item['effect'] == 'cr') {
+			    	$cr += $item['amount'];
+			    	echo '<td style="width: 100px"></td>
+			      	<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
+			    }else{
+			    	$dr += $item['amount'];
+			    	echo '<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      	<td style="width: 100px"></td>';
+			    }
+
+			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
+			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
+			    </tr>';
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    <p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.$dr.').formatMoney(2, \'.\', \',\'));</script></b></p>
+				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.$cr.').formatMoney(2, \'.\', \',\'));</script></b></p>			    
+				    <p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($dr - $cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
+				</div>';
+		}
 	}
 
 	class Body
@@ -1030,467 +1495,6 @@
 			}else{
 				echo '<script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script>';
 			}			
-		}
-
-		public static function RepairTXBalanceErrors()
-		{
-			$collection = Auditor::ResetTransactionBalances();
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>TRANSACTION RERUN REPORT</h4>';
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>LEDGER ID</td>
-			          <td>LEDGER</td>
-			          <td>TYPE</td>
-			          <td>BALANCE</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$assets = 0.00;
-			$liability = 0.00;
-			$capital = 0.00;
-			$profit = 0.00;
-
-			foreach ($collection as $model) {
-				
-				switch ($model->type) {
-					case 'Asset':
-						$assets += $model->amount;
-						echo '<tr><td>'.$model->id.'</td><td>'.$model->name.'</td><td>'.$model->type.'</td><td>'.$model->amount.'</td></tr>';
-						break;
-
-					case 'Expense':
-						$profit -= $model->amount;
-						echo '<tr><td>'.$model->id.'</td><td>'.$model->name.'</td><td>'.$model->type.'</td><td>'.$model->amount.'</td></tr>';
-						break;
-
-					case 'Liability':
-						$liability += $model->amount;
-						echo '<tr><td>'.$model->id.'</td><td>'.$model->name.'</td><td>'.$model->type.'</td><td>'.$model->amount.'</td></tr>';
-						break;
-
-					case 'Revenue':
-						$profit += $model->amount;
-						echo '<tr><td>'.$model->id.'</td><td>'.$model->name.'</td><td>'.$model->type.'</td><td>'.$model->amount.'</td></tr>';
-						break;
-
-					case 'Equity':
-						$capital += $model->amount;
-						echo '<tr><td>'.$model->id.'</td><td>'.$model->name.'</td><td>'.$model->type.'</td><td>'.$model->amount.'</td></tr>';
-						break;
-					
-					default:
-						break;
-				}
-			}
-			        
-			echo '</tbody>
-			    </table>
-			    <div class="logo">
-				    <p style="margin: 5px 0 0 5px">Total Assets: <b>Ksh. <script>document.writeln(('.($assets).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Liability: <b>Ksh. <script>document.writeln(('.($liability).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Capital: <b>Ksh. <script>document.writeln(('.($capital).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Profit: <b>Ksh. <script>document.writeln(('.($profit).').formatMoney(2, \'.\', \',\'));</script></b></p>
-				</div>';					
-		}
-
-		public static function TXAudit()
-		{
-			$collection = Auditor::AuditTransactions();
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>AUDIT STATEMENT</h4>';
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>TRANSACTION</td>
-			          <td>ENTRIES</td>
-			          <td>AMOUNT</td>
-					  <td>DEFICIT</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$cr = 0.00;
-			$dr = 0.00;
-
-			foreach ($collection as $model) {
-				echo '<tr><td>'.$model['id'].'</td><td>'.$model['entr'].'</td><td>'.$model['amount'].'</td><td>'.$model['defic'].'</td></tr>';
-			}
-
-			$diff = $cr - $dr;
-			        
-			echo '</tbody>
-			    </table>
-			    <div class="logo">
-				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.($cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.($dr).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					if ($diff >= 0) {
-						echo '<p style="margin: 5px 0 0 5px">Net Profit/(Loss): <b>Ksh. <script>document.writeln(('.($diff).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					}else{
-						echo '<p style="margin: 5px 0 0 5px">Net Profit/(Loss): <b>(Ksh. <script>document.writeln(('.($diff * -1).').formatMoney(2, \'.\', \',\'));</script>)</b></p>';
-					}
-					echo '</div>';					
-		}
-
-		public static function PLStatement()
-		{
-			$collection = FinancialStatements::GetPLStatement($_GET['day'], $_GET['period']);
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>PROFIT AND LOSS STATEMENT</h4>';
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>LEDGER</td>
-			          <td>DEBIT</td>
-					  <td>CREDIT</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$cr = 0.00;
-			$dr = 0.00;
-
-			foreach ($collection as $model) {
-			    echo '<tr>
-			      <td>'.$model->name.'</td>';
-			    if ($model->type == 'Expense') {
-			    	echo '<td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td></td><td></tr>';
-			    	$dr += $model->amount;
-			    }else{
-			    	echo '</td><td><td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			    	$cr += $model->amount;
-			    }
-			      //<td style="text-align:right;padding-right:7px"><script>document.writeln(('.$model->balance->amount.').formatMoney(2, \'.\', \',\'));</script></td>';
-			    
-			}
-
-			$diff = $cr - $dr;
-			        
-			echo '</tbody>
-			    </table>
-			    <div class="logo">
-				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.($cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.($dr).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					if ($diff >= 0) {
-						echo '<p style="margin: 5px 0 0 5px">Net Profit/(Loss): <b>Ksh. <script>document.writeln(('.($diff).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					}else{
-						echo '<p style="margin: 5px 0 0 5px">Net Profit/(Loss): <b>(Ksh. <script>document.writeln(('.($diff * -1).').formatMoney(2, \'.\', \',\'));</script>)</b></p>';
-					}
-					echo '</div>';					
-		}
-
-		public static function TrialBalance()
-		{
-			$collection = FinancialStatements::GetTrialBalance($_GET['day']);
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>TRIAL BALANCE</h4>';
-			if ($_GET['day'] != '' && $_GET['day'] ) {
-				echo '<h5 style="margin-top:-10px">As at: '.$_GET['day'].'</h5>';
-			}else{
-				echo '<h5 style="margin-top:-10px">As at: '.date('d/m/Y').'</h5>';
-			}
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>LEDGER</td>
-			          <td>DEBIT</td>
-					  <td>CREDIT</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$cr = 0.00;
-			$dr = 0.00;
-
-			foreach ($collection as $model) {
-			    echo '<tr>
-			      <td>'.$model->name.'</td>';
-			    if ($model->type == 'Expense' || $model->type == 'Asset') {
-			    	echo '<td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td><td></td></tr>';
-			    	$dr += $model->amount;
-			    }else{
-			    	echo '<td></td><td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			    	$cr += $model->amount;
-			    }
-			      //<td style="text-align:right;padding-right:7px"><script>document.writeln(('.$model->balance->amount.').formatMoney(2, \'.\', \',\'));</script></td>';
-			    
-			}
-
-			$diff = $cr - $dr;
-			        
-			echo '</tbody>
-					<tfoot>
-						<tr>
-				          <td>TOTAL</td>
-				          <td><b>Ksh. <script>document.writeln(('.($dr).').formatMoney(2, \'.\', \',\'));</script></td>
-						  <td><b>Ksh. <script>document.writeln(('.($cr).').formatMoney(2, \'.\', \',\'));</script></td>
-				        </tr>
-					</tfoot>
-			    </table>
-			    <div class="logo">
-				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.($cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
-					<p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.($dr).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					if ($diff >= 0) {
-						echo '<p style="margin: 5px 0 0 5px">Variance: <b>Ksh. <script>document.writeln(('.($diff).').formatMoney(2, \'.\', \',\'));</script></b></p>';
-					}else{
-						echo '<p style="margin: 5px 0 0 5px">Variance: <b>(Ksh. <script>document.writeln(('.($diff * -1).').formatMoney(2, \'.\', \',\'));</script>)</b></p>';
-					}
-					echo '</div>';					
-		}
-
-		public static function BalanceSheet()
-		{
-			$collection = FinancialStatements::GetTrialBalance($_GET['day']);
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>BALANCE SHEET</h4>';
-			if ($_GET['day'] != '' && $_GET['day'] ) {
-				echo '<h5 style="margin-top:-10px">As at: '.$_GET['day'].'</h5>';
-			}else{
-				$_GET['day'] = date('d/m/Y');
-				echo '<h5 style="margin-top:-10px">As at: '.date('d/m/Y').'</h5>';
-			}
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>Category</td>
-			          <td>KSh.</td>
-					  <td>Ksh.</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$fassets = 0.00;$cassets = 0.00;$cliab = 0.00;$ltliab = 0.00;$capital = 0.00;$profit=0.00;
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Fixed Assets</td></tr>';
-			foreach ($collection as $model) {
-			    if ($model->type == 'Asset' && $model->group == 'Fixed Asset') {
-			    	echo '<tr><td style="text-align:left;">'.$model->name.'</td><td></td><td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			    	$fassets += $model->amount;
-			    }
-
-			    if ($model->type == 'Revenue') {
-			    	$profit += $model->amount;
-			    }elseif ($model->type == 'Expense') {
-			    	$profit -= $model->amount;
-			    }
-			}
-			echo '<tr><td></td><td></td><td style="font-weight:bold;border-top:2px solid #333"><script>document.writeln(('.$fassets.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			
-
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Current Assets</td></tr>';
-			foreach ($collection as $model) {
-			    if ($model->type == 'Asset' && $model->group == 'Current Asset') {
-			    	echo '<tr><td style="text-align:left;">'.$model->name.'</td><td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td><td></td></tr>';
-			    	$cassets += $model->amount;
-			    }
-			}
-			echo '<tr><td></td><td style="font-weight:bold;border-top:2px solid #333"><script>document.writeln(('.$cassets.').formatMoney(2, \'.\', \',\'));</script></td><td></td></tr>';
-			
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Less Current Liabilities</td></tr>';
-			foreach ($collection as $model) {
-			    if ($model->type == 'Liability' && $model->group == 'Current Liability') {
-			    	echo '<tr><td style="text-align:left;">'.$model->name.'</td><td>(<script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script>)</td><td></td></tr>';
-			    	$cliab += $model->amount;
-			    }
-			}
-			echo '<tr><td></td><td style="font-weight:bold;border-top:2px solid #333">(<script>document.writeln(('.$cliab.').formatMoney(2, \'.\', \',\'));</script>)</td><td></td></tr>';
-			
-			$cbal = $cassets - $cliab;
-			if ($cbal < 0) {
-				echo '<tr><td style="font-weight:bold;text-align:left;text-transform:uppercase;font-style:italic">Net current assets (working capital)</td><td></td><td style="font-weight:bold;">(<script>document.writeln(('.($cbal).').formatMoney(2, \'.\', \',\'));</script>)</td></tr>';
-			}else{
-				echo '<tr><td style="font-weight:bold;text-align:left;text-transform:uppercase;font-style:italic">Net current assets (working capital)</td><td></td><td style="font-weight:bold;"><script>document.writeln(('.($cbal).').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			}
-			
-			echo '<tr><td></td><td></td><td style="font-weight:bold;border-top:2px solid #333"><script>document.writeln(('.($cbal + $fassets).').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Less Long Term Liabilities</td></tr>';
-			foreach ($collection as $model) {
-			    if ($model->type == 'Liability' && $model->group == 'Long Term Liability') {
-			    	echo '<tr><td style="text-align:left;">'.$model->name.'</td><td></td><td>(<script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script>)</td></tr>';
-			    	$ltliab += $model->amount;
-			    }
-			}
-			
-			echo '<tr><td></td><td></td><td style="font-weight:bold;border:5px solid #51b7a3">KSh. <script>document.writeln(('.($cbal + $fassets - $ltliab).').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;"></td></tr>';
-
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Equity</td></tr>';
-			foreach ($collection as $model) {
-			    if ($model->type == 'Equity' && $model->name != 'Drawings') {
-			    	echo '<tr><td style="text-align:left;">'.$model->name.'</td><td></td><td><script>document.writeln(('.$model->amount.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			    	$capital += $model->amount;
-			    }elseif ($model->name == 'Drawings') {
-			    	$drawings = $model;
-			    }
-			}
-			if ($profit < 0) {
-				echo '<tr><td style="text-align:left;text-transform:uppercase;font-style:italic">Less Net profit for the period ending - '.$_GET['day'].'</td><td></td><td>(<script>document.writeln(('.$profit.').formatMoney(2, \'.\', \',\'));</script>)</td></tr>';
-			}else{
-				echo '<tr><td style="text-align:left;text-transform:uppercase;font-style:italic">Add Net profit for the period ending - '.$_GET['day'].'</td><td></td><td><script>document.writeln(('.$profit.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			}
-			
-			$xbal = $capital + $profit;
-			echo '<tr><td></td><td></td><td style="font-weight:bold;border-top:2px solid #333"><script>document.writeln(('.$xbal.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			
-			echo '<tr><td style="text-align:left;">Less Drawings</td><td></td><td>(<script>document.writeln(('.$drawings->amount.').formatMoney(2, \'.\', \',\'));</script>)</td></tr>';
-			
-			echo '<tr><td></td><td></td><td style="font-weight:bold;border:5px solid #51b7a3">KSh. <script>document.writeln(('.($xbal - $drawings->amount).').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			     
-			echo '</tbody>
-			    </table>';					
-		}
-
-		public static function CashFlows()
-		{
-			$collection = FinancialStatements::GetCashFlows($_GET['day'], $_GET['period']);
-			echo '
-				<div class="logo">
-				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4>STATEMENT OF CASH FLOWS</h4>';
-			if ($_GET['day'] != '' && $_GET['day'] ) {
-				echo '<h5 style="margin-top:-10px">As at: '.$_GET['day'].'</h5>';
-			}elseif ($_GET['period'] != '' && $_GET['period'] ) {
-				echo '<h5 style="margin-top:-10px">For the period: '.$_GET['period'].'</h5>';
-			}else{
-				$_GET['day'] = date('d/m/Y');
-				echo '<h5 style="margin-top:-10px">As at: '.date('d/m/Y').'</h5>';
-			}
-
-			echo '</div>
-
-				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
-			      <thead class="title">
-			        <tr>
-			          <td>Category</td>
-			          <td>KSh.</td>
-					  <td>Ksh.</td>
-			        </tr>
-			      </thead>
-			      <tbody>';
-
-			$profit = 0.00;$operations = 0.00;$investing = 0.00;$financing = 0.00;
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Business Operations</td></tr>';
-			
-			foreach ($collection as $model) {
-			    if ($model->type == 'Revenue') {
-			    	$profit += $model->amount;
-			    }elseif ($model->type == 'Expense') {
-			    	$profit -= $model->amount;
-			    }
-			}
-
-			$operations += $profit;
-
-			echo '<tr><td style="text-align:left;">Net Profit/(Loss)</td><td>';self::signate($profit);echo '</td><td></td></tr>';
-
-			foreach ($collection as $model) {
-			    if ($model->type == 'Liability' && $model->group == 'Current Liability') {
-			    	if ($model->amount < 0) {
-			    		echo '<tr><td style="text-align:left;">Decrease in '.$model->name.'</td><td>';self::signate(($model->amount));echo '</td><td></td></tr>';
-			    	}else{
-			    		echo '<tr><td style="text-align:left;">Increase in '.$model->name.'</td><td>';self::signate(($model->amount));echo '</td><td></td></tr>';			    	}
-			    	$operations += $model->amount;
-			    }
-			}
-
-			foreach ($collection as $model) {
-			    if ($model->type == 'Asset' && $model->group == 'Current Asset') {
-			    	if ($model->amount < 0) {
-			    		echo '<tr><td style="text-align:left;">Decrease in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}else{
-			    		echo '<tr><td style="text-align:left;">Increase in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}
-			    	$operations -= $model->amount;
-			    }
-			}
-
-			echo '<tr><td style="font-weight:bold;text-align:left;font-style:italic">Business Operations Inflow/(Outflow)</td><td></td><td style="font-weight:bold;border-top:2px solid #333;border-bottom:2px solid #333">';self::signate($operations).'</td></tr>';
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase"></td></tr>';
-			
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Investing Activities</td></tr>';
-
-			foreach ($collection as $model) {
-			    if ($model->type == 'Asset' && $model->group == 'Fixed Asset') {
-			    	if ($model->amount < 0) {
-			    		echo '<tr><td style="text-align:left;">Decrease in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}else{
-			    		echo '<tr><td style="text-align:left;">Increase in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}
-			    	$investing -= $model->amount;			    	
-			    }
-			}
-
-			echo '<tr><td style="font-weight:bold;text-align:left;font-style:italic">Investing Activities Inflow/(Outflow)</td><td></td><td style="font-weight:bold;border-top:2px solid #333;border-bottom:2px solid #333">';self::signate($investing).'</td></tr>';
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase"></td></tr>';
-			
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase">Financing Activities</td></tr>';
-
-			foreach ($collection as $model) {
-			    if ($model->type == 'Liability' && $model->group == 'Long Term Liability') {
-			    	if ($model->amount < 0) {
-			    		echo '<tr><td style="text-align:left;">Decrease in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}else{
-			    		echo '<tr><td style="text-align:left;">Increase in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}
-			    	$financing -= $model->amount;
-			    }
-			}
-
-			foreach ($collection as $model) {
-			    if ($model->type == 'Equity' && $model->name != 'Drawings') {
-			    	if ($model->amount < 0) {
-			    		echo '<tr><td style="text-align:left;">Decrease in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}else{
-			    		echo '<tr><td style="text-align:left;">Increase in '.$model->name.'</td><td>';self::signate(($model->amount * -1));echo '</td><td></td></tr>';
-			    	}
-			    	$financing -= $model->amount;
-			    	
-			    }elseif ($model->name == 'Drawings') {
-			    	$drawings = $model;
-			    }
-			}
-
-			echo '<tr><td style="text-align:left;">'.$drawings->name.'</td><td>';self::signate(($drawings->amount));echo '</td><td></td></tr>';
-			$financing += $model->amount;
-			echo '<tr><td style="font-weight:bold;text-align:left;font-style:italic">Financing Activities Inflow/(Outflow)</td><td></td><td style="font-weight:bold;border-top:2px solid #333;border-bottom:2px solid #333">';self::signate(($financing*-1));echo '</td></tr>';
-			echo '<tr><td colspan="3" style="font-weight:bold;text-align:left;text-transform:uppercase"></td></tr>';
-			$inflow = $operations + $investing - $financing;
-			if ($inflow < 0) {
-				echo '<tr><td style="font-weight:bold;text-transform:uppercase">Net Cash Inflow/(Outflow)</td><td></td><td style="font-weight:bold;border:5px solid #51b7a3">(KSh. <script>document.writeln(('.($inflow).').formatMoney(2, \'.\', \',\'));</script>)</td></tr>';
-			} else {
-				echo '<tr><td style="font-weight:bold;text-transform:uppercase">Net Cash Inflow/(Outflow)</td><td></td><td style="font-weight:bold;border:5px solid #51b7a3">KSh. <script>document.writeln(('.($inflow).').formatMoney(2, \'.\', \',\'));</script></td></tr>';
-			}
-			 
-			echo '</tbody>
-			    </table>';					
 		}
 
 		public static function ClientRegister()

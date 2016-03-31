@@ -40,27 +40,29 @@
 					}
 						
 				}elseif($operation == 'addClient'){
-					if(isset($_POST['name']) && isset($_POST['tel'])){
+					if(isset($_POST['name']) && isset($_POST['tel']) && isset($_POST['idno'])){
 						$name = $_POST['name'];
 						$mobile = $_POST['tel'];
+						$idno = $_POST['idno'];
 						$email = $_POST['email'];
 						$address = $_POST['address'];
 						$bal = $_POST['bal'];
 						$details = $_POST['details'];
-						$this->createClient($name, $mobile, $email, $address, $bal, $details);
+						$this->createClient($name, $mobile, $idno, $email, $address, $bal, $details);
 					}else{
 						echo 0;
 					}
 						
 				}elseif($operation == 'editClient'){
-					if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['tel'])){
+					if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['tel']) && isset($_POST['idno'])){
 						$clientid = $_POST['id'];
 						$name = $_POST['name'];
 						$mobile = $_POST['tel'];
+						$idno = $_POST['idno'];
 						$email = $_POST['email'];
 						$address = $_POST['address'];
 						$details = $_POST['details'];
-						$this->updateClient($clientid, $name, $mobile, $email, $address, $details);
+						$this->updateClient($clientid, $name, $mobile, $idno, $email, $address, $details);
 					}else{
 						echo 0;
 					}
@@ -121,18 +123,18 @@
 			}
 		}
 
-		public function createClient($name, $mobile, $email, $address, $bal, $details)
+		public function createClient($name, $mobile, $idno, $email, $address, $bal, $details)
 		{
-			if (Client::Create($name, $mobile, $email, $address, $bal, $details)) {
+			if (Client::Create($name, $mobile, $idno, $email, $address, $bal, $details)) {
 				echo 1;
 			}else{
 				echo 0;
 			}
 		}
 
-		public function updateClient($clientid, $name, $mobile, $email, $address, $details)
+		public function updateClient($clientid, $name, $mobile, $idno, $email, $address, $details)
 		{
-			if (Client::Update($clientid, $name, $mobile, $email, $address, $details)) {
+			if (Client::Update($clientid, $name, $mobile, $idno, $email, $address, $details)) {
 				echo 1;
 			}else{
 				echo 0;

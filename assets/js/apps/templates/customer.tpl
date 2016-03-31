@@ -46,6 +46,12 @@
                       <input type="text" name="tel" class="form-control" id="">
                     </div>
                   </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">ID/Passport No.<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <input type="text" name="idno" class="form-control" id="">
+                    </div>
+                  </div>
                   <div class="form-group" style="display:none">
                     <label class="col-sm-2 control-label form-label">E-Mail</label>
                     <div class="col-sm-10">
@@ -101,15 +107,21 @@
                 </div>              
               </div>    
               <div class="form-group">
-                <label class="col-sm-2 control-label form-label">Name</label>
+                <label class="col-sm-2 control-label form-label">Name<span class="color10">*</span></label>
                 <div class="col-sm-10">
                   <input type="text" name="name2" class="form-control" id="ename">
                 </div>
               </div>
               <div class="form-group">
-                <label class="col-sm-2 control-label form-label">Mobile</label>
+                <label class="col-sm-2 control-label form-label">Mobile<span class="color10">*</span></label>
                 <div class="col-sm-10">
                   <input type="text" name="tel2" class="form-control" id="etel">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">ID/Passport No.<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <input type="text" name="idno2" class="form-control" id="eidno">
                 </div>
               </div>
               <div class="form-group" style="display:none">

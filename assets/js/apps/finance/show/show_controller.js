@@ -155,6 +155,19 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
             }
           });
         });
+
+        view.on('reverse', function(txid) {
+          var data = {};
+          data['operation'] = 'reverseTX';
+          data['txid'] = txid;
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("reversalsuccess", txid);
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
       },
 
       findClientTx: function(){ 

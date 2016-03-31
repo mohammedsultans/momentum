@@ -193,7 +193,13 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             function(isConfirm){
               if (isConfirm) {
                 var rid = id; 
-                var sid = parseInt($('#subject').val(), 10);
+                var sid = '';
+                if (subjectUrl == '/service/operations/index.php?services') {
+                  sid = $('#subject').val();
+                }else{
+                  sid = parseInt($('#subject').val(), 10);
+                }
+               
                 var period = $('#date-period').val();
                 var all = '';
                 if($('#viewall').is(':checked')){
@@ -221,9 +227,13 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             m.forEach(function(elem){
               var tpl = '';
               if (subjectUrl == '/service/crm/index.php?clients') {
-                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
-              }else {
-                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              } else if (subjectUrl == '/service/tools/index.php?users') {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.record.name+'</option>');
+              } else if (subjectUrl == '/service/operations/index.php?services') {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem.name+'">'+elem.name+'</option>');
+              } else {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'</option>');
               }
               tpl.appendTo(ul);
             });
@@ -331,6 +341,45 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
           $('.daterangepicker.dropdown-menu').css('z-index', 300000);
         }, 150);
       },
+
+      inputRangeModal: function(id, title){
+
+        swal({
+            title: title,
+            text: "<form class=\"form-horizontal\" id=\"frmi1\"><div class=\"form-group\"><label class=\"col-sm-2 control-label form-label\">Description<span class=\"color10\">*</span></label><div class=\"col-sm-10\">"+
+                  "<input type=\"text\" name=\"input\" id=\"input\" class=\"form-control\"></div></div>"+
+                  "<div class=\"form-group\"><label class=\"col-sm-2 control-label form-label\">Period<span class=\"color10\">*</span></label>"+
+                "<div class=\"col-sm-10\"><div class=\"control-group\"><div class=\"controls\"><div class=\"input-prepend input-group\"><span class=\"add-on input-group-addon\"><i class=\"fa fa-calendar\"></i></span>"+
+                "<input type=\"text\" id=\"date-period\" class=\"form-control\" name=\"date\"/></div></div></div></div></div><div class=\"form-group\" style=\"padding-right:0\">"+
+                  "<div class=\"checkbox checkbox-primary\" style=\"margin:0\"><input id=\"viewall\" name=\"viewall\" type=\"checkbox\"><label for=\"viewall\">View All</label></div></div></form>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: "View Report",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+            },
+            function(isConfirm){
+              if (isConfirm) {
+                var rid = id; 
+                var sid = $('#input').val();
+               
+                var period = $('#date-period').val();
+                var all = '';
+                if($('#viewall').is(':checked')){
+                  all = 'true';
+                }
+
+                if (all == "" && period == "") {
+                  all = 'true';
+                };
+                //alert('reports.php?id='+rid+'&sid='+sid+'&period='+period+'&all='+all);
+                window.open('reports.php?id='+id+'&sid='+sid+'&period='+period+'&all='+all);             
+              } else {
+                swal("Cancelled", "Your have chosen not to view report.", "info");
+              }
+            }
+        );
+      },
     };
     
     View.FinancialReports = Marionette.CompositeView.extend({
@@ -377,58 +426,56 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             break;
 
           case 112:
+            //Cash Flow
+            break;
+
+          case 113:
+            //Credit Book
+            break;
+
+          case 114:
             //Debtors list
             window.open('reports.php?id='+id);
             break;
 
-          case 113:
+          case 115:
             //Creditors list
             window.open('reports.php?id='+id);
             break;
 
           case 120:
-            //Todays Revenues
-            window.open('reports.php?id='+id);
-            break;
-
-          case 121:
             View.Modals.rangeModal(id, 'Revenue Report');
             break;
 
-          case 122:
-            View.Modals.subjectRangeModal(id, 'Revenue By Cashier/Agent', '/service/tools/index.php?users');
+          case 121:
+            View.Modals.subjectRangeModal(id, 'Revenue By User', '/service/tools/index.php?users');
             break;
 
-          case 123:
+          case 122:
             View.Modals.subjectRangeModal(id, 'Revenue By Item', '/service/operations/index.php?services');
             break;
 
-          case 124:
+          case 123:
             View.Modals.subjectRangeModal(id, 'Revenue By Client', '/service/crm/index.php?clients');
             break;
 
           case 130:
-            //Todays Expenses
-            window.open('reports.php?id='+id);
-            break;
-
-          case 131:
             View.Modals.rangeModal(id, 'Expenses Report');
             break;
 
+          case 131:
+            View.Modals.subjectRangeModal(id, 'Expenses By Category', '/service/finance/index.php?ledgerType="Expense"');
+            break;
+
           case 132:
-            View.Modals.subjectRangeModal(id, 'Expenses By Category', '/service/finance/index.php?ledgerType="Expenses"');
+            View.Modals.inputRangeModal(id, 'Expenses By Description');
             break;
 
           case 133:
-            View.Modals.subjectInputModal(id, 'Expenses By Description');
-            break;
-
-          case 134:
             View.Modals.subjectRangeModal(id, 'Expenses By Supplier', '/service/procurement/index.php?suppliers');
             break;
 
-          case 135:
+          case 134:
             View.Modals.subjectRangeModal(id, 'Claims Per Employee', '/service/hrm/index.php?employees');
             break;
 

@@ -252,12 +252,23 @@ class User
     {      	
   		try {
   			$sql = 'SELECT * FROM users WHERE id = '.$id.' AND access = 1';
-	        $res =  DatabaseHandler::GetRow($sql);        
-	        return self::initialize($res);
+	      $res =  DatabaseHandler::GetRow($sql);        
+	      return self::initialize($res);
   		} catch (Exception $e) {
   			return false;
   		}
   	}
+
+    public static function GetUserByName($name)
+    {       
+      try {
+        $sql = 'SELECT * FROM users WHERE name = "'.$name.'" AND access = 1';
+        $res =  DatabaseHandler::GetRow($sql);        
+        return self::initialize($res);
+      } catch (Exception $e) {
+        return false;
+      }
+    }
 
   	public static function Create($pid, $username, $password, $role)
     {

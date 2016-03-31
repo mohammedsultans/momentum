@@ -860,6 +860,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
               tpl.appendTo(ul);
             });
 
+            $('.sdel').off();
             $('.sdel').on('click', function(e){
               e.preventDefault();
               e.stopPropagation();
@@ -1135,8 +1136,10 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                 swal("Success!", "The document has been uploaded successfully.", "success");
                 if (data.files[0].name.toLowerCase().indexOf('.pdf') >= 0) {
                   System.docthumb = 'pdf.png';
-                }else{
+                }else if(data.files[0].name.toLowerCase().indexOf('.png') >= 0 || data.files[0].name.toLowerCase().indexOf('.jpg') >= 0 || data.files[0].name.toLowerCase().indexOf('.gif') >= 0){
                   System.docthumb = data.files[0].name;
+                }else{
+                  System.docthumb = 'fileicon.png';
                 }
                 data.context.find('span').val("").change();
                 System.docfile = data.files[0].name;
@@ -1233,7 +1236,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                 
                 var filing = '';
                 if (elem.file != null && elem.file != '') {
-                  filing += '<p class="fid" style="display: none;">'+elem.file+'</p><a class="btn btn-small btn-option2 js-edit fcheck" href="#" style="margin:5px"><i class="fa fa-cloud-download"></i></a>';
+                  filing += '<p class="fid" style="display: none;">'+elem.file+'</p><a class="btn btn-small btn-option2 js-edit " href="'+System.coreRoot+'/documents/'+elem.file+'" style="margin:5px"><i class="fa fa-cloud-download"></i></a>';
                 }else{
                   filing = '';
                 }
@@ -1243,6 +1246,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                 tpl.appendTo(ul);
               });
 
+              $('.xcheck').off();
               $('.xcheck').on('click', function(e){
                 e.preventDefault();
                 e.stopPropagation();
@@ -1270,12 +1274,6 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                     swal("Cancelled", "Your document is safe :)", "error");
                   }
                 });
-
-              $('.fcheck').on('click', function(e){
-                e.preventDefault();
-                e.stopPropagation();
-                window.open('documents/'+ $(this).parent().find('.fid').text());
-              });
 
               setTimeout(function() {
                 $('#example1').DataTable();
@@ -1330,7 +1328,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
 
               var filing = '';
               if (elem.file != null && elem.file != '') {
-                filing += '<p class="fid" style="display: none;">'+elem.file+'</p><a class="btn btn-small btn-option2 js-edit fcheck" href="#" style="margin:5px"><i class="fa fa-cloud-download"></i></a>';
+                filing += '<p class="fid" style="display: none;">'+elem.file+'</p><a class="btn btn-small btn-option2 js-edit" href="'+System.coreRoot+'/documents/'+elem.file+'" style="margin:5px" download><i class="fa fa-cloud-download"></i></a>';
               }else{
                 filing = '';
               }
@@ -1340,6 +1338,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
               tpl.appendTo(ul);
             });
 
+            $('.xcheck').off();
             $('.xcheck').on('click', function(e){
               e.preventDefault();
               e.stopPropagation();
@@ -1370,12 +1369,6 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
                 }
               });
               
-            });
-
-            $('.fcheck').on('click', function(e){
-              e.preventDefault();
-              e.stopPropagation();
-              window.open('documents/'+ $(this).parent().find('.fid').text());
             });
 
             setTimeout(function() {
@@ -1434,6 +1427,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
               tpl.appendTo(ul);
             });
 
+            $('.sdel').off();
             $('.sdel').on('click', function(e){
               e.preventDefault();
               e.stopPropagation();

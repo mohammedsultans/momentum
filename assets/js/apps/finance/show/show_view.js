@@ -1096,10 +1096,54 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           }
         },
 
-        reverseTx: function(txid) {        
+        prepViews: function() {
+          var THAT = this;
+          $('.treverse').off(); 
+          $('.treverse').on('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            //var el = $(this);
+            var txid = $(this).parent().find('.txid').text();
+            swal({
+              title: "Are you sure?",
+              text: "Once you reverse this transaction, there is NO going back again!",
+              type: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#DD6B55",
+              confirmButtonText: "Yes, reverse!",
+              cancelButtonText: "No, cancel!",
+              closeOnConfirm: true,
+              closeOnCancel: false
+            },
+            function(isConfirm){
+              if (isConfirm) {
+                //THAT.reverseTx(txid);
+                if (System.role.name == 'System Architect' || System.role.name == 'DIRECTOR & GROUP CEO') {
+                  THAT.trigger("reverse", txid);
+                }else{
+                  swal("Denied", "You do not have the right to reverse transactions.", "info");
+                }
+                
+                //Enter reversing logic here                          
+              }else {
+                swal("Cancelled", "The transaction has NOT been reversed.", "info");
+              }
+            });                  
+          });
+
+          $('.treversed').off(); 
+          $('.treversed').on('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            swal("Error", "You cannot reverse a transaction that is already reversed!", "info");                
+          });
+        },
+
+        onReversalsuccess: function(txid) {
           $('#results').find('.txid').each(function() {
             if (parseInt($(this).text(), 10) == txid) {
               $(this).parent().empty().append($('<a class="btn btn-info" href="#"><i class="fa fa-exclamation" style="margin: 0px;"></i></a>'));
+              swal("Successful", "The transaction has been reversed.", "success");
             };
           });
         },
@@ -1111,40 +1155,21 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           el.empty();
 
           result.forEach(function(entry){
+            var segment = '';
+            if (entry.status == 1) {
+              segment = '<p class="txid" style="display: none;">'+entry['txid']+'</p><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo" style="margin: 0px;"></i></a>';
+            } else {
+              segment = '<a class="btn btn-info treversed" href="#"><i class="fa fa-exclamation" style="margin: 0px;"></i></a>';
+            }
            var tpl = $('<tr><td>'+entry['txid']+'</td><td>'+entry['date']+'</td><td>'+entry['ledger']+'</td><td style="text-transform:uppercase;">'+entry['effect']+'</td>'+
-                '<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td><td>'+entry['description']+'</td><td><p class="txid" style="display: none;">'+entry['txid']+'</p><a class="btn btn-warning treverse" href="#"><i class="fa fa-undo" style="margin: 0px;"></i></a></td></tr>');
+                '<td>Ksh. '+(parseFloat(entry['amount'])).formatMoney(2, '.', ',')+'</td><td>'+entry['description']+'</td><td>'+segment+'</td></tr>');
            
            tpl.appendTo(el);
           });
 
           setTimeout(function() {
-            $('.treverse').on('click', function(e){
-                  e.preventDefault();
-                  e.stopPropagation();
-                  //var el = $(this);
-                  var txid = $(this).parent().find('.txid').text();
-                  swal({
-                    title: "Are you sure?",
-                    text: "Once you reverse this transaction, there is NO going back again!",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Yes, reverse!",
-                    cancelButtonText: "No, cancel!",
-                    closeOnConfirm: false,
-                    closeOnCancel: false
-                  },
-                  function(isConfirm){
-                    if (isConfirm) {
-                      THAT.reverseTx(txid); 
-                      //Enter reversing logic here                          
-                    }else {
-                      swal("Cancelled", "The transaction has NOT been reversed.", "error");
-                    }
-                  });
-                  
-                });
-            }, 500);
+            THAT.prepViews();
+          }, 500);
         },
 
         onEmpty: function(e) { 

@@ -22,10 +22,12 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
             var m = JSON.parse(result);
             m.forEach(function(elem){
-              var tpl = $('<tr><td>'+elem['name']+'<span style="font-size: 10px"> ['+elem['details']+']</span></td><td>'+elem['telephone']+'</td><td>Ksh. '+(elem['balance']['amount']).formatMoney(2, '.', ',')+'</td>'
+              var tpl = $('<tr><td>'+elem['name']+'<span style="font-size: 10px"> ['+elem['details']+']</span></td><td>'+elem['telephone']+'</td><td>'+elem['idno']+'</td><td>Ksh. '+(elem['balance']['amount']).formatMoney(2, '.', ',')+'</td>'
                 +'<td><p class="xid" style="display: none;">'+elem['id']+'</p><a class="btn btn-small js-edit xcheck" href="#"><i class="icon-pencil"></i>Delete</a></td></tr>');
               tpl.appendTo(ul);
             });
+
+            $('.xcheck').off();
 
             $('.xcheck').on('click', function(e){
               e.preventDefault();
@@ -45,8 +47,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
               },
               function(isConfirm){
                 if (isConfirm) {
-                  THAT.deleteRecord(data);
-                  alert(data.id);  
+                  THAT.deleteRecord(data); 
                 } else {
                   swal("Cancelled", "Your record is safe :)", "error");
                 }
@@ -130,7 +131,12 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           var data = Backbone.Syphon.serialize(this);
           //alert(JSON.stringify(data));
           //swal("Success!", "The record has been created.", "success");
-          this.trigger("create", data);
+          if (data['name'] != '' && data['tel'] != '' && data['idno'] != '') {
+            this.trigger("create", data);
+          } else {
+            swal("Missing Info!", "Ensure all mandatory entries are filled", "info");
+          }
+          
         },
 
         editCustomer: function(e) { 
@@ -140,12 +146,18 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           data['id'] = parseInt($('.selectpicker').find("option:selected").val());
           data['name'] = $('#ename').val();
           data['tel'] = $('#etel').val();
+          data['idno'] = $('#eidno').val();
           data['email'] = $('#eemail').val();
           data['address'] = $('#eadd').val();
           data['details'] = $('#edetail').val();
           //alert(JSON.stringify(data));
           //swal("Success!", "The record has been created.", "success");
-          this.trigger("edit", data);
+          if (data['name'] != '' && data['tel'] != '' && data['idno'] != '') {
+            this.trigger("edit", data);
+          } else {
+            swal("Missing Info!", "Ensure all mandatory entries are filled", "info");
+          }
+          
         },
 
         deleteCustomer: function(e) { 
@@ -198,6 +210,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
             var m = JSON.parse(result);
             $('#ename').val(m['name']);
             $('#etel').val(m['telephone']);
+            $('#eidno').val(m['idno']);
             $('#eemail').val(m['email']);
             $('#eadd').val(m['address']);
             $('#edetail').val(m['details']);
@@ -338,7 +351,7 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
                 +'<td><p class="xstamp" style="display: none;">'+elem['stamp']+'</p><a class="btn btn-small js-edit xcheck" href="#"><i class="icon-pencil"></i>Check</a></td></tr>');
               tpl.appendTo(ul);
             });
-
+            $('.xcheck').off();
             $('.xcheck').on('click', function(e){
               e.preventDefault();
               e.stopPropagation();

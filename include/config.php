@@ -7,8 +7,8 @@
 	define('DOMAIN_DIR', SITE_ROOT . '/domain/');
 	define('CONFIG_DIR', SITE_ROOT . '/include/configs');
 	// These should be true while developing the web site
-	define('IS_WARNING_FATAL', false);
-	define('DEBUGGING', false);
+	define('IS_WARNING_FATAL', true);
+	define('DEBUGGING', true);
 	// The error types to be reported
 	define('ERROR_TYPES', E_ALL);
 	// Settings about mailing the error messages to admin

@@ -74,7 +74,7 @@
               </thead>
               <tbody>
                 <tr><td>1.</td><td><a data-rid="120" href="#">Revenue Report</a></td></tr>
-                <tr><td>2.</td><td><a data-rid="121" href="#">Revenue by Cashier/Agent</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="121" href="#">Revenue by User</a></td></tr>
                 <tr><td>3.</td><td><a data-rid="122" href="#">Revenue by Item</a></td></tr>
                 <tr><td>4.</td><td><a data-rid="123" href="#">Revenue by Client</a></td></tr>
               </tbody>
@@ -94,10 +94,10 @@
               </thead>
               <tbody>
                 <tr><td>1.</td><td><a data-rid="130" href="#">Expenses Report</a></td></tr>
-                <tr><td>2.</td><td><a data-rid="131" href="#">Expenses by Category</a></td></tr>
+                <tr><td>2.</td><td><a data-rid="131" href="#">Expenses by Account</a></td></tr>
                 <tr><td>3.</td><td><a data-rid="132" href="#">Expenses by Description</a></td></tr>
-                <tr><td>4.</td><td><a data-rid="133" href="#">Expenses by Supplier</a></td></tr>
-                <tr><td>5.</td><td><a data-rid="134" href="#">Claims per Employee</a></td></tr>
+                <!--tr><td>4.</td><td><a data-rid="133" href="#">Expenses by Context</a></td></tr>
+                <tr><td>5.</td><td><a data-rid="134" href="#">Claims per Employee</a></td></tr-->
               </tbody>
             </table>
           </div>

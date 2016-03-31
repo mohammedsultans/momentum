@@ -33,8 +33,8 @@
                       <tr>
                           <th>Name</th>
                           <th>Telephone</th>
-                          <!--th>E-mail</th>
-                          <th>Address</th-->
+                          <th>ID/Passport No.</th>
+                          <!--th>Address</th-->
                           <th>Balance</th>
                           <th>Options</th>
                       </tr>
@@ -44,8 +44,8 @@
                       <tr>
                           <th>Name</th>
                           <th>Telephone</th>
-                          <!--th>E-mail</th>
-                          <th>Address</th-->
+                          <th>ID/Passport No.</th>
+                          <!--th>Address</th-->
                           <th>Balance</th>
                           <th>Options</th>
                       </tr>

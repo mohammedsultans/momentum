@@ -85,6 +85,13 @@
 					}else{
 						echo 0;
 					}				
+				}elseif($operation == 'reverseTX'){
+					if(isset($_POST['txid'])){
+						$txid = $_POST['txid'];
+						$this->reverseTX($txid);
+					}else{
+						echo 2;
+					}				
 				}elseif($operation == 'processClaim'){
 					if(isset($_POST['account']) && isset($_POST['voucher']) && isset($_POST['items'])){
 						$ledgerId = $_POST['account'];
@@ -281,6 +288,17 @@
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(AccountEntry::FindEntries($param, $value));
+			}else{
+				echo 0;
+			}
+		}
+
+		public function reverseTX($txid)
+		{
+			if ($this->validateAdmin()) {
+				if (Transaction::Reverse($txid)) {
+					echo 1;
+				}
 			}else{
 				echo 0;
 			}
