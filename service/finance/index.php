@@ -38,7 +38,11 @@
 					}
 				
 				}elseif($operation == 'receivePayment'){
-					if(isset($_POST['client']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category'])){
+					if(isset($_POST['client']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category']) && isset($_POST['voucher'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
 						$clientid = $_POST['client'];
 						$account = $_POST['mode'];
 						$category = $_POST['category'];
@@ -93,7 +97,13 @@
 						echo 2;
 					}				
 				}elseif($operation == 'processClaim'){
+					
 					if(isset($_POST['account']) && isset($_POST['voucher']) && isset($_POST['items'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
+
 						$ledgerId = $_POST['account'];
 						$voucherId = $_POST['voucher'];
 						$items = $_POST['items'];
@@ -103,7 +113,12 @@
 						echo 0;
 					}				
 				}elseif($operation == 'postExpense'){
-					if(isset($_POST['context']) && isset($_POST['credit']) && isset($_POST['debit']) && isset($_POST['amount']) && isset($_POST['descr'])){
+					if(isset($_POST['context']) && isset($_POST['credit']) && isset($_POST['debit']) && isset($_POST['amount']) && isset($_POST['voucher']) && isset($_POST['descr'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
+
 						$party = $_POST['context'];
 						if ($party == 'office') {
 							$party = 0;
@@ -113,8 +128,9 @@
 						$credit = $_POST['credit'];
 						$debit = $_POST['debit'];
 						$amount = $_POST['amount'];
+						$voucher = $_POST['voucher'];
 						$descr = $_POST['descr'];
-						$this->postExpense($party, $credit, $debit, $amount, $descr);
+						$this->postExpense($party, $credit, $debit, $amount, $voucher, $descr);
 					}else{
 						echo 0;
 					}				
@@ -328,9 +344,9 @@
 			}
 		}
 
-		public function postExpense($party, $credit, $debit, $amount, $descr)
+		public function postExpense($party, $credit, $debit, $amount, $voucher, $descr)
 		{
-			$tx = GeneralTransaction::PostExpense($party, $credit, $debit, $amount, $descr);
+			$tx = GeneralTransaction::PostExpense($party, $credit, $debit, $amount, $voucher, $descr);
 
 			if ($tx->post()) {
 				$tx->expVoucher->authorize($tx->transactionId);

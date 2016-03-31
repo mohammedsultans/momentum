@@ -1613,7 +1613,7 @@ class PaymentTX extends FinancialTransaction//without grn
 
 			$acc = Account::GetAccountByNo($supplierid, 'suppliers', 'Creditors');
 
-			$expv = ExpenseVoucher::CreateSupplierProjectExpense($party, $scope, $amount, $acc->ledgerId, $descr);
+			$expv = ExpenseVoucher::CreateSupplierProjectExpense($party, $scope, $amount, $acc->ledgerId, $voucher, $descr);
 
 			if ($expv) {
 				$tx = self::initialize($res); 

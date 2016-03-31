@@ -66,6 +66,12 @@
                     </div>
                   </div>
                   <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Ref. No<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" name="voucher" id="">
+                    </div>
+                  </div> 
+                  <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Description<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <textarea class="form-control" name="descr" rows="3" id="textarea1"></textarea>

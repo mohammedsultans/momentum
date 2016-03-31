@@ -99,6 +99,10 @@
 					}				
 				}elseif($operation == 'paySalary'){
 					if(isset($_POST['employee']) && isset($_POST['slip']) && isset($_POST['ledger']) && isset($_POST['mode']) && isset($_POST['voucher'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
 						$empid = $_POST['employee'];
 						$slip = $_POST['slip'];
 						$ledger = $_POST['ledger'];

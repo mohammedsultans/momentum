@@ -79,7 +79,11 @@
 					}
 				
 				}elseif($operation == 'makePaymentGRN'){
-					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments'])){
+					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments']) && isset($_POST['voucher'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
 						$supplierid = $_POST['supplier'];
 						$amount = $_POST['amount'];
 						$account = $_POST['account'];
@@ -92,7 +96,11 @@
 					}
 						
 				}elseif($operation == 'makePayment'){
-					if(isset($_POST['context']) && isset($_POST['scope']) && isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr'])){
+					if(isset($_POST['context']) && isset($_POST['scope']) && isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['descr']) && isset($_POST['voucher'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+					      	echo 0;
+					      	exit;
+					    }
 						$party = $_POST['context'];
 						if ($party == 'office') {
 							$party = 0;

@@ -708,6 +708,28 @@ class FinancialTransaction extends Transaction
 		$this->transactionType = $txtype;
 		parent::__construct($amount, $description);
 	}
+
+	public static function VoucherInUse($voucher)
+	{
+		try {
+	      	$sqla = 'SELECT * FROM expense_vouchers WHERE voucher_no = "'.$voucher.'"';
+			$resa =  DatabaseHandler::GetRow($sqla);
+			$sqlb = 'SELECT * FROM payments WHERE voucher_no = "'.$voucher.'"';
+			$resb =  DatabaseHandler::GetRow($sqlb);
+			$sqlc = 'SELECT * FROM receipts WHERE voucher_no = "'.$voucher.'"';
+			$resc =  DatabaseHandler::GetRow($sqlc);
+			$sqld = 'SELECT * FROM payroll_entries WHERE voucher_no = "'.$voucher.'"';
+			$resd =  DatabaseHandler::GetRow($sqld);
+
+			if (!empty($resa['voucher_no']) || !empty($resb['voucher_no']) || !empty($resc['voucher_no']) || !empty($resd['voucher_no'])) {
+				return true;
+			}else{
+				return false;
+			}
+	    } catch (Exception $e) {
+	      	return true;
+	    }
+	}
 	
 }
 
@@ -1967,7 +1989,7 @@ class GeneralTransaction extends FinancialTransaction
 		return new GeneralTransaction($entries, $amount, $descr, "Project Claim");
 	}
 
-	public static function PostExpense($party, $crid, $drid, $amount, $descr)
+	public static function PostExpense($party, $crid, $drid, $amount, $voucher, $descr)
 	{
 		$entries = [];
 		//Debit entry
@@ -1981,7 +2003,7 @@ class GeneralTransaction extends FinancialTransaction
 		$entry['effect'] = 'cr';
 		$entry['amount'] = $amount;
 		$entries[] = $entry;
-		$voucher = ExpenseVoucher::CreateProjectExpense($party, $amount, $drid, $descr);
+		$voucher = ExpenseVoucher::CreatePartyExpense($party, $amount, $drid, $voucher, $descr);
 		if ($voucher) {
 			$tx = new GeneralTransaction($entries, $amount, $descr, "General Expenses");
 			$tx->expVoucher = $voucher;

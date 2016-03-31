@@ -666,6 +666,7 @@ class ExpenseVoucher
 	public $id;
   	public $projectId;
   	public $reportId;
+  	public $voucherNo;
   	public $transactionId;
 	public $date;
 	public $stamp;
@@ -673,11 +674,12 @@ class ExpenseVoucher
 	public $total;
 	public $items = [];
 	//IMPLEMENTATION
-  	function __construct($id, $projectId, $reportId, $transactionId, $date, $stamp, $status = 0)
+  	function __construct($id, $projectId, $reportId, $voucher, $transactionId, $date, $stamp, $status = 0)
 	{
 		$this->id = $id;
 		$this->projectId = $projectId;
 		$this->reportId = $reportId;
+		$this->voucherNo = $voucher;
 		$this->transactionId = $transactionId;
 		$this->date = $date;
 		$this->stamp = $stamp;
@@ -713,7 +715,7 @@ class ExpenseVoucher
 	//INTERFACE
 	private static function initialize($args)
   	{
-     	$voucher = new ExpenseVoucher($args['id'], $args['project_id'], $args['report_id'], $args['transaction_id'], $args['date'], $args['stamp'], $args['status']);
+     	$voucher = new ExpenseVoucher($args['id'], $args['project_id'], $args['report_id'], $args['voucher_no'], $args['transaction_id'], $args['date'], $args['stamp'], $args['status']);
       	$voucher->loadItems();
       	return $voucher;
   	}
@@ -722,13 +724,13 @@ class ExpenseVoucher
     {
       try {
       	$datetime = new DateTime();
-		$sql = 'INSERT IGNORE INTO expense_vouchers (project_id, report_id, date, stamp, status) 
+		$sql = 'INSERT INTO expense_vouchers (project_id, report_id, date, stamp, status) 
 		VALUES ('.$projectId.', '.$report->id.', "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
 		DatabaseHandler::Execute($sql);
 
 		$sql = 'SELECT * FROM expense_vouchers WHERE stamp = '.$datetime->format('YmdHis');
 		$res =  DatabaseHandler::GetRow($sql);        
-        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], 0, $res['date'], $res['stamp'], $res['status']);
+        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], $res['voucher_no'], 0, $res['date'], $res['stamp'], $res['status']);
         foreach ($charges as $charge) {
         	$voucher->addItem(ExpenseItem::Create($res['id'], $charge['claimant'], $charge['description'], $charge['category'], $charge['amount']));
         }
@@ -740,18 +742,18 @@ class ExpenseVoucher
 
     }
 
-    public static function CreateProjectExpense($party, $amount, $account, $description)
+    public static function CreatePartyExpense($party, $amount, $account, $voucher, $description)
     {
       try {
       	$datetime = new DateTime();
-		$sql = 'INSERT IGNORE INTO expense_vouchers (project_id, party_id, date, stamp, status) 
-		VALUES (0, '.$party.', "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
+		$sql = 'INSERT INTO expense_vouchers (project_id, party_id, voucher_no, date, stamp, status) 
+		VALUES (0, '.$party.', "'.$voucher.'", "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
 		DatabaseHandler::Execute($sql);
 
 		$sql = 'SELECT * FROM expense_vouchers WHERE stamp = '.$datetime->format('YmdHis');
 		$res =  DatabaseHandler::GetRow($sql);
 
-        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], 0, $res['date'], $res['stamp'], $res['status']);
+        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], $res['voucher_no'], 0, $res['date'], $res['stamp'], $res['status']);
         $voucher->addItem(ExpenseItem::Create($res['id'], 0, $description, $account, $amount));
 
         return $voucher;
@@ -761,18 +763,18 @@ class ExpenseVoucher
 
     }
 
-    public static function CreateSupplierProjectExpense($party, $scope, $amount, $account, $description)
+    public static function CreateSupplierProjectExpense($party, $scope, $amount, $account, $voucher, $description)
     {
       try {
       	$datetime = new DateTime();
-		$sql = 'INSERT IGNORE INTO expense_vouchers (project_id, party_id, date, stamp, status) 
-		VALUES ('.$scope.', '.$party.', "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
+		$sql = 'INSERT INTO expense_vouchers (project_id, party_id, voucher_no, date, stamp, status) 
+		VALUES ('.$scope.', '.$party.', "'.$voucher.'", "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
 		DatabaseHandler::Execute($sql);
 
 		$sql = 'SELECT * FROM expense_vouchers WHERE stamp = '.$datetime->format('YmdHis');
 		$res =  DatabaseHandler::GetRow($sql);
 
-        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], 0, $res['date'], $res['stamp'], $res['status']);
+        $voucher = new ExpenseVoucher($res['id'], $res['project_id'], $res['report_id'], $res['voucher_no'], 0, $res['date'], $res['stamp'], $res['status']);
         $voucher->addItem(ExpenseItem::Create($res['id'], $scope, $description, $account, $amount));
 
         return $voucher;
