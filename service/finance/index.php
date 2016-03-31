@@ -39,10 +39,12 @@
 				
 				}elseif($operation == 'receivePayment'){
 					if(isset($_POST['client']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category']) && isset($_POST['voucher'])){
-						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
-					      	echo 0;
-					      	exit;
-					    }
+						if ($_POST['mode'] != 101) {
+							if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+						      	echo 0;
+						      	exit;
+						    }
+						}
 						$clientid = $_POST['client'];
 						$account = $_POST['mode'];
 						$category = $_POST['category'];
@@ -99,10 +101,12 @@
 				}elseif($operation == 'processClaim'){
 					
 					if(isset($_POST['account']) && isset($_POST['voucher']) && isset($_POST['items'])){
-						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
-					      	echo 0;
-					      	exit;
-					    }
+						if ($_POST['account'] != 101) {
+							if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+						      	echo 0;
+						      	exit;
+						    }
+						}
 
 						$ledgerId = $_POST['account'];
 						$voucherId = $_POST['voucher'];
@@ -114,10 +118,12 @@
 					}				
 				}elseif($operation == 'postExpense'){
 					if(isset($_POST['context']) && isset($_POST['credit']) && isset($_POST['debit']) && isset($_POST['amount']) && isset($_POST['voucher']) && isset($_POST['descr'])){
-						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
-					      	echo 0;
-					      	exit;
-					    }
+						if ($_POST['credit'] != 101) {
+							if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+						      	echo 0;
+						      	exit;
+						    }
+						}
 
 						$party = $_POST['context'];
 						if ($party == 'office') {

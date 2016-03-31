@@ -1618,7 +1618,7 @@ class ReceiptTX extends FinancialTransaction
 	public function update()
 	{
 		try {
-	        $sql = 'UPDATE receipts SET datetime = "'.$this->date.'", stamp = '.$this->stamp.', user = "'.SessionManager::GetUsername().'" WHERE id = '.$this->id;
+	        $sql = 'UPDATE receipts SET datetime = "'.$this->date.'", stamp = '.$this->stamp.', cashier = "'.SessionManager::GetUsername().'" WHERE id = '.$this->id;
 	        DatabaseHandler::Execute($sql);
 	        return true;
 	    } catch (Exception $e) {
