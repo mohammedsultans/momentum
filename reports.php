@@ -1,5 +1,5 @@
 <?php
-	error_reporting(0);
+	//error_reporting(0);
   	require_once 'include/config.php';
   	require_once DOMAIN_DIR . 'LSOfficeDomain.php';
 	
@@ -81,8 +81,8 @@
 					break;
 
 				case 113:
-					$this->header('Day Book');
-					FinancialReports::DayBook();				
+					$this->header('Credit Book');
+					FinancialReports::CreditBook();				
 					break;
 
 				case 114:
@@ -218,6 +218,21 @@
 				case 413:
 					$this->header('Payroll Summary');
 					HRReports::PayrollSummary();
+					break;
+
+				case 500:
+					$this->header('All Projects');
+					ProjectReports::ProjectsRegister();				
+					break;
+
+				case 501:
+					$this->header('Project Report');
+					ProjectReports::ProjectReport();				
+					break;
+
+				case 502:
+					$this->header('Client Receipts - Minor Works');
+					ProjectReports::MinorWorksReceipts();				
 					break;
 
 				
@@ -873,12 +888,77 @@
 
 		public static function CashBook()
 		{
-			$statement = FinancialStatements::LedgerStatement($_GET['sid'], $_GET['period'], $_GET['all']);
-            $ledger = Account::GetLedger($_GET['sid']);
+			$statement = FinancialStatements::CashBook($_GET['period'], $_GET['all']);
             echo '
 				<div class="logo">
 				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
-				  <h4 style="text-transform:uppercase">'.$ledger->ledgerName.' LEDGER STATEMENT</h4>';
+				  <h4 style="text-transform:uppercase">CASH BOOK</h4>';
+			if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}
+
+			$banks = $statement['ledgers'];
+			$entries = $statement['entries'];
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:1260px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			        	<td>TX ID</td>
+			          	<td>DATE</td>
+			          	<td>DESCRIPTION</td>
+			          	<td>DR - CASH</td>
+			          	<td>DR - BANK</td>
+			          	<td>CR - CASH</td>
+			          	<td>CR - BANK</td>
+					</tr>
+			      </thead>
+			      <tbody>';
+
+			$ccr = 0.00; $cdr = 0.00;
+			$bcr = 0.00; $bdr = 0.00;
+
+
+			foreach ($entries as $item) {
+			    echo '<tr>
+			    	<td>'.$item['transaction_id'].'</td>
+			      	<td>'.$item['when_booked'].'</td>
+			      	<td>'.$item['description'].' ('.$item['ledger_name'].')</td>';
+				    if (stripos($item['ledger_name'], 'cash') !== false) {
+				      	if ($item['effect'] == 'cr') {
+					    	$ccr += $item['amount'];
+					    	echo '<td></td><td></td><td><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td><td></td>';
+					    }else{
+					    	$cdr += $item['amount'];
+					    	echo '<td><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td><td></td><td></td><td></td>';
+					    }
+				    }else{
+				    	if ($item['effect'] == 'cr') {
+					    	$bcr += $item['amount'];
+					    	echo '<td></td><td></td><td></td><td><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
+					    }else{
+					    	$bdr += $item['amount'];
+					    	echo '<td></td><td><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td><td></td><td></td>';
+					    }
+				    }
+			    echo '</tr>';
+			}
+			echo '<tr><td></td><td></td><td></td><td>Ksh. <script>document.writeln(('.$cdr.').formatMoney(2, \'.\', \',\'));</script></td><td>Ksh. <script>document.writeln(('.$bdr.').formatMoney(2, \'.\', \',\'));</script></td><td>Ksh. <script>document.writeln(('.$ccr.').formatMoney(2, \'.\', \',\'));</script></td><td>Ksh. <script>document.writeln(('.$bcr.').formatMoney(2, \'.\', \',\'));</script></td></tr>';
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+				    </div>';
+		}
+
+		public static function CreditBook()
+		{
+			$collection = SalesInvoice::GetAllInvoices($_GET['period'], $_GET['all']);
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>CREDIT BOOK</h4>';
 			if ($_GET['period'] != '' && $_GET['period'] ) {
 				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
 			}
@@ -888,47 +968,34 @@
 				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
 			      <thead class="title">
 			        <tr>
-			          <td>DATE</td>
-			          <td>TX ID</td>
-			          <td>LEDGER</td>
-			          <td>DR - DISC</td>
-			          <td>DR - CASH</td>
-			          <td>DR - BANK</td>
-			          <td>CR - DISC</td>
-			          <td>CR - CASH</td>
-			          <td>CR - BANK</td>
+			          <td style="width:140px">DATE</td>			          
+			          <td style="width:300px">CLIENT</td>
+			          <td>INV NO</td>
+					  <td>AMOUNT</td>
 			        </tr>
 			      </thead>
 			      <tbody>';
 
-			$cr = 0.00; $dr = 0.00;
+			$total = 0.00;
+			$itms = 0;
 
-			foreach ($statement as $item) {
+			foreach ($collection as $item) {
+				$client = Client::GetClient($item['client_id']);
 			    echo '<tr>
-			      <td style="width:90px">'.$item['when_booked'].'</td>
-			      <td style="width: 100px">'.$item['ledger_name'].'</td>';
-
-			    if ($item['effect'] == 'cr') {
-			    	$cr += $item['amount'];
-			    	echo '<td style="width: 100px"></td>
-			      	<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>';
-			    }else{
-			    	$dr += $item['amount'];
-			    	echo '<td style="width: 100px"><script>document.writeln(('.$item['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
-			      	<td style="width: 100px"></td>';
-			    }
-
-			    echo '<td style="max-width: 220px;">'.$item['description'].'</td>
-			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['balance'].').formatMoney(2, \'.\', \',\'));</script></td>
+			      <td>'.$item['datetime'].'</td>
+			      <td>'.$client->name.'</td>
+			      <td>'.$item['id'].'</td>
+			      <td class="text-right" style="padding: 0 5px;"><script>document.writeln(('.$item['total'].').formatMoney(2, \'.\', \',\'));</script></td>
 			    </tr>';
+
+			    $total += $item['total'];
+			    ++$itms;
 			}
 			        
 			echo '</tbody>
 			    </table>
 			    <div class="logo">
-				    <p style="margin: 5px 0 0 5px">Total Debits: <b>Ksh. <script>document.writeln(('.$dr.').formatMoney(2, \'.\', \',\'));</script></b></p>
-				    <p style="margin: 5px 0 0 5px">Total Credits: <b>Ksh. <script>document.writeln(('.$cr.').formatMoney(2, \'.\', \',\'));</script></b></p>			    
-				    <p style="margin: 5px 0 0 5px">Balance: <b>Ksh. <script>document.writeln(('.($dr - $cr).').formatMoney(2, \'.\', \',\'));</script></b></p>
+					<p style="margin: 5px 0 0 5px">Total Amounts: <b>Ksh. <script>document.writeln(('.($total).').formatMoney(2, \'.\', \',\'));</script></b></p>
 				</div>';
 		}
 
@@ -2343,6 +2410,318 @@
 			    <div class="logo">
 			    <p style="margin: 5px 0 0 5px">Total Payable for '.$_GET['month'].': <b>Ksh. <script>document.writeln(('.$totnet.').formatMoney(2, \'.\', \',\'));</script></b></p>				    
 			    </div>';
+		}
+	}
+
+	class ProjectReports
+	{
+		public static function ProjectsRegister()
+		{
+			$collection = Project::GetAllProjects();
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>ALL PROJECTS</h4>';
+
+			echo '</div>
+
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NO.</td>
+			          <td>NAME</td>
+			          <td>CLIENT</td>
+			          <td>LOCATION</td>
+					  <td>DESCRIPTION</td>
+			          <td>START DATE</td>
+					  <td>STATUS</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+			$count = 1;
+			foreach ($collection as $model) {
+			    echo '<tr>
+			      <td>'.$count.'</td>
+			      <td>'.$model->name.'</td>
+			      <td>'.$model->client->name.'</td>
+			      <td>'.$model->location.'</td>
+			      <td>'.$model->descr.'</td>
+			      <td>'.$model->date.'</td>
+			      <td>'.$model->status.'</td>
+			      </tr>';
+			     $count++;
+			}
+			        
+			echo '</tbody>
+			    </table>';
+		}
+
+		public static function ProjectReport()
+		{
+			$project = Project::GetProject($_GET['sid']);//, $_GET['period'], $_GET['all']
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>'.$project->name.'</h4><h5>CLIENT: '.$project->client->name.'</h5>';
+			/*if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}	*/		  
+			
+			echo '</div>
+				<h5>PROJECT ACTIVITIES</h5>
+				<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NO</td>
+			          <td>SERVICE</td>
+			          <td>TASK</td>
+			          <td>QTY</td>
+			          <td>DATE PROPOSED</td>
+			          <td>DATE EXECUTED</td>
+					  <td>STATUS</td>
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$count = 1;
+
+			foreach ($project->activities as $activity) {
+				if ($activity->status == 0) {
+					$status = '<td style="color: #027c97">SCHEDULED</td>';
+				}elseif ($activity->status == 1){
+					$status = '<td style="color: #e8e624">ON GOING</td>';
+				}elseif ($activity->status == 2){
+					$status = '<td style="color: #e81c34">STALLED</td>';
+				}elseif ($activity->status == 3){
+					$status = '<td style="color: #27c97b">COMPLETED</td>';
+				}elseif ($activity->status == 4){
+					$status = '<td style="color: #9c2488">SUSPENDED</td>';
+				}
+			    echo '<tr>
+			      <td>'.$count.'</td>
+			      <td>'.$activity->service.'</td>
+			      <td>'.$activity->task.'</td>
+			      <td>'.$activity->instances.'</td>
+			      <td>'.$activity->requestDate.'</td>
+			      <td>'.$activity->executionDate.'</td>'.$status.'
+			      </tr>';
+			     $count++;
+			}
+			        
+			echo '</tbody>
+			    </table>';
+
+			echo '<h5>QUOTED ITEMS</h5>
+					<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NO</td>
+			          <td>SERVICE</td>
+			          <td>DESCRIPTION</td>
+			          <td>QTY</td>
+			          <td>UNIT PRICE</td>
+			          <td>VAT</td>
+			          <td>SUB-TOTAL</td>					  
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$count = 1;$amount = 0.00;
+
+			foreach ($project->quotations as $quote) {
+				foreach ($quote->lineItems as $item) {
+					echo '<tr>
+				      <td>'.$count.'</td>
+				      <td>'.$item->itemName.'</td>
+				      <td>'.$item->itemDesc.'</td>
+				      <td>'.$item->quantity.'</td>
+				      <td>'.$item->unitPrice.'</td>
+				      <td>'.$item->tax.'</td>
+				      <td><script>document.writeln(('.(($item->quantity*$item->unitPrice)+(($item->quantity*$item->unitPrice)*$item->tax/100)).').formatMoney(2, \'.\', \',\'));</script></td>
+				      </tr>';
+				    $count++;
+				}
+				$amount += $quote->total;
+			    
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <h5 style="margin: 5px 0 0 5px;float:right">Total Quoted: <b>Ksh. <script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script></b></h5>				    
+			   </div>';
+
+			$invoices = SalesInvoice::GetProjectInvoices($_GET['sid'], $project->client);
+
+			echo '<h5>INVOICED ITEMS</h5>
+					<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NO</td>
+			          <td>DATE</td>
+			          <td>ITEM</td>
+			          <td>DESCRIPTION</td>
+			          <td>QTY</td>
+			          <td>UNIT PRICE</td>
+			          <td>VAT</td>
+			          <td>SUB-TOTAL</td>					  
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$count = 1;$amount = 0.00;
+
+			foreach ($invoices as $invoice) {
+				foreach ($invoice->lineItems as $item) {
+					echo '<tr>
+				      <td>'.$count.'</td>
+				      <td>'.$invoice->date.'</td>
+				      <td>'.$item->itemName.'</td>
+				      <td>'.$item->itemDesc.'</td>
+				      <td>'.$item->quantity.'</td>
+				      <td>'.$item->unitPrice.'</td>
+				      <td>'.$item->tax.'</td>
+				      <td><script>document.writeln(('.(($item->quantity*$item->unitPrice)+(($item->quantity*$item->unitPrice)*$item->tax/100)).').formatMoney(2, \'.\', \',\'));</script></td>
+				      </tr>';
+				    $count++;
+				}
+				$amount += $invoice->total->amount;
+			    
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <h5 style="margin: 5px 0 0 5px;float:right">Total Invoiced: <b>Ksh. <script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script></b></h5>				    
+			   </div>';
+
+			$expenses = ExpenseVoucher::GetProjectVouchers($_GET['sid'], $project->client);
+
+			echo '<h5>PROJECT EXPENSES</h5>
+					<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>NO</td>
+			          <td>DATE</td>
+			          <td>PARTY</td>
+			          <td>DESCRIPTION</td>
+			          <td>AMOUNT</td>				  
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$count = 1;$amount = 0.00;
+
+			foreach ($expenses as $expense) {
+				foreach ($expense->items as $item) {
+					echo '<tr>
+				      <td>'.$count.'</td>
+				      <td>'.$expense->date.'</td>
+				      <td>'.$item->claimant->name.'</td>
+				      <td>'.$item->description.'</td>
+				      <td><script>document.writeln(('.$item->adjusted.').formatMoney(2, \'.\', \',\'));</script></td>
+				      
+				      </tr>';
+				    $count++;
+				    $amount += $item->adjusted;
+				}
+				
+			    
+			}
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <h5 style="margin: 5px 0 0 5px;float:right">Total Expensed: <b>Ksh. <script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script></b></h5>				    
+			   </div>';
+
+			$payments = ReceiptVoucher::GetProjectReceipts($_GET['sid']);
+			echo '<h5>RECEIVED PAYMENTS</h5>
+					<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>REC. NO</td>
+			          <td>DATE</td>
+			          <td>AMOUNT</td>
+			          <td>VOUCHER</td>
+			          <td>DESCRIPTION</td>			  
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$amount = 0.00;
+
+			if (count($payments) > 0) {
+				foreach ($payments as $payment) {
+					echo '<tr>
+					    <td>'.$payment['id'].'</td>
+					    <td>'.$payment['datetime'].'</td>
+					    <td><script>document.writeln(('.$payment['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+					    <td>'.$payment['voucher_no'].'</td>
+					    <td>'.$payment['description'].'</td>					    
+					   </tr>';
+					$amount += $payment['amount'];				    
+				}
+			}
+
+			
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <h5 style="margin: 5px 0 0 5px;float:right">Total Received: <b>Ksh. <script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script></b></h5>				    
+			   </div>';
+		}
+
+		public static function MinorWorksReceipts()
+		{
+			$client = Client::GetClient($_GET['sid']);//, $_GET['period'], $_GET['all']
+			echo '
+				<div class="logo">
+				  <h5 style="margin-bottom:-15px;margin-top:0px;font-size:14px;">Date: '.date('d/m/Y').'</h5>
+				  <h4>MINOR WORKS PAYMENTS FOR '.$client->name.'</h4>';
+			/*if ($_GET['period'] != '' && $_GET['period'] ) {
+				echo '<h5 style="margin-top:-10px">Period: '.$_GET['period'].'</h5>';
+			}	*/		  
+			
+			echo '</div>';				
+
+			$payments = ReceiptVoucher::GetWorksReceipts($_GET['sid']);
+			echo '<h5>RECEIVED PAYMENTS</h5>
+					<table class="table table-bordered table-striped" style="text-align:center;margin-left:0;margin-right:0;width:760px;font-size:12px;">
+			      <thead class="title">
+			        <tr>
+			          <td>REC. NO</td>
+			          <td>DATE</td>
+			          <td>AMOUNT</td>
+			          <td>VOUCHER</td>
+			          <td>DESCRIPTION</td>			  
+			        </tr>
+			      </thead>
+			      <tbody>';
+
+			$amount = 0.00;
+
+			if (count($payments) > 0) {
+				foreach ($payments as $payment) {
+					echo '<tr>
+					    <td>'.$payment['id'].'</td>
+					    <td>'.$payment['datetime'].'</td>
+					    <td><script>document.writeln(('.$payment['amount'].').formatMoney(2, \'.\', \',\'));</script></td>
+					    <td>'.$payment['voucher_no'].'</td>
+					    <td>'.$payment['description'].'</td>					    
+					   </tr>';
+					$amount += $payment['amount'];				    
+				}
+			}
+
+			
+			        
+			echo '</tbody>
+			    </table>
+			    <div class="logo">
+			    <h5 style="margin: 5px 0 0 5px;float:right">Total Received: <b>Ksh. <script>document.writeln(('.$amount.').formatMoney(2, \'.\', \',\'));</script></b></h5>				    
+			   </div>';
 		}
 	}
 

@@ -52,8 +52,9 @@ class Client extends Party
   		
   		if ($client->save()) {
   			return $client;
-  		}
-  		return false;
+  		}else{
+  			return false;
+  		}  		
   	}
 
 	  public static function GetClient($id)
@@ -116,10 +117,10 @@ class Client extends Party
         $sql = 'SELECT * FROM clients WHERE name = "'.$this->name.'" AND telephone = "'.$this->telephone.'"';
   	    // Execute the query and return the results
   	    $res =  DatabaseHandler::GetRow($sql);
-  	    if (!empty($resa['id'])) {
+  	    if (!empty($resa['name'])) {
   	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and idno:'.$this->idno.' already exists');
   	    	return false;
-  	    }elseif (!empty($res['id'])) {
+  	    }elseif (!empty($res['name'])) {
   	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and phone number:'.$this->telephone.' already exists');
   	    	return false;
   	    }else{
@@ -1078,7 +1079,7 @@ class SalesInvoice
 				if (!empty($item['datetime'])) {
 					$invoice = new SalesInvoice($item['id'], $item['project_id'], $item['quotes'], $item['description'], $item['discount'], $item['datetime'], $item['status'], $client);
 					$invoice->initialize();
-					$invoice->initProject($item['project_id']);
+					//$invoice->initProject($item['project_id']);
 					$invoices[] = $invoice;
 				}else{
 					
@@ -1344,6 +1345,34 @@ class ReceiptVoucher
 		} catch (Exception $e) {
 			Logger::Log('ReceiptVoucher', 'Exception', $e->getMessage());
 		}		
+	}
+
+	public static function GetProjectReceipts($id)
+	{
+		if ($id != 0 && $id != '' && $id != null) {
+			try {
+				$sql = 'SELECT * FROM receipts WHERE project_id = '.$id;
+				$res =  DatabaseHandler::GetAll($sql);
+				return $res;
+			} catch (Exception $e) {
+				Logger::Log('ReceiptVoucher', 'Exception', $e->getMessage());
+			}	
+		}else{
+			return [];
+		}
+			
+	}
+
+	public static function GetWorksReceipts($id)
+	{
+		try {
+			$sql = 'SELECT * FROM receipts WHERE (project_id = 0 OR isnull(project_id) OR project_id = "") AND client_id = '.$id;
+			$res =  DatabaseHandler::GetAll($sql);
+			return $res;
+		} catch (Exception $e) {
+			Logger::Log('ReceiptVoucher', 'Exception', $e->getMessage());
+		}
+			
 	}
 
 	public static function GetVoucher($txid)

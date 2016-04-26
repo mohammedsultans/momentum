@@ -132,7 +132,11 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           //alert(JSON.stringify(data));
           //swal("Success!", "The record has been created.", "success");
           if (data['name'] != '' && data['tel'] != '' && data['idno'] != '') {
-            this.trigger("create", data);
+            if (data.idno.length > 5 && data.tel.length > 5) {
+              this.trigger("create", data);
+            } else{
+              swal("Invalid input!", "Ensure you enter correct phone no. & ID/Passport no.", "info");
+            };            
           } else {
             swal("Missing Info!", "Ensure all mandatory entries are filled", "info");
           }
@@ -153,7 +157,11 @@ define(["app", "tpl!apps/templates/register.tpl", "tpl!apps/templates/enquiry.tp
           //alert(JSON.stringify(data));
           //swal("Success!", "The record has been created.", "success");
           if (data['name'] != '' && data['tel'] != '' && data['idno'] != '') {
-            this.trigger("edit", data);
+            if (data.idno.length > 5 && data.tel.length > 5) {
+              this.trigger("edit", data);
+            } else{
+              swal("Invalid input!", "Ensure you enter correct phone no. & ID/Passport no.", "info");
+            };
           } else {
             swal("Missing Info!", "Ensure all mandatory entries are filled", "info");
           }

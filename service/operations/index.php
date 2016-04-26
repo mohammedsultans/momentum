@@ -52,10 +52,11 @@
 					}
 				
 				}elseif($operation == 'fileReport'){
-					if(isset($_POST['project']) && isset($_POST['activity']) && isset($_POST['location']) && isset($_POST['personell']) && isset($_POST['report'])){
+					if(isset($_POST['project']) && isset($_POST['activity']) && isset($_POST['location']) && isset($_POST['personell']) && isset($_POST['report']) && isset($_POST['status'])){
 						$pid = $_POST['project'];
 						$location = $_POST['location'];
 						$report = $_POST['report'];
+						$status = $_POST['status'];
 						if (isset($_POST['activity'])) {
 							$activities = $_POST['activity'];
 						}else{
@@ -71,7 +72,7 @@
 						}else{
 							$charges = [];
 						}
-						$this->fileReport($pid, $activities, $location, $personell, $report, $charges);
+						$this->fileReport($pid, $activities, $status, $location, $personell, $report, $charges);
 					}else{
 						echo 0;
 					}
@@ -296,9 +297,9 @@
 			}
 		}
 		
-		public function fileReport($pid, $activities, $location, $personell, $report, $charges)
+		public function fileReport($pid, $activities, $status, $location, $personell, $report, $charges)
 		{
-			$report = WorkReport::Create($pid, $activities, $location, $personell, $report, $charges);
+			$report = WorkReport::Create($pid, $activities, $status, $location, $personell, $report, $charges);
 			if ($report) {
 				echo 1;
 			}else{

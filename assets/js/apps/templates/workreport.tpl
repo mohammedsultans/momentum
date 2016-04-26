@@ -103,6 +103,18 @@
                       <textarea class="form-control" name="report" rows="5" id="textarea1"></textarea>
                     </div>
                   </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Status<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <select class="selectpicker form-control" name="status" style="padding-left:5px" id="prjstat">
+                        <option data-icon="fa fa-bullseye" value="0">Pending</option>
+                        <option data-icon="fa fa-bullseye" value="1">On Going</option>
+                        <option data-icon="fa fa-bullseye" value="2">Stalled</option>
+                        <option data-icon="fa fa-bullseye" value="3">Completed</option>
+                        <option data-icon="fa fa-bullseye" value="4">Suspended</option>
+                      </select>  
+                    </div>              
+                  </div> 
                 </form>
 
               </div>

@@ -180,10 +180,10 @@ class ProjectActivity
     {
       	try {
       		$datetime = new DateTime();
-      		$sql = 'UPDATE project_activities SET date_executed = "'.$datetime->format('d/m/Y').'", status = 1 WHERE id = '.$this->id;
+      		$sql = 'UPDATE project_activities SET date_executed = "'.$datetime->format('d/m/Y').'", status = 3 WHERE id = '.$this->id;
         	DatabaseHandler::Execute($sql);
         	$this->executionDate = $datetime->format('d/m/Y');
-        	$this->status = 1;
+        	$this->status = 3;
       	} catch (Exception $e) {
         
       	}
@@ -243,7 +243,17 @@ class ProjectActivity
   	public static function DiscardActivity($id)
     {
       	try {
-      		$sql = 'UPDATE project_activities SET status = 2 WHERE id = '.$id;
+      		$sql = 'UPDATE project_activities SET status = 7 WHERE id = '.$id;
+        	DatabaseHandler::Execute($sql);
+      	} catch (Exception $e) {
+        
+      	}
+    }
+
+    public static function UpdateActivityStatus($id, $status)
+    {
+      	try {
+      		$sql = 'UPDATE project_activities SET status = '.$status.' WHERE id = '.$id;
         	DatabaseHandler::Execute($sql);
       	} catch (Exception $e) {
         
@@ -265,7 +275,7 @@ class Project
 	public $quotations = [];
 	public $activities = [];
 
-  	function __construct($id, $name, $location, $descr, $date, $client, $stamp, $status = 0, $bal = 0)
+  	function __construct($id, $name, $location, $descr, $date, $client, $stamp, $status, $bal = 0)
 	{
 		$this->id = $id;
 		$this->name = $name;		
@@ -501,13 +511,17 @@ class WorkReport
 		}
 	}
 
-	public static function Create($projectId, $activities, $location, $personell, $report, $charges)
+	public static function Create($projectId, $activities, $status, $location, $personell, $report, $charges)
     {
 	    try {
 	      	$datetime = new DateTime();
 			$sql = 'INSERT IGNORE INTO work_reports (project_id, activities, location, personell, report, date, stamp, status) 
 			VALUES ('.$projectId.', "'.implode(",", $activities).'", "'.$location.'", "'.implode(",", $personell).'", "'.$report.'", "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', 0)';
 			DatabaseHandler::Execute($sql);
+
+			foreach ($activities as $actid) {
+				ProjectActivity::UpdateActivityStatus($actid, $status);
+			}
 
 			$sql = 'SELECT * FROM work_reports WHERE stamp = '.$datetime->format('YmdHis');
 			$res =  DatabaseHandler::GetRow($sql);

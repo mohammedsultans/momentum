@@ -6,6 +6,8 @@ require_once DATA_DIR . 'error_handler.php';
 ErrorHandler::SetHandler();
 require_once DATA_DIR . 'database_handler.php';
 
+date_default_timezone_set('Africa/Nairobi');
+
 require_once('Logger.php');
 //require_once('Session.php');
 require_once('Party.php');
@@ -19,7 +21,7 @@ require_once('DomainHRM.php');
 
 class View
 {
-	public $id;
+	  public $id;
   	public $moduleId;
   	public $name;
   	public $logo;

@@ -2328,42 +2328,45 @@ class FinancialStatements extends Artifact
 	public static function CashBook($dates, $all)
 	{
 		try {
-			$sql = 'SELECT * FROM ledgers WHERE category = "Bank" OR name LIKE "%Cash%"';//AND name NOT LIKE "%Discount%"
+			$sql = 'SELECT * FROM ledgers WHERE type = "Asset" AND category = "Bank"';//AND name NOT LIKE "%Discount%"
 			$banks =  DatabaseHandler::GetAll($sql);
-			$sql = 'SELECT * FROM ledgers WHERE type = "Asset" AND name LIKE "%Cash%"';
-			$cash =  DatabaseHandler::GetAll($sql);
-			//$sql = 'SELECT * FROM ledgers WHERE name LIKE "%discount%"';
-			//$disc =  DatabaseHandler::GetAll($sql);
-			$bledgers = [];
-			foreach ($banks as $ledger) {
-				$bledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
-			}
-			$cledgers = [];
-			foreach ($cash as $ledger) {
-				$cledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
-			}
 		} catch (Exception $e) {
 			return false;
 		}
 
+		//Build AQL
+
+		$query = '';
+
+		foreach ($banks as $ledger) {
+			if ($query == '') {
+				$query .= '(ledger_id = '.$ledger['id'];
+			}else{
+				$query .= ' OR ledger_id = '.$ledger['id'];
+			}
+		}
+		$query .= ')';
+
 		if ($all == 'true'){
-			$sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' ORDER BY id ASC';
+			$sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' ORDER BY id ASC';
 		}else if($dates != ''){
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE ledger_id = '.$ledger.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
 		}
 
 		try {
-			$result = DatabaseHandler::GetAll($sql);
+			$entries = DatabaseHandler::GetAll($sql);
 			/*foreach ($result as &$tx) {
 				$sql2 = 'SELECT type FROM transactions WHERE id = '.intval($tx['transaction_id']);
 				$res =  DatabaseHandler::GetOne($sql2);
 				$tx['type'] = $res;
 			}*/
+			$result['ledgers'] = $banks;
+			$result['entries'] = $entries;
 			return $result;
 		} catch (Exception $e) {
 				

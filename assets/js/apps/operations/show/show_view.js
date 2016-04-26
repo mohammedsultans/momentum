@@ -785,7 +785,7 @@ define(["app", "tpl!apps/templates/project.tpl", "tpl!apps/templates/editproject
           e.stopPropagation();
           var data = Backbone.Syphon.serialize($("#frmr1")[0]);
           data['project'] = parseInt(data['project'], 10);
-          if (data['client'] && data['activity'] && data['personell'] && data['report']) {
+          if (data['client'] && data['activity'] && data['personell'] && data['report'] && data['status']) {
             data['charges'] = this['charges'];
             //alert(JSON.stringify(data));
             this.trigger("file", data);

@@ -174,6 +174,64 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
         }, 150);
       },
 
+      subjectModal: function(id, title, subjectUrl){
+
+        swal({
+            title: title,
+            text: "<form class=\"form-horizontal\" id=\"frmi1\"><div class=\"form-group\"><label class=\"col-sm-2 control-label form-label\">Subject<span class=\"color10\">*</span></label><div class=\"col-sm-10\">"+
+                  "<select class=\"selectpicker form-control\" name=\"subject\" id=\"subject\" data-live-search=\"true\" ><option data-icon=\"fa fa-user\">Select Supplier...</option></select></div></div></form>",
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: "View Report",
+            cancelButtonText: "Cancel",
+            closeOnConfirm: false
+            },
+            function(isConfirm){
+              if (isConfirm) {
+                var rid = id; 
+                var sid = '';
+                if (subjectUrl == '/service/operations/index.php?services') {
+                  sid = $('#subject').val();
+                }else{
+                  sid = parseInt($('#subject').val(), 10);
+                }
+                window.open('reports.php?id='+id+'&sid='+sid);             
+              } else {
+                swal("Cancelled", "Your have chosen not to view report.", "info");
+              }
+            }
+        );
+
+        var ul = $('#subject');
+        ul.empty();
+        $.get(System.coreRoot + subjectUrl, function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-user">Select One...</option>');
+            tp.appendTo(ul);
+
+            m.forEach(function(elem){
+              var tpl = '';
+              if (subjectUrl == '/service/crm/index.php?clients') {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              } else if (subjectUrl == '/service/tools/index.php?users') {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.record.name+'</option>');
+              } else if (subjectUrl == '/service/operations/index.php?services') {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem.name+'">'+elem.name+'</option>');
+              } else {
+                tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'</option>');
+              }
+              tpl.appendTo(ul);
+            });
+
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+                $('.selectpicker').css('margin', 0);
+                $('.sweet-alert').css('overflow', 'visible');
+            }, 300);
+        });
+      },
+
       subjectRangeModal: function(id, title, subjectUrl){
 
         swal({
@@ -426,11 +484,11 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             break;
 
           case 112:
-            //Cash Flow
+            View.Modals.rangeModal(id, 'Cash Book');
             break;
 
           case 113:
-            //Credit Book
+            View.Modals.rangeModal(id, 'Credit Book');
             break;
 
           case 114:
@@ -665,12 +723,12 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
 
           case 501:
             //Project Report
-            View.Modals.subjectRangeModal(id, 'Project Report', '/service/operations/index.php?allProjects');
+            View.Modals.subjectModal(id, 'Project Report', '/service/operations/index.php?allProjects');
             break;
 
           case 502:
-             //Project Report
-            View.Modals.subjectRangeModal(id, 'Project Expenses', '/service/operations/index.php?allProjects');
+             //Minor Works Report
+            View.Modals.subjectModal(id, 'Minor Works Receipts', '/service/crm/index.php?clients');
             break;
 
           default:
