@@ -22,10 +22,10 @@ requirejs.config({
     bootwysiboot: "plugins/bootstrap-wysihtml5/bootstrap-wysihtml5",
     summernote: "plugins/summernote/summernote.min",
     //charting
-    flotchart: "plugins/flot-chart/flot-chart",
+    /*flotchart: "plugins/flot-chart/flot-chart",
     flottime: "plugins/flot-chart/flot-chart-time",
     flotstack: "plugins/flot-chart/flot-chart-stack",
-    flotpie: "plugins/flot-chart/flot-chart-pie",
+    flotpie: "plugins/flot-chart/flot-chart-pie",*/
     chartist: "plugins/chartist/chartist",
     easypie: "plugins/easypiechart/easypiechart",
     sparkline: "plugins/sparkline/sparkline",
@@ -80,7 +80,7 @@ requirejs.config({
 
     rickshaw: ["d3"],
 
-    flotchart: {
+    /*flotchart: {
       deps: ["jquery"],
       exports: '$.plot'
     },
@@ -92,7 +92,7 @@ requirejs.config({
     },
     flotpie: {
       deps: ["flotchart"]
-    },
+    },*/
 
     fileupload: ["knob", "widget", "iframe"],
     
@@ -100,7 +100,7 @@ requirejs.config({
     localstorage: ["backbone"],
     bootstrap: ["jquery"],
     plugins: ["bootstrap"],
-    graphs: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "flotchart", "flottime", "flotstack", "flotpie", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"],
+    graphs: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "chartist", "easypie", "sparkline", "d3", "rickshaw", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"],
     basics: ["jquery", "bootstrap", "bootselect", "boottoggle", "bootwysiboot", "summernote", "datatables", "sweetalert", "kodealert", "jqueryui", "moment", "calendar", "daterange", "money"]
   }
 });

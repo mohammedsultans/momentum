@@ -324,7 +324,7 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
         template: passwordTpl,
 
         events: {
-          "click .lsave": "createLedger"
+          "click .usave": "changePassword"
         },
 
         onShow: function(){                  
@@ -332,89 +332,35 @@ define(["app", "tpl!apps/templates/users.tpl", "tpl!apps/templates/roles.tpl", "
           this.setup();
         },
 
-        setup: function(){
-          var THAT = this;
-          var ul = $('#subacc');
-          ul.empty();
-          var ulx = $('tbody');
-          ulx.empty();          
-
-          $.get(System.coreRoot + '/service/finance/index.php?allLedgers', function(result) {
-            var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-list-alt">N/A</option>');
-            tp.appendTo(ul);
-            
-            m.forEach(function(elem){
-              var tpla = $('<option data-icon="fa fa-list-alt" value="'+elem['id']+'">'+elem['name']+'</option>');
-              tpla.appendTo(ul);
-              var tplb = $('<tr><td>'+elem['name']+'</td><td>'+elem['type']+'<span style="font-style:italic; font-size:11px"> - '+elem['group']+'</span></td>'+
-                    '<td><p class="lbal" style="display: none;">'+elem['balance']['amount']+'</p>Ksh. '+elem['balance']['amount']+'</td><td><p class="lid" style="display: none;">'+elem['id']+'</p><a class="btn btn-danger ldel" href="#"><i class="fa fa-trash"></i></a></td></tr>');
-              tplb.appendTo(ulx);
-            });
-            
-            setTimeout(function() {
-                $('.selectpicker').selectpicker();
-                $('.selectpicker').selectpicker('refresh');
-
-                $('.ldel').on('click', function(e){
-                  e.preventDefault();
-                  e.stopPropagation();
-                  var lid = $(this).parent().find('.lid').text();
-                  var bal = $(this).parent().parent().find('.lbal').text();
-                  swal({
-                    title: "Are you sure?",
-                    text: "You will not be able to recover this ledger!",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Yes, delete it!",
-                    cancelButtonText: "No, cancel!",
-                    closeOnConfirm: false,
-                    closeOnCancel: false
-                  },
-                  function(isConfirm){
-                    if (isConfirm && parseFloat(bal) == 0) {
-                      THAT.deleteLedger(lid);                             
-                    } else if (isConfirm && parseFloat(bal) > 0) {
-                      swal("Restricted", "Deletion Prevented. Ensure balance is ZERO before deletion.", "error");
-                    }else {
-                      swal("Cancelled", "The ledger has NOT been deleted :)", "error");
-                    }
-                  });
-                  
-                });
-            }, 300);
-          });
-
-          
-          
+        setup: function(){          
           $('form input').val('');
         },
       
-        createLedger: function(e) { 
+        changePassword: function(e) { 
           e.preventDefault();
           e.stopPropagation();
           var data = Backbone.Syphon.serialize(this);
           
-          if (data['name'] && data['type'] && data['group'] && data['category'] && data['subaccount']) {
+          if (data['opass'] && data['npass'] && data['cpass']) {
             //alert(JSON.stringify(data));
-            this.trigger("create", data);
+            if (data['npass'] == data['cpass']) {
+              this.trigger("submit", data);
+            }else{
+            swal("Error!", "Enter ensure you enter matching passwords!", "error");
+          }
+            
           }else{
-            swal("Error!", "Enter all parameters!", "error");
+            swal("Error!", "Enter all fields!", "error");
           }
         },
 
-        deleteLedger: function(lid) { 
-          this.trigger("delete", lid);
-        },
-
         onSuccess: function(voucher) { 
-          swal("Success!", "The ledger has been created.", "success");
+          swal("Success!", "The password has been changed.", "success");
           this.setup();
         },
 
         onError: function(e) { 
-          swal("Error!", "Ledger could not be created! Please, try again.", "error");
+          swal("Error!", "Password could not be changed! Please, try again.", "error");
         }
     });
   });

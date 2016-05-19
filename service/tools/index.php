@@ -6,12 +6,11 @@
 	
 	class Tools
 	{
-		// Constructor reads query string parameter
 		public function __construct()
 		{
 			if(isset($_POST['operation'])){
-				$operation = $_POST['operation'];
-				if($operation == 'createUser'){
+				$cmd = $_POST['operation'];
+				if($cmd == 'createUser'){
 					if(isset($_POST['empid']) && isset($_POST['uname']) && isset($_POST['pass']) && isset($_POST['role'])){
 						$empid = $_POST['empid'];
 						$uname = $_POST['uname'];
@@ -22,7 +21,7 @@
 						echo 0;
 					}
 						
-				}elseif($operation == 'modifyUser'){
+				}elseif($cmd == 'modifyUser'){
 					if(isset($_POST['empid']) && isset($_POST['uname2']) && isset($_POST['role2']) && isset($_POST['access'])){
 						$empid = $_POST['empid'];
 						$uname = $_POST['uname2'];
@@ -33,7 +32,7 @@
 						echo 0;
 					}
 				
-				}elseif($operation == 'removeUser'){
+				}elseif($cmd == 'removeUser'){
 					if(isset($_POST['id'])){
 						$empid = $_POST['id'];
 						$this->removeUser($empid);
@@ -41,7 +40,7 @@
 						echo 0;
 					}
 
-				}elseif($operation == 'createRole'){
+				}elseif($cmd == 'createRole'){
 					if(isset($_POST['name']) && isset($_POST['views'])){
 						$name = $_POST['name'];
 						$views = $_POST['views'];
@@ -55,7 +54,7 @@
 						echo 0;
 					}
 				
-				}elseif($operation == 'modifyRole'){
+				}elseif($cmd == 'modifyRole'){
 					if(isset($_POST['id']) && isset($_POST['name']) && isset($_POST['views'])){
 						$id = $_POST['id'];
 						$name = $_POST['name'];
@@ -65,7 +64,7 @@
 						echo 0;
 					}
 				
-				}elseif($operation == 'deleteRole'){
+				}elseif($cmd == 'deleteRole'){
 					if(isset($_POST['id'])){
 						$empid = $_POST['id'];
 						$this->deleteUser($empid);
@@ -73,7 +72,23 @@
 						echo 0;
 					}
 
-				}elseif($operation == 'login'){
+				}elseif($cmd == 'postmemo'){
+					if(isset($_POST['name']) && isset($_POST['role']) && isset($_POST['title']) && isset($_POST['message'])){
+						$this->postMemo($_POST['name'], $_POST['role'], $_POST['title'], $_POST['message'], $_POST['expiry']);
+					}else{
+						echo 0;
+					}				
+				}elseif($cmd == 'changePassword'){
+					if(isset($_POST['opass']) && isset($_POST['npass']) && isset($_POST['cpass'])){
+						if ($_POST['npass'] == $_POST['cpass']) {
+							$this->changePassword($_POST['opass'], $_POST['npass']);
+						}else{
+							echo 0;
+						}
+					}else{
+						echo 0;
+					}				
+				}elseif($cmd == 'login'){
 					if(isset($_POST['uname']) && isset($_POST['pass'])){
 						$uname = $_POST['uname'];
 						$pass = $_POST['pass'];
@@ -81,10 +96,9 @@
 					}else{
 						echo 0;
 					}
-
-				}elseif($operation == 'logout'){
+				}elseif($cmd == 'logout'){
 					$this->logout();
-				}elseif($operation == 'checkauth'){
+				}elseif($cmd == 'checkauth'){
 					$this->check_auth();
 				}else{ 
 					echo 0;
@@ -101,6 +115,8 @@
 				$this->getSession();
 			}elseif(isset($_GET['dirdash'])){
 				$this->getDirectorsDashboard();
+			}elseif(isset($_GET['notices'])){
+				$this->notices();
 			}else{
 				echo 0;
 			}
@@ -233,6 +249,31 @@
 			}else{
 				echo 0;
 			}
+		}
+
+		public function changePassword($opass, $npass)
+		{
+			$session = SessionManager::GetSession();
+			if ($session) {
+				User::ChangePassword($session->user, $opass, $npass);
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postMemo($name, $position, $title, $message, $expiry)
+		{
+			if (OfficeMemo::Create($name, $position, $title, $message, $expiry)) {
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function notices()
+		{			
+			echo json_encode(OfficeMemo::GetCurrent());
 		}
 
 		public function getDirectorsDashboard()

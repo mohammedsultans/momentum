@@ -1,5 +1,5 @@
-define(["app", "tpl!apps/templates/dash.tpl", "money"], 
-	function(System, dashTpl){
+define(["app", "tpl!apps/templates/dash.tpl", "tpl!apps/templates/postmemo.tpl", "tpl!apps/templates/viewmemo.tpl", "money"], 
+	function(System, dashTpl, postMemoTpl, viewMemoTpl){
   System.module('DashApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
     View.Dash = Marionette.ItemView.extend({      
@@ -179,7 +179,7 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
               var thr = $('#thr');
               thr.empty();
               thrmrg = parseInt(thrmrg, 10);
-              if (thrmrg > 0) {
+              if ((data['thirtydaydata']['rsum'] - data['thirtydaydata']['esum']) > 0) {
                 var tpl = $('<span class="diff"><b class="color-up" style="font-size: 18px;font-weight:600">Ksh. '+(data['thirtydaydata']['rsum'] - data['thirtydaydata']['esum']).formatMoney(2, '.', ',')+'</b><br></span>('+(data['thirtydaydata']['rsum']).formatMoney(2, '.', ',')+' - '+(data['thirtydaydata']['esum']).formatMoney(2, '.', ',')+')<br>Over last 30 days<i class="chart sparkline-green"></i>');
                 tpl.appendTo(thr);
               }else{
@@ -247,6 +247,106 @@ define(["app", "tpl!apps/templates/dash.tpl", "money"],
             });*/           
             
           });
+        }
+    });
+
+    View.PostMemo = Marionette.ItemView.extend({      
+
+        template: postMemoTpl,
+
+        events: {
+          "click .nsave": "postMemo",
+        },
+
+        onShow: function(){
+          $('.loading').hide();
+          this.setup();
+        },
+
+        setup: function(){
+          $('input').val('');
+          $('textarea').val('');
+          $('#date-picker').daterangepicker({ singleDatePicker: true, format: 'DD/MM/YYYY' }, function(start, end, label) {});
+        },
+
+        postMemo: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize(this);
+          //alert(JSON.stringify(data));
+          //swal("Thank you!", "Query has been posted. Please wait to see consultant.", "success");
+          if (data.title != "" && data.message != "") {
+            data.name = System.username;
+            data.role = System.role.name;
+            this.trigger("create", data);
+          };
+          
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The memo has been posted.", "success");          
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Command failed! Try again later.", "error");
+        }
+    });
+
+    View.OfficeMemos = Marionette.ItemView.extend({      
+
+        template: viewMemoTpl,
+
+        events: {
+          "click .xcheck": "postMemo",
+        },
+
+        onShow: function(){
+          //$("#leadscont").unwrap();
+          this.setup();
+
+        },
+
+        setup: function(){
+          var THAT = this;
+          var ul = $('tbody');
+          ul.empty();
+          $.get(System.coreRoot + '/service/tools/index.php?notices', function(result) {
+            var m = JSON.parse(result);
+            
+            m.forEach(function(elem){
+              var tpl = $('<tr><td>'+elem['title']+'</td><td>'+elem['message']+'</td><td>'+elem['name']+'</br><span style="font-size:10px">'+elem['position']+'</span></td><td>'+elem['date']+'</td></tr>');
+                //+'<td><p class="xstamp" style="display: none;">'+elem['stamp']+'</p><a class="btn btn-small js-edit xcheck" href="#"><i class="icon-pencil"></i>Check</a></td></tr>');
+              tpl.appendTo(ul);
+            });
+            $('.xcheck').off();
+            $('.xcheck').on('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var stamp = $(this).parent().find('.xstamp');
+              stamp = parseInt(stamp.text());
+              THAT.trigger("check", stamp);
+            });
+            
+          });
+        },
+
+        postMemo: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize(this);
+          //alert(JSON.stringify(data));
+          swal("Thank you!", "Query has been posted. Please wait to see consultant.", "success");
+          //this.trigger("create", data);
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The entry has been checked off from your list.", "success");
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
         }
     });
 

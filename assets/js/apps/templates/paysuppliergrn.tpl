@@ -146,6 +146,12 @@
                   <input type="text" name="voucher" class="form-control" id="">
                 </div>                    
               </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Description<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <textarea class="form-control" name="descr" rows="3" id=""></textarea>
+                </div>
+              </div>
               <button type="submit" class="btn btn-warning idiscard float-r" style="margin-left:20px">Discard</button>
               <button type="submit" class="btn btn-default ipay float-r">Make Payment</button>
                   

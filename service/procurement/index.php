@@ -79,7 +79,7 @@
 					}
 				
 				}elseif($operation == 'makePaymentGRN'){
-					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments']) && isset($_POST['voucher'])){
+					if(isset($_POST['supplier']) && isset($_POST['account']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['payments']) && isset($_POST['voucher']) && isset($_POST['descr'])){
 						if ($_POST['account'] != 101) {
 							if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
 						      	echo 0;
@@ -92,7 +92,8 @@
 						$mode = $_POST['mode'];
 						$voucher =  $_POST['voucher'];
 						$payments = $_POST['payments'];
-						$this->makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments);
+						$descr = $_POST['descr'];
+						$this->makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments, $descr);
 					}else{
 						echo 0;
 					}
@@ -258,9 +259,9 @@
 			}
 		}
 
-		public function makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments)
+		public function makePaymentGRN($supplierid, $amount, $account, $mode, $voucher, $payments, $descr)
 		{
-			$payment = GRNPaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $payments);
+			$payment = GRNPaymentTX::MakePayment($supplierid, $amount, $account, $mode, $voucher, $payments, $descr);
 			$voucher = $payment->submit();
 			if ($voucher) {
 				echo json_encode($voucher);

@@ -283,13 +283,26 @@ define(["app", "tpl!apps/templates/financialRpts.tpl", "tpl!apps/templates/clien
             tp.appendTo(ul);
 
             m.forEach(function(elem){
-              var tpl = '';
+              var tpl = $('');
               if (subjectUrl == '/service/crm/index.php?clients') {
                 tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
               } else if (subjectUrl == '/service/tools/index.php?users') {
                 tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.record.name+'</option>');
               } else if (subjectUrl == '/service/operations/index.php?services') {
                 tpl = $('<option data-icon="fa fa-user" value="'+elem.name+'">'+elem.name+'</option>');
+              } else if (subjectUrl == '/service/finance/index.php?allLedgers') {
+                //console.log(System.role.name + ' ' + elem.name.toLowerCase().indexOf('cash'))
+                if (elem.category == 'Bank') {
+                  if ((System.role.name == 'System Architect' || System.role.name == 'DIRECTOR & GROUP CEO') && elem.name.toLowerCase().indexOf('cash') < 0 ) {
+                    tpl = $('<option data-icon="fa fa-money" value="'+elem.id+'">'+elem.name+'</option>');
+                  }
+
+                  if (elem.name.toLowerCase().indexOf('cash') >= 0) {
+                    tpl = $('<option data-icon="fa fa-money" value="'+elem.id+'">'+elem.name+'</option>');
+                  }
+                }else{
+                  tpl = $('<option data-icon="fa fa-money" value="'+elem.id+'">'+elem.name+'</option>');
+                }                
               } else {
                 tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem.name+'</option>');
               }

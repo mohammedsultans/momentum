@@ -117,7 +117,7 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         });
       },
 
-      ledgerTX: function(){ 
+      ledgerTx: function(){ 
         var view = new View.LedgerTransactions();
 
         System.contentRegion.show(view);
@@ -221,8 +221,19 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
         
         System.contentRegion.show(view);
 
-        view.on('post', function(data) {
-          data['operation'] = 'postBankTx';
+        view.on('postC2B', function(data) {
+          data['operation'] = 'postC2BBankTx';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("success");     
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+
+        view.on('postB2B', function(data) {
+          data['operation'] = 'postB2BBankTx';
           $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
             if (result == 1) {
               view.triggerMethod("success");     
@@ -265,7 +276,30 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
             }
           });
         });
-      }      
+      },
+
+      crnote: function(a){ 
+        var view = new View.CRNote();
+
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'issueCrNote';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },     
     };
   });
 

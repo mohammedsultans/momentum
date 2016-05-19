@@ -3,7 +3,9 @@ define(["app", "apps/dash/show/show_controller"], function(System, showControlle
 
     DashApp.Router = Marionette.AppRouter.extend({
       appRoutes: {
-        "dash" : "showDash"
+        "dash" : "showDash",
+        "postMemo" : "postMemo",
+        "viewMemos" : "viewMemos"
       }
     });
 
@@ -34,7 +36,7 @@ define(["app", "apps/dash/show/show_controller"], function(System, showControlle
 
     System.addInitializer(function(){
       new DashApp.Router({
-        controller: API
+        controller: showController
       });
     });
   });

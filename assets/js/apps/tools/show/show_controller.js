@@ -85,22 +85,9 @@ define(["app", "apps/tools/show/show_view"], function(System, View){
         
         System.contentRegion.show(view);
 
-        view.on('create', function(data) {
-          data['operation'] = 'createLedger';
-          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
-            if (result == 1) {
-              view.triggerMethod("success");     
-            }else{
-              view.triggerMethod("error");
-            }
-          });
-        });
-
-        view.on('delete', function(lid) {
-          data = {};
-          data['operation'] = 'deleteLedger';
-          data['lid'] = lid;
-          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+        view.on('submit', function(data) {
+          data['operation'] = 'changePassword';
+          $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
             if (result == 1) {
               view.triggerMethod("success");     
             }else{

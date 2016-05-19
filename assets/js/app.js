@@ -4,6 +4,7 @@ define(["marionette", "sweetalert"], function(Marionette){
   window.momentum = System;
 
   System.coreRoot = "http://code.dev/momentum";
+  System.cache = {};
 
   var checkLogin = function(callback) {
     $.get(System.coreRoot + '/service/tools/index.php?session', function(result) {

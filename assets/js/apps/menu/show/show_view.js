@@ -32,6 +32,7 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
           System.role = data.role;
           System.username = data.record.name;
           System.interfaces = data.role.presentation;
+          //System.user = data;
           //alert(JSON.stringify(System.views));          
           $.each(System.interfaces, function(i, module){
             var tpl = $('<li><a href="#"><span class="icon color11-bg"><i class="fa '+module['logo']+'"></i></span>'+module['name']+'<span class="caret"></span></a><ul id="mod'+i+'"><ul></li>');

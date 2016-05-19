@@ -643,33 +643,12 @@ class PurchaseInvoice
 
 	public function generate()
 	{
-		$amount = 0.00;
-		$taxamt = 0.00;
-		$discamt = 0.00;
-		$total = 0.00;
-		$items = 0;
-
-		foreach ($this->lineItems as $invoiceLine) {
-			$lineItemAmount = ($invoiceLine->quantity * $invoiceLine->unitPrice);
-			$amount = $amount + $lineItemAmount;
-			$items = $items + $invoiceLine->quantity;
-			$linetaxamt = ($lineItemAmount * ($invoiceLine->tax/100));
-			$taxamt = $taxamt + $linetaxamt;
-			$discamt = $discamt + (($lineItemAmount + $linetaxamt) * ($invoiceLine->discount/100));
-		}
-		//$taxamt = $amount * $tax/100;
-		$total = $amount + $taxamt - $discamt;
+		$this->calculate('full');
 
 		try {
 			//status: 0 - unauthorized, 1 - awaiting shipment, 3 - dispatched, 4 - delivered
-			$sql = 'UPDATE purchase_invoices SET items = '.$items.', amount = '.$amount.', tax = '.$taxamt.', discount = '.$discamt.', total = '.$total.' , balance = '.$total.' WHERE id = '.$this->id;
+			$sql = 'UPDATE purchase_invoices SET items = '.$this->items.', amount = '.$this->amount->amount.', tax = '.$this->taxamt->amount.', discount = '.$this->discamt->amount.', total = '.$this->total->amount.' , balance = '.$this->total->amount.' WHERE id = '.$this->id;
 	 		DatabaseHandler::Execute($sql);
-	 		$this->amount = new Money(floatval($amount), Currency::Get('KES'));
-			$this->taxamt = new Money(floatval($taxamt), Currency::Get('KES'));
-			$this->discamt = new Money(floatval($discamt), Currency::Get('KES'));
-	 		$this->total = new Money(floatval($total), Currency::Get('KES'));
-	 		$this->balance = new Money(floatval($total), Currency::Get('KES'));
-			$this->items = $items;
 			//$this->status = 1;
 			return true;
 		} catch (Exception $e) {
@@ -700,7 +679,12 @@ class PurchaseInvoice
 		$this->taxamt = new Money(floatval($taxamt), Currency::Get('KES'));
 		$this->discamt = new Money(floatval($discamt), Currency::Get('KES'));
 	 	$this->total = new Money(floatval($total), Currency::Get('KES'));
-	 	$this->balance = new Money(floatval($balance), Currency::Get('KES'));
+	 	if ($balance == 'full') {
+	 		$this->balance = new Money(floatval($total), Currency::Get('KES'));
+	 	}else{
+	 		$this->balance = new Money(floatval($balance), Currency::Get('KES'));
+	 	}
+	 	
 		$this->items = $items;
 	}
 
@@ -1455,7 +1439,7 @@ class GRNPaymentTX extends FinancialTransaction
 		return $payment;
 	}
 
-	public static function MakePayment($supplierid, $amount, $ledgerId, $mode, $voucher, $payments)
+	public static function MakePayment($supplierid, $amount, $ledgerId, $mode, $voucher, $payments, $descr)
 	{
 		try {
 			$supplier = Supplier::GetSupplier($supplierid);
@@ -1466,7 +1450,7 @@ class GRNPaymentTX extends FinancialTransaction
 				$descr .= "no: ".$key." amount: ".floatval($payment)."; ";
 				$grns .= $key.",";
 			}*/
-			$descr = $supplier->name.'_'.$voucher;
+			$descr = $supplier->name.'_'.$descr.'_'.$voucher;
 
 			$sql = 'INSERT INTO payments (party_id, grns, amount, ledger_id, mode, voucher_no, description, status) VALUES 
 			('.$supplierid.', "'.$grns.'", '.$amount.', '.$ledgerId.', "'.$mode.'", "'.$voucher.'", "'.$descr.'", 0)';

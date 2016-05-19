@@ -1241,7 +1241,7 @@ define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.
             tp.appendTo(ul);
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-user" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tpl = $('<option data-icon="fa fa-user" value="'+elem.id+'">'+elem.name+' [Bal: '+(elem.balance.amount).formatMoney(2, '.', ',')+']</option>');
               tpl.appendTo(ul);
             });
             

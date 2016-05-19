@@ -3,7 +3,24 @@ define(["app", "apps/dash/show/show_view"], function(System, View){
     Show.Controller = {
       showDash: function(){ 
         var view = new View.Dash();
+        System.contentRegion.show(view);        
+	    },
+
+      postMemo: function(a){ 
+        var view = new View.PostMemo();
+        
         System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'postmemo';
+            $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
         /*require(["apps/entities/inventory"], function(){
           $.when(System.request("product:featured")).done(function(response){
             //alert(JSON.stringify(response.length));
@@ -16,33 +33,27 @@ define(["app", "apps/dash/show/show_view"], function(System, View){
             var view = new View.Latest({ collection: response });
             layout.latestRegion.show(view); 
           });
-        }); 
+        }); */
+      },
 
-              
+      viewMemos: function(a){ 
+        var view = new View.OfficeMemos();
 
-        require(["entities/lightning"], function(){
-          $.when(System.request("twitter:entities")).done(function(content){
-            if(content !== undefined){
-              var tweets = new View.Tweets({ collection: content });          
-              layout.tweetsRegion.show(tweets);
-            }
-          });
-        });
+        System.contentRegion.show(view);
 
-        var newsletter = new View.Newsletter();
-        layout.newsletterRegion.show(newsletter);
-
-        newsletter.on('subscribe', function(data) {
-          data['operation'] = 'newsletter';
-          $.post('/ecomadmin/presentation/users/index.php', data, function(res) {
-            if (res == 1) {
-                newsletter.triggerMethod("form:clear");
+        /*view.on('check', function(stamp) {
+          var data = {};
+          data['operation'] = 'checkenquiry';
+          data['stamp'] = stamp;
+          $.post(System.coreRoot + '/service/tools/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("success");
             }else{
-                newsletter.triggerMethod("subscribe:error");
+              view.triggerMethod("error");
             }
           });
-	      });*/
-	    }
+        });*/
+      }
     };
   });
 

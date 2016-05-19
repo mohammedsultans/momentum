@@ -1,7 +1,7 @@
 define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.tpl", "tpl!apps/templates/payment.tpl", "tpl!apps/templates/ledgers.tpl", "tpl!apps/templates/accountschart.tpl", 
   "tpl!apps/templates/ledgerentries.tpl", "tpl!apps/templates/searchtx.tpl", "tpl!apps/templates/claims.tpl",  "tpl!apps/templates/expenses.tpl", 
-  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "backbone.syphon"], 
-	function(System, qinvoiceTpl, ginvoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl){
+  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "tpl!apps/templates/crnote.tpl", "backbone.syphon"], 
+	function(System, qinvoiceTpl, ginvoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl, crNoteTpl){
   System.module('FinanceApp.Show.View', function(View, System, Backbone, Marionette, $, _){   
 
     View.Payment = Marionette.ItemView.extend({      
@@ -1573,7 +1573,9 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         events: {
           "click .bdiscard": "setup",
-          "click .bpost": "postTransaction"
+          "click .bpost": "postC2BTransaction",
+          "click .tdiscard": "setup",
+          "click .tpost": "postB2BTransaction"
         },
 
         onShow: function(){                  
@@ -1581,18 +1583,35 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           this.setup();
         },
 
-        setup: function(){          
-          var uld = $('#accounts');
-          uld.empty();
+        setup: function(){  
+          $('form textarea').val('');
+          $('form input').val('');
+          $('button').prop({disabled: false}); 
 
-          $.get(System.coreRoot + '/service/finance/index.php?banks', function(result) {
+          var uld = $('#accounts');
+          var ule = $('#accounts2');
+          var ulf = $('#accounts3');
+          uld.empty();
+          ule.empty();
+          ulf.empty();
+
+          $.get(System.coreRoot + '/service/finance/index.php?noncashbanks', function(result) {
             var m = JSON.parse(result);
-            var tp = $('<option data-icon="fa fa-money">Select Account...</option>');
-            tp.appendTo(uld);
+            var tpa = $('<option data-icon="fa fa-money">Select Account...</option>');
+            var tpb = $('<option data-icon="fa fa-money">Select Account...</option>');
+            var tpc = $('<option data-icon="fa fa-money">Select Account...</option>');
+            tpa.appendTo(uld);
+            tpb.appendTo(ule);
+            tpc.appendTo(ulf);        
+
             
             m.forEach(function(elem){
-              var tpl = $('<option data-icon="fa fa-money" value="'+elem['id']+'">'+elem['name']+'</option>');
-              tpl.appendTo(uld);
+              var tpla = $('<option data-icon="fa fa-money" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tplb = $('<option data-icon="fa fa-money" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tplc = $('<option data-icon="fa fa-money" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpla.appendTo(uld);
+              tplb.appendTo(ule);
+              tplc.appendTo(ulf);
             });
             
             setTimeout(function() {
@@ -1605,30 +1624,48 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             var m = JSON.parse(result);            
             $('#cash').val(m['balance']['amount']);
           });
-
-          $('form textarea').val('');
-          $('#amt').val('');
-          $('button').prop({disabled: false});
         },
 
-        postTransaction: function(e) { 
+        postC2BTransaction: function(e) { 
           $('button').prop({disabled: true});
           e.preventDefault();
           e.stopPropagation();
-          var data = Backbone.Syphon.serialize(this);
+          var data = Backbone.Syphon.serialize($("#frm1")[0]);
           
           var THAT = this;
 
           setTimeout(function() {
-            if (data['action'] && data['account'] && data['amount'] != 0 && data['descr'] != "") {
+            if (data['action'] && data['account'] && data['voucher'] != "" && data['amount'] != 0 && data['descr'] != "") {
               //alert(JSON.stringify(data));              
               if (data['action'] == "CashDeposit" && parseFloat($('#cash').val()) <  parseFloat(data['amount'])) {
                 swal("Error!", "Amount to deposit is more than cash in hand!", "error");
               }else{
-                THAT.trigger("post", data);
+                THAT.trigger("postC2B", data);
               }
             }else{
-              swal("Error!", "Ensure action is selected, the account is selected, the amount is entered and the note is written!", "error");
+              swal("Error!", "Ensure the action is selected, the account is selected, the amount is entered and the description is written!", "error");
+              $('button').prop({disabled: false});
+            }
+          }, 300);
+        },
+
+        postB2BTransaction: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frm2")[0]);
+          
+          var THAT = this;
+
+          setTimeout(function() {
+            if (data['account1'] && data['account2'] && data['voucher'] != "" && parseFloat(data['amount']) != 0 && data['descr'] != "") {        
+              if (data['account1'] == data['account2']) {
+                swal("Error!", "You cannot post to the same account!", "error");
+              }else{
+                THAT.trigger("postB2B", data);
+              }
+            }else{
+              swal("Error!", "Ensure the accounts are selected, the amount is entered and the description is written!", "error");
               $('button').prop({disabled: false});
             }
           }, 300);
@@ -1743,6 +1780,8 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             rform.action = "receipt.php";
           }else if(voucher.type.toLowerCase().indexOf('invoice') >= 0){
             rform.action = "invoice.php";
+          }else if(voucher.type.toLowerCase().indexOf('credit note') >= 0){
+            rform.action = "crnote.php";
           }else{
             rform.action = "quotation.php";
           }
@@ -1772,6 +1811,238 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
         onError: function(e) { 
           swal("Error!", "Search failed! try again later.", "error");          
+        }
+    });
+
+    View.CRNote = Marionette.ItemView.extend({      
+
+        template: crNoteTpl,
+
+        events: {
+          "click .igenerate": "generateCreditNote",
+          "click .idiscard": "cancelCredit",
+          "change #clients": "fetchInvoices",
+          "change #invoices": "listItems",
+          "keyup input.adjusted": "updateTotals",
+        },
+
+        onShow: function(){                  
+          $('.loading').hide();
+          this.setup();
+        },
+
+        setup: function(){
+          var ul = $('#clients');
+          ul.empty();
+         
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          var uly = $('#invoices');
+          uly.empty();
+          var ulz = $('tbody');
+          ulz.empty();
+          $('form input').val('');
+          $('form textarea').val('');
+          $('button').prop({disabled: false});
+        },
+      
+        fetchInvoices: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var uly = $('#invoices');
+          uly.empty();
+          var ulz = $('tbody');
+          ulz.empty();
+          $('#amount').val((0).formatMoney(2, '.', ','));
+          $('#taxes').val((0).formatMoney(2, '.', ','));
+          $('#total').val((0).formatMoney(2, '.', ','));
+          var data = Backbone.Syphon.serialize(this);
+          data['client'] = parseInt(data['client'], 10);
+          System.cache.invoices = [];
+          
+          if (data['client']) {
+            var ul = $('#invoices');
+            ul.empty();
+            $.get(System.coreRoot + '/service/finance/index.php?invoices&clientid='+data.client, function(result) {
+              var m = JSON.parse(result);
+              var tp = $('<option data-icon="fa fa-archive">Select Invoice</option>');
+              tp.appendTo(ul);
+              
+              m.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-archive" value="'+elem.id+'">INV-'+elem.id+' [Amount: Ksh. '+(elem.total.amount).formatMoney(2, '.', ',')+']</option>');
+                tpl.appendTo(ul);
+                System.cache.invoices[elem.id] = elem;
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+
+          }else{
+            swal("Error!", "Select a client first!", "error");
+          }
+        },
+
+        listItems: function(e) {
+          var ul = $('tbody');
+          ul.empty();
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize(this);
+          data['invoice'] = parseInt(data['invoice'], 10);
+          
+          if (data['invoice']) {            
+            System.cache.invoices.forEach(function(invoice){
+              if (invoice.id == data['invoice']) {
+                invoice.lineItems.forEach(function(item){
+                  var amt = (item.quantity * item.unitPrice);
+                  var tax = amt * (item.tax/100);
+                  var tot = amt = (amt + tax);
+                  var tpl = $('<tr><td>'+item.itemName+'<br><span style="font-style:italic; font-size:11px">'+item.itemDesc+'</span></td>'+
+                      '<td>'+item.quantity+'</td><td><form class="form-horizontal" style="margin:0"><div class="form-group"><p class="viid" style="display: none;">'+item.lineId+'</p>'+
+                  '<input type="text" data-lineid="'+item.lineId+'" data-qty="'+item.quantity+'" data-uprice="'+item.unitPrice+'" data-taxval="'+item.tax+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" class="form-control adjusted" name="adjusted" value="'+item.quantity+'" style="width:80px"></div></div></form></td><td>'+item.unitPrice+'</td>    <td>Ksh. '+(tot).formatMoney(2, '.', ',')+'</td></tr>');
+                      //'<td><div class="checkbox checkbox-primary" style="margin:0"><input id="checkbox'+item.lineId+'" data-lineid="'+item.lineId+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" type="checkbox" class="chkbx" checked><label for="checkbox'+item.lineId+'"></label></div></td></tr>');
+                  tpl.appendTo(ul);
+                });
+
+                $('#amount').val((invoice.amount.amount).formatMoney(2, '.', ','));
+                $('#taxes').val((invoice.taxamt.amount).formatMoney(2, '.', ','));
+                $('#total').val((invoice.total.amount).formatMoney(2, '.', ','));
+
+                $('#amount').data('famt', invoice.amount.amount);
+                $('#taxes').data('ftax', invoice.taxamt.amount);
+                $('#total').data('ftot', invoice.total.amount);
+              };
+            });
+              
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          }else{
+            swal("Error!", "Select an invoice!", "error");
+          }
+
+          
+        },
+
+        updateTotals: function() { 
+          System.selectedItems = [];
+          var amt = 0, tax = 0, tot = 0;
+          /*$('tbody :checkbox').each(function(i,item){            
+            if ($(item).prop('checked') == true) {
+              //console.log($(item).data('lineid'));
+              System.selectedItems.push($(item).data('lineid'));
+              amt += $(item).data('amt');
+              tax += $(item).data('tax');
+              tot += $(item).data('tot');
+            };
+          });*/
+
+          $('input.adjusted').each(function(){   
+            console.log(parseInt($(this).val(), 10) + ' -> '+$(this).data('qty'));         
+            if (parseInt($(this).val(), 10) > parseInt($(this).data('qty'), 10) || parseInt($(this).val(), 10) <= 0 || parseInt($(this).val(), 10) == NaN || $(this).val() == '') {
+              $(this).val(0);
+              //console.log($(this).data('lineid'));
+              //System.selectedItems.push($(this).data('lineid'));
+              amt += 0.00;
+              tax += 0.00;
+              tot += 0.00;
+             // console.log('zeroed');
+              
+            }else if (parseInt($(this).val(), 10) == parseInt($(this).data('qty'), 10)) {
+              amt += $(this).data('amt');
+              tax += $(this).data('tax');
+              tot += $(this).data('tot');
+              //console.log('equal' + $(this).data('tot'));
+              System.selectedItems.push([$(this).data('lineid'), $(this).data('qty')]);
+            }else{
+              var price = parseInt($(this).val(), 10) * parseFloat($(this).data('uprice'), 10);
+              var taxes = price * (parseFloat($(this).data('taxval'), 10)/100);
+              amt += price;
+              tax += taxes;
+              tot += (amt + tax);
+              //console.log('subset' + (amt + tax));
+              System.selectedItems.push([$(this).data('lineid'), parseInt($(this).val(), 10)]);
+            }
+          });
+
+          $('#amount').val((amt).formatMoney(2, '.', ','));
+          $('#taxes').val((tax).formatMoney(2, '.', ','));
+          $('#total').val((tot).formatMoney(2, '.', ','));
+
+          $('#amount').data('famt', amt);
+          $('#taxes').data('ftax', tax);
+          $('#total').data('ftot', tot);
+
+        },
+
+        generateCreditNote: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          _.extend(data, Backbone.Syphon.serialize($("#frmi2")[0]));
+          data.client = parseInt(data.client, 10);
+          data.items = System.selectedItems;
+
+          //$("tbody").find('input[name=view]:checked').each(function (chkbx) {
+            //data.itms.push($(this).attr('id'));
+          //});
+          if (data.client && parseInt(data.invoice, 10) && data.items.length > 0 && data.descr){
+            //alert(JSON.stringify(data));
+            this.trigger("post", data);
+          }else{
+            swal("Missing Details!", "Ensure you have client, scope and invoice items!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        cancelCredit: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+        },
+
+        onSuccess: function(voucher) { 
+
+          swal("Success!", "The credit note has been posted.", "success");
+          //window.open("report.php?id=2&voucher=" + voucher);
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "crnote.php";
+
+          voucher['user'] = System.username;
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+
+          rform.parentNode.removeChild(rform);          
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Quotation generation failed! Try again later.", "error");
+          $('button').prop({disabled: false});
         }
     });
   });

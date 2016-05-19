@@ -23,7 +23,7 @@
         <div class="panel panel-default">
 
           <div class="panel-title">
-          Transaction Particulars
+          Cash Banking
             <ul class="panel-tools">
               <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
               <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
@@ -64,6 +64,12 @@
                     </div>
                   </div>
                   <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Voucher No<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <input type="text" name="voucher" class="form-control" id="">
+                    </div>                    
+                  </div>
+                  <div class="form-group">
                     <label class="col-sm-2 control-label form-label">Amount<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <div class="input-group">
@@ -73,13 +79,72 @@
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="col-sm-2 control-label form-label">Notes</label>
+                    <label class="col-sm-2 control-label form-label">Notes<span class="color10">*</span></label>
                     <div class="col-sm-10">
                       <textarea class="form-control" name="descr" rows="3"></textarea>
                     </div>
                   </div> 
                   <button type="submit" class="btn btn-default bpost">Post</button>
                   <button type="submit" class="btn btn-warning bdiscard">Discard</button>
+                </form>
+
+              </div>
+
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6">
+        <div class="panel panel-default">
+
+          <div class="panel-title">
+          Bank Transfer
+            <ul class="panel-tools">
+              <li><a class="icon minimise-tool"><i class="fa fa-minus"></i></a></li>
+              <li><a class="icon expand-tool"><i class="fa fa-expand"></i></a></li>
+              <li><a class="icon closed-tool"><i class="fa fa-times"></i></a></li>
+            </ul>
+          </div>
+
+              <div class="panel-body">
+                <form class="form-horizontal" id="frm2">
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Source Account<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <select class="selectpicker form-control" name="account1" id="accounts2" style="padding-left:5px">
+                        <option data-icon="fa fa-money">Select account...</option>
+                      </select>  
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Destination Account<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <select class="selectpicker form-control" name="account2" id="accounts3" style="padding-left:5px">
+                        <option data-icon="fa fa-money">Select account...</option>
+                      </select>  
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Voucher No<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <input type="text" name="voucher" class="form-control" id="">
+                    </div>                    
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Amount<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <div class="input-group">
+                        <div class="input-group-addon"><i class="">Ksh.</i></div>
+                        <input type="text" class="form-control" name="amount" id="amt2">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label form-label">Notes<span class="color10">*</span></label>
+                    <div class="col-sm-10">
+                      <textarea class="form-control" name="descr" rows="3"></textarea>
+                    </div>
+                  </div> 
+                  <button type="submit" class="btn btn-default tpost">Post</button>
+                  <button type="submit" class="btn btn-warning tdiscard">Discard</button>
                 </form>
 
               </div>

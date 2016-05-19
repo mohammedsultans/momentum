@@ -19,6 +19,88 @@ require_once('DomainSCM.php');
 require_once('DomainPrjMgt.php');
 require_once('DomainHRM.php');
 
+class OfficeMemo extends Artifact
+{
+  public $name;
+  public $position;
+  public $title;
+  public $message;
+  public $date;
+  public $stamp;
+  public $expdate;
+  public $expstamp;
+  public $status;
+
+  function __construct($name, $position, $title, $message, $date, $stamp, $expdate, $expstamp, $status = 0)
+  {
+    $this->name = $name;
+    $this->position = $position;
+    $this->title = $title;
+    $this->message = $message;
+    $this->date = $date;
+    $this->stamp = $stamp;
+    $this->expdate = $expdate;
+    $this->expstamp = $expstamp;
+    $this->status = $status;
+  }
+
+  public static function Check($id)
+  {       
+      try {
+          $sql = 'UPDATE memos SET status = 1 WHERE stamp = '.$stamp;
+          DatabaseHandler::Execute($sql);
+      } catch (Exception $e) {
+          
+      }
+    }
+
+    public static function GetMemo($id)
+    {       
+      $sql = 'SELECT * FROM memos WHERE id = '.$id;
+      $res =  DatabaseHandler::GetRow($sql);    
+      return self::initialize($res);
+    }
+
+    public static function Create($name, $position, $title, $message, $expiry)
+    {       
+      try {
+        $datetime = new DateTime();
+        $exp = explode('/', $expiry);
+        $expdate = new DateTime();
+        $expdate->setDate($exp[2],$exp[1],$exp[0]);
+        $sql = 'INSERT INTO memos (name, position, title, message, date, stamp, expiry, expstamp, status) 
+        VALUES ("'.$name.'", "'.$position.'", "'.$title.'", "'.$message.'", "'.$datetime->format('d/m/Y').'", '.$datetime->format('YmdHis').', "'.$expdate->format('d/m/Y').'", '.$expdate->format('YmdHis').', 0)';
+        DatabaseHandler::Execute($sql);
+
+        return true;
+      } catch (Exception $e) {
+        return false; 
+      }
+    }
+
+    public static function GetCurrent()
+    {       
+      try {
+        $datetime = new DateTime();
+        $sql = 'SELECT * FROM memos WHERE expstamp >= '.$datetime->format('YmdHis');
+        $res =  DatabaseHandler::GetAll($sql);
+        $memos = array();
+        foreach ($res as $item) {
+            $memos[] = self::initialize($item);
+        }
+        return $memos;
+      } catch (Exception $e) {
+        
+      }
+    }
+
+    private static function initialize($args)
+    {
+      $memo = new OfficeMemo($args['name'], $args['position'], $args['title'], $args['message'], $args['date'], $args['stamp'], $args['expiry'], $args['expstamp'], $args['status']);
+      return $memo;
+    }
+}
+
 class View
 {
 	  public $id;
@@ -45,12 +127,12 @@ class View
       	$rs =  DatabaseHandler::GetRow($sql);
       	$pos = intval($rs['pos']) + 1;
 
-		$sql = 'INSERT IGNORE INTO views (module_id, name, logo, link, pos) 
-		VALUES ('.$moduleId.', "'.$name.'", "'.$logo.'", "'.$link.'",  '.$pos.')';
-		DatabaseHandler::Execute($sql);
+    		$sql = 'INSERT IGNORE INTO views (module_id, name, logo, link, pos) 
+    		VALUES ('.$moduleId.', "'.$name.'", "'.$logo.'", "'.$link.'",  '.$pos.')';
+    		DatabaseHandler::Execute($sql);
 
-		$sql = 'SELECT * FROM views WHERE module_id = '.$moduleId.' AND link = "'.$link.'"';
-		$res =  DatabaseHandler::GetRow($sql);        
+    		$sql = 'SELECT * FROM views WHERE module_id = '.$moduleId.' AND link = "'.$link.'"';
+    		$res =  DatabaseHandler::GetRow($sql);        
         return self::initialize($res);
       } catch (Exception $e) {
         return false;
@@ -60,46 +142,46 @@ class View
 
     public static function GetModuleViews($mid)
     {
-      	try {
-        	$sql = 'SELECT * FROM views WHERE module_id = '.$mid.' AND status = 1 ORDER BY pos ASC';
-    			$res =  DatabaseHandler::GetAll($sql);
-    			$activities = array();
-        	foreach ($res as $act) {
-        		$activities[] = self::initialize($act);
-        	}                
-        	return $activities;
+      try {
+        $sql = 'SELECT * FROM views WHERE module_id = '.$mid.' AND status = 1 ORDER BY pos ASC';
+    		$res =  DatabaseHandler::GetAll($sql);
+    		$activities = array();
+        foreach ($res as $act) {
+        	$activities[] = self::initialize($act);
+        }                
+        return $activities;
 
-      	} catch (Exception $e) {
+      } catch (Exception $e) {
         
-      	}
+      }
 
     }
 
     public static function GetView($id)
     {
-      	try {
-        	$sql = 'SELECT * FROM views WHERE id = '.$id;
-			$res =  DatabaseHandler::GetRow($sql);             
-        	return self::initialize($res);
-      	} catch (Exception $e) {
+      try {
+        $sql = 'SELECT * FROM views WHERE id = '.$id;
+			  $res =  DatabaseHandler::GetRow($sql);             
+        return self::initialize($res);
+      } catch (Exception $e) {
         
-      	}
+      }
     }
 
     public static function GetViews($viewids)
     {
-      	$views = [];
-      	foreach ($viewids as $viewid) {
-      		$views[] = self::GetView(intval($viewid));
-      	}
+      $views = [];
+      foreach ($viewids as $viewid) {
+      	$views[] = self::GetView(intval($viewid));
+      }
 
-      	return $views;
+      return $views;
     }
 
     private static function initialize($args)
   	{
      	$view = new View($args['id'], $args['module_id'], $args['name'], $args['logo'], $args['link'], $args['pos']);
-      	return $view;
+      return $view;
   	}
 }
 
@@ -239,6 +321,23 @@ class User
   		}
   	}
 
+    public static function ChangePassword($user, $opass, $npass)
+    {
+      // Build SQL query
+      //$sql = 'CALL blog_get_comments_list(:blog_id)';
+      $sql = 'SELECT id FROM users WHERE username = "'.$user->username.'" AND password = sha1("'.$opass.'") AND access = 1';
+      // Execute the query and return the results
+      $id = DatabaseHandler::GetOne($sql);
+
+      if (intval($id) > 0) {
+        $sql = 'UPDATE users SET password = sha1("'.$npass.'") WHERE id = '.$id;
+        DatabaseHandler::Execute($sql);
+        return true;
+      }else{
+        return false;
+      }
+    }
+
   	public static function GetUsers()
     {      	
     		$sql = 'SELECT * FROM users WHERE username IS NOT NULL';
@@ -280,19 +379,19 @@ class User
           // Execute the query and return the results
           $resa =  DatabaseHandler::GetRow($sqla);
 
-          if ($resa['party_id']) {
-            return false;
-          }else{
+          if (intval($resa['party_id']) > 0) {
             $sql = 'INSERT INTO users (username, password, category, party_id, role_id, access) VALUES ("'.$username.'", sha1("'.$password.'"), "Employee", '.$pid.', '.$role.', 1)';
             //$sql = 'UPDATE users SET username = "'.$username.'", password = sha1("'.$password.'"), role_id = '.$role.', access = 1 WHERE id = '.$pid;
             DatabaseHandler::Execute($sql);
 
-            Logger::Log(get_class(self), 'OK', 'User created with username : '.$username.'; Party type: Employees');
+            Logger::Log('User', 'OK', 'User created with username : '.$username.'; Party type: Employees');
             
             $sql2 = 'SELECT * FROM users WHERE party_id = '.$pid.' AND category = "Employee"';
             // Execute the query and return the results
             $res =  DatabaseHandler::GetRow($sql2);
             return self::initialize($res);
+          }else{
+            return false;
           }
 	    } catch (Exception $e) {
 	        return false;

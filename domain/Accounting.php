@@ -709,26 +709,46 @@ class FinancialTransaction extends Transaction
 		parent::__construct($amount, $description);
 	}
 
+	protected function setVoucher($voucher){
+		if ($voucher != '') {
+			try {
+				$sql = 'UPDATE transactions SET voucher_no = "'.$voucher.'" WHERE id = '.$this->transactionId;
+				DatabaseHandler::Execute($sql);
+				$this->voucher = $voucher;
+				return true;
+			} catch (Exception $e) {
+				return fasle;		
+			}
+		}
+		
+	}
+
 	public static function VoucherInUse($voucher)
 	{
-		try {
-	      	$sqla = 'SELECT * FROM expense_vouchers WHERE voucher_no = "'.$voucher.'"';
-			$resa =  DatabaseHandler::GetRow($sqla);
-			$sqlb = 'SELECT * FROM payments WHERE voucher_no = "'.$voucher.'"';
-			$resb =  DatabaseHandler::GetRow($sqlb);
-			$sqlc = 'SELECT * FROM receipts WHERE voucher_no = "'.$voucher.'"';
-			$resc =  DatabaseHandler::GetRow($sqlc);
-			$sqld = 'SELECT * FROM payroll_entries WHERE voucher_no = "'.$voucher.'"';
-			$resd =  DatabaseHandler::GetRow($sqld);
+		if ($voucher != '') {
+			try {
+		      	$sqla = 'SELECT * FROM expense_vouchers WHERE voucher_no = "'.$voucher.'"';
+				$resa =  DatabaseHandler::GetRow($sqla);
+				$sqlb = 'SELECT * FROM payments WHERE voucher_no = "'.$voucher.'"';
+				$resb =  DatabaseHandler::GetRow($sqlb);
+				$sqlc = 'SELECT * FROM receipts WHERE voucher_no = "'.$voucher.'"';
+				$resc =  DatabaseHandler::GetRow($sqlc);
+				$sqld = 'SELECT * FROM payroll_entries WHERE voucher_no = "'.$voucher.'"';
+				$resd =  DatabaseHandler::GetRow($sqld);
+				$sqle = 'SELECT * FROM transactions WHERE voucher_no = "'.$voucher.'"';
+				$rese =  DatabaseHandler::GetRow($sqle);
 
-			if (!empty($resa['voucher_no']) || !empty($resb['voucher_no']) || !empty($resc['voucher_no']) || !empty($resd['voucher_no'])) {
-				return true;
-			}else{
-				return false;
-			}
-	    } catch (Exception $e) {
-	      	return true;
-	    }
+				if (!empty($resa['voucher_no']) || !empty($resb['voucher_no']) || !empty($resc['voucher_no']) || !empty($resd['voucher_no']) || !empty($rese['voucher_no'])) {
+					return true;
+				}else{
+					return false;
+				}
+		    } catch (Exception $e) {
+		      	return true;
+		    }
+		}else{
+			return fasle;
+		}
 	}
 	
 }
@@ -1366,6 +1386,21 @@ class Ledger extends Artifact
 		}
 	}
 
+	public static function GetNonCashBanks()
+	{	    
+	    try {
+			$sql = 'SELECT * FROM ledgers WHERE category = "Bank" AND UPPER(name) NOT LIKE "%CASH%" AND status = 1';
+			$res =  DatabaseHandler::GetAll($sql);
+			$ledgers = [];
+			foreach ($res as $ledger) {
+				$ledgers[] = new Ledger($ledger['id'], $ledger['name'], $ledger['type'], $ledger['class'], $ledger['category'], $ledger['parent'], $ledger['balance']);
+			}
+			return $ledgers;
+		} catch (Exception $e) {
+			return false;
+		}
+	}
+
 	public static function Delete($id)
     {
         try {
@@ -1461,8 +1496,13 @@ class Voucher extends Artifact
 
 	public static function CreateSalesTxVoucher($tx){
 		$inv = new Voucher($tx->invoice->id, $tx->transactionType->name, $tx->transactionId, $tx->amount->amount, $tx->description, $tx->date, $tx->stamp);
-		$inv->persist();		
-		return SalesVoucher::GetInvoice($tx->invoice->id);
+		$inv->persist();
+		if ($tx->transactionType->name == 'Credit Note') {
+			return CreditVoucher::GetCreditNote($tx->invoice->id);
+		}else{
+			return SalesVoucher::GetInvoice($tx->invoice->id);
+		}
+		
 	}
 
 	public static function CreatePurchaseTxVoucher($tx){
@@ -1541,7 +1581,11 @@ class TransactionVouchers extends Artifact
 				foreach ($res as $tx) {
 					if ($tx['status'] == 1) {
 						if ($tx['effect'] == 'cr') {
-							$voucher = ReceiptVoucher::GetVoucher(intval($tx['transaction_id']));
+							if(stripos($tx['description'], 'Credit Note') !== false){
+								$voucher = CreditVoucher::GetVoucher(intval($tx['transaction_id']));
+							}else{
+								$voucher = ReceiptVoucher::GetVoucher(intval($tx['transaction_id']));
+							}							
 							if ($voucher) {
 								$vouchers[] = $voucher;
 							}	
@@ -1633,16 +1677,23 @@ class TransactionVouchers extends Artifact
 				}else{
 					$sql3 = 'SELECT voucher_id FROM vouchers WHERE transaction_id = '.intval($tx['transaction_id']);
 					$res3 =  DatabaseHandler::GetOne($sql3);
+					
+					if (strpos($tx['description'], 'Credit Note') !== false) {
+						$sql4 = 'SELECT * FROM credit_notes WHERE id = '.$res3;
+						$res4 =  DatabaseHandler::GetRow($sql4);
 
-					$sql4 = 'SELECT * FROM receipts WHERE id = '.$res3;
-					$res4 =  DatabaseHandler::GetRow($sql4);
-
-					if (strpos($tx['description'], 'Reversal') !== false) {
 						$tx['descr'] = $tx['description'];
-					}else{
-						$tx['descr'] = $res4['voucher_no'];
-					}
+					}else{		
 
+						if (strpos($tx['description'], 'Reversal') !== false) {
+							$tx['descr'] = $tx['description'];
+						}else{
+							$sql4 = 'SELECT * FROM receipts WHERE id = '.$res3;
+							$res4 =  DatabaseHandler::GetRow($sql4);
+							$tx['descr'] = $res4['voucher_no'];
+						}
+					}
+					
 				}
 			}
 			return $result;
@@ -1918,12 +1969,13 @@ class GeneralTransaction extends FinancialTransaction
 	public $status;
 	public $txentries = [];
 
-	function __construct($entries, $amount, $description, $classifier)
+	function __construct($entries, $voucher, $amount, $description, $classifier)
 	{
 		//$this->status = $status;
 		$this->txentries = $entries;
 		$txtype = new DirectPosting($entries, $amount, $classifier);
 		parent::__construct(new Money(floatval($amount), Currency::Get('KES')), $description, $txtype);
+		$this->setVoucher($voucher);
 	}
 
 	public function post()
@@ -1967,7 +2019,7 @@ class GeneralTransaction extends FinancialTransaction
 
 	public static function PostTransaction($entries, $amount, $descr)
 	{
-		return new GeneralTransaction($entries, $amount, $descr, "General Transaction");
+		return new GeneralTransaction($entries, '', $amount, $descr, "General Transaction");
 	}
 
 	public static function PostClaim($ledgerId, $amount, $items, $descr)
@@ -1986,7 +2038,7 @@ class GeneralTransaction extends FinancialTransaction
 		$entry['amount'] = $amount;
 		$entries[] = $entry;
 		
-		return new GeneralTransaction($entries, $amount, $descr, "Project Claim");
+		return new GeneralTransaction($entries, '', $amount, $descr, "Project Claim");
 	}
 
 	public static function PostExpense($party, $crid, $drid, $amount, $voucher, $descr)
@@ -2005,7 +2057,7 @@ class GeneralTransaction extends FinancialTransaction
 		$entries[] = $entry;
 		$voucher = ExpenseVoucher::CreatePartyExpense($party, $amount, $drid, $voucher, $descr);
 		if ($voucher) {
-			$tx = new GeneralTransaction($entries, $amount, $descr, "General Expenses");
+			$tx = new GeneralTransaction($entries, $voucher, $amount, $descr, "General Expenses");
 			$tx->expVoucher = $voucher;
 			return $tx;
 		}else{
@@ -2030,10 +2082,10 @@ class GeneralTransaction extends FinancialTransaction
 		$entry['amount'] = $amount;
 		$entries[] = $entry;
 		
-		return new GeneralTransaction($entries, $amount, $descr, "Capital Injection");
+		return new GeneralTransaction($entries, '', $amount, $descr, "Capital Injection");
 	}
 
-	public static function PostBankTx($action, $account, $amount, $descr)
+	public static function PostC2BBankTx($action, $account, $voucher, $amount, $descr)
 	{
 		$entries = [];
 
@@ -2073,7 +2125,25 @@ class GeneralTransaction extends FinancialTransaction
 				break;
 		}
 		
-		return new GeneralTransaction($entries, $amount, $descr, "Bank Cash Transaction");
+		return new GeneralTransaction($entries, $voucher, $amount, $descr, "Bank Cash Transaction");
+	}
+
+	public static function PostB2BBankTx($account1, $account2, $voucher, $amount, $descr)
+	{
+		$entries = [];
+
+		$entry['lid'] = $account1;
+		$entry['effect'] = 'cr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+
+		//Credit entry
+		$entry['lid'] = $account2;
+		$entry['effect'] = 'dr';
+		$entry['amount'] = $amount;
+		$entries[] = $entry;
+		
+		return new GeneralTransaction($entries, $voucher, $amount, $descr, "Bank to Bank Transaction");
 	}
 }
 
@@ -2348,14 +2418,14 @@ class FinancialStatements extends Artifact
 		$query .= ')';
 
 		if ($all == 'true'){
-			$sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' ORDER BY id ASC';
+			$sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' ORDER BY id DESC';
 		}else if($dates != ''){
 			$split = explode(' - ', $dates);
 		    $d1 = explode('/', $split[0]);
 		    $d2 = explode('/', $split[1]);
 		    $lower = $d1[2].$d1[1].$d1[0].'000000' + 0;
 		    $upper = $d2[2].$d2[1].$d2[0].'999999' + 0;
-		    $sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id ASC';
+		    $sql = 'SELECT * FROM general_ledger_entries WHERE '.$query.' AND stamp BETWEEN '.$lower.' AND '.$upper.' ORDER BY id DESC';
 		}
 
 		try {

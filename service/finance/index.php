@@ -37,6 +37,17 @@
 						echo 0;
 					}
 				
+				}elseif($operation == 'issueCrNote'){
+					if(isset($_POST['client']) && isset($_POST['invoice']) && isset($_POST['descr']) && isset($_POST['items'])){
+						$clientid = $_POST['client'];
+						$invoice = $_POST['invoice'];
+						$items = $_POST['items'];
+						$descr = $_POST['descr'];
+						$this->issueCrNote($clientid, $invoice, $items, $descr);
+					}else{
+						echo 0;
+					}
+				
 				}elseif($operation == 'receivePayment'){
 					if(isset($_POST['client']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category']) && isset($_POST['voucher'])){
 						if ($_POST['mode'] != 101) {
@@ -150,13 +161,23 @@
 					}else{
 						echo 0;
 					}				
-				}elseif($operation == 'postBankTx'){
-					if(isset($_POST['action']) && isset($_POST['account']) && isset($_POST['amount']) && isset($_POST['descr'])){
-						$action = $_POST['action'];
-						$account = $_POST['account'];
-						$amount = $_POST['amount'];
-						$descr = $_POST['descr'];
-						$this->postBankTx($action, $account, $amount, $descr);
+				}elseif($operation == 'postC2BBankTx'){
+					if(isset($_POST['action']) && isset($_POST['account']) && isset($_POST['voucher']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+						    echo 0;
+						    exit;
+						}
+						$this->postC2BBankTx($_POST['action'], $_POST['account'], $_POST['voucher'], $_POST['amount'], $_POST['descr']);
+					}else{
+						echo 0;
+					}				
+				}elseif($operation == 'postB2BBankTx'){
+					if(isset($_POST['account1']) && isset($_POST['account2'])  && isset($_POST['voucher']) && isset($_POST['amount']) && isset($_POST['descr'])){
+						if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
+						    echo 0;
+						    exit;
+						}
+						$this->postB2BBankTx($_POST['account1'], $_POST['account1'], $_POST['voucher'], $_POST['amount'], $_POST['descr']);
 					}else{
 						echo 0;
 					}				
@@ -177,6 +198,8 @@
 				}
 			}elseif(isset($_GET['banks'])){
 				$this->getBanks();
+			}elseif(isset($_GET['noncashbanks'])){
+				$this->getNonCashBanks();
 			}elseif(isset($_GET['allLedgers'])){
 				$this->getLedgers();
 			}elseif(isset($_GET['purchaseLedgers'])){
@@ -185,6 +208,8 @@
 				$this->getLedgerByName($_GET['ledgerName']);
 			}elseif(isset($_GET['ledgerType'])){
 				$this->getLedgerType($_GET['ledgerType']);
+			}elseif(isset($_GET['invoices']) && isset($_GET['clientid'])){
+				$this->getClientInvoices($_GET['clientid']);
 			}else{
 				echo 0;
 			}
@@ -200,10 +225,28 @@
 			}
 		}
 
+		public function getNonCashBanks()
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(Ledger::GetNonCashBanks());
+			}else{
+				echo 0;
+			}
+		}
+
 		public function getLedgers()
 		{
 			if ($this->validateAdmin()) {
 				echo json_encode(Ledger::GetLedgers());
+			}else{
+				echo 0;
+			}
+		}
+
+		public function getClientInvoices($cid)
+		{
+			if ($this->validateAdmin()) {
+				echo json_encode(SalesInvoice::GetClientInvoices($cid));
 			}else{
 				echo 0;
 			}
@@ -254,6 +297,19 @@
 			$invoice = SalesTX::RaiseGeneralInvoice($clientid, $scope, $items, $discount);			
 
 			$voucher = $invoice->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function issueCrNote($clientid, $invoice, $items, $descr)
+		{
+			$crnote = SalesTX::GenerateCreditNote($clientid, $invoice, $items, $descr);			
+
+			$voucher = $crnote->post();
 
 			if ($voucher) {
 				echo json_encode($voucher);
@@ -373,9 +429,20 @@
 			}
 		}	
 
-		public function postBankTx($action, $account, $amount, $descr)
+		public function postC2BBankTx($action, $account, $voucher, $amount, $descr)
 		{
-			$tx = GeneralTransaction::PostBankTx($action, $account, $amount, $descr);
+			$tx = GeneralTransaction::postC2BBankTx($action, $account, $voucher, $amount, $descr);
+
+			if ($tx->post()) {
+				echo 1;
+			}else{
+				echo 0;
+			}
+		}
+
+		public function postB2BBankTx($account1, $account1, $voucher, $amount, $descr)
+		{
+			$tx = GeneralTransaction::postB2BBankTx($account1, $account1, $voucher, $amount, $descr);
 
 			if ($tx->post()) {
 				echo 1;
