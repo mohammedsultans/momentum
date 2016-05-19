@@ -2055,10 +2055,10 @@ class GeneralTransaction extends FinancialTransaction
 		$entry['effect'] = 'cr';
 		$entry['amount'] = $amount;
 		$entries[] = $entry;
-		$voucher = ExpenseVoucher::CreatePartyExpense($party, $amount, $drid, $voucher, $descr);
+		$evoucher = ExpenseVoucher::CreatePartyExpense($party, $amount, $drid, $voucher, $descr);
 		if ($voucher) {
 			$tx = new GeneralTransaction($entries, $voucher, $amount, $descr, "General Expenses");
-			$tx->expVoucher = $voucher;
+			$tx->expVoucher = $evoucher;
 			return $tx;
 		}else{
 			return false;

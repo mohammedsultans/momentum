@@ -139,6 +139,7 @@ class SystemVendor extends Supplier
 	public static function GetVendor()
 	{
 		return new SystemVendor(1, 'QET Systems Ltd.', '0727596626', 'support@qet.co.ke', 'Kigio Plaza 3rd Fl, Box 7685-01000, Thika CBD', 'Thika', 'Kenya', 'www.qet.co.ke', 'Alex Mbaka');
+		//return new SystemVendor(1, 'Fractal Systems Ltd.', '0727596626', 'info@fractalsystems.co.ke', 'Kigio Plaza 3rd Fl, Box 7685-01000, Thika CBD', 'Thika', 'Kenya', 'www.fractalsystems.co.ke', 'Alex Mbaka');
 	}
 }
 

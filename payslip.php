@@ -40,7 +40,7 @@ $slip = json_decode($_POST['payslip']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum - Payslips</title>
+  <title><?php  echo $comname ?> - Payslips</title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">

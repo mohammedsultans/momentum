@@ -40,7 +40,7 @@ $voucher = json_decode($_POST['voucher']);
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kode is a Premium Bootstrap Admin Template, It's responsive, clean coded and mobile friendly">
   <meta name="keywords" content="bootstrap, admin, dashboard, flat admin template, responsive," />
-  <title>Momentum Receipts</title>
+  <title><?php  echo $comname ?> -  Receipt #<?php echo $voucher->id; ?></title>
 
   <!-- ========== Css Files ========== -->
   <link href="css/root.css" rel="stylesheet">
@@ -59,7 +59,7 @@ $voucher = json_decode($_POST['voucher']);
   <div class="invoice row">
     <div class="receiptname">RECEIPT</div>
     <div class="logo" style="font-weight:bold">
-      <img alt="logo" src="img/geoland.png"><br>
+      <img alt="logo" src="<?php  echo $logo ?>"><br>
       <b>P.O BOX</b> <?php  echo $Add ?> <b>Tel:</b> <?php  echo $tel ?><br/>
       <b>Site:</b> <?php  echo $web ?> <b>Email:</b> <?php  echo $email ?>
     </div>
@@ -120,7 +120,7 @@ $voucher = json_decode($_POST['voucher']);
     </div>
 <div class="row footer">
   <div class="col-md-12 text-left">
-  Copyright &copy; <?php  echo date('Y') ?> Geoland Surveys
+  Copyright &copy; <?php  echo date('Y').' '.$comname; ?>
   </div>
   <div class="col-md-12 text-left">
     Momentum ERP by <a href="#">QET Systems Ltd</a> [www.qet.co.ke]

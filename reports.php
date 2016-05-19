@@ -266,7 +266,7 @@
 			  <div class="invoice row reporting">
 			    <div class="invoicename">'.$title.'</div>
 			    <div class="logo">
-			      <img src="img/geoland.png" alt="logo"><br>
+			      <img src="'.$this->company->logo.'" alt="logo"><br>
 			      <b>P.O BOX</b> '.$this->company->address.' <b>Tel:</b> '.$this->company->phone.'<br/>
 			      <b>Site:</b> '.$this->company->web.' <b>Email:</b> '.$this->company->email.'
 			    </div>';
