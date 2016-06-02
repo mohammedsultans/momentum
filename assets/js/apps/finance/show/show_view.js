@@ -1639,6 +1639,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               //alert(JSON.stringify(data));              
               if (data['action'] == "CashDeposit" && parseFloat($('#cash').val()) <  parseFloat(data['amount'])) {
                 swal("Error!", "Amount to deposit is more than cash in hand!", "error");
+                $('button').prop({disabled: false});
               }else{
                 THAT.trigger("postC2B", data);
               }
@@ -1661,6 +1662,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             if (data['account1'] && data['account2'] && data['voucher'] != "" && parseFloat(data['amount']) != 0 && data['descr'] != "") {        
               if (data['account1'] == data['account2']) {
                 swal("Error!", "You cannot post to the same account!", "error");
+                $('button').prop({disabled: false});
               }else{
                 THAT.trigger("postB2B", data);
               }

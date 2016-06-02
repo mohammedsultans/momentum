@@ -442,6 +442,7 @@
 
 		public function postB2BBankTx($account1, $account2, $voucher, $amount, $descr)
 		{
+			
 			$tx = GeneralTransaction::postB2BBankTx($account1, $account2, $voucher, $amount, $descr);
 
 			if ($tx->post()) {

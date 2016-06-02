@@ -422,15 +422,31 @@ class Transaction extends Action
 		if (!$this->posted) {
 			$cr = 0.00; 
 			$dr = 0.00;
+
+			$craccs = [];
+			$draccs = [];
 			foreach ($this->entries as $entry) {
 				if ($entry->effect == 'cr') {
 					$cr = $cr + $entry->amount->amount;
+					$craccs[] = $entry->account->ledgerId;
 
 				}else if ($entry->effect == 'dr') {
 					$dr = $dr + $entry->amount->amount;
-					Logger::Log(get_class($this), 'Test', 'Debit '.$entry->account->accountName.': '.$entry->amount->amount);
+					$draccs[] = $entry->account->ledgerId;
+					//Logger::Log(get_class($this), 'Test', 'Debit '.$entry->account->accountName.': '.$entry->amount->amount);
 				}
 			}
+
+			foreach ($craccs as $cracc) {
+				foreach ($draccs as $dracc) {
+					if ($cracc == $dracc) {
+						Logger::Log(get_class($this), 'Exception', 'Trying to commit to the same ledger');
+						return false;
+					}
+				}
+			}
+
+
 
 			if (($cr - $dr) == 0.00) {
 				foreach ($this->entries as $entry) {
