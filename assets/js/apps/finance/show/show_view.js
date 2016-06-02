@@ -1955,7 +1955,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
 
           $('input.adjusted').each(function(){   
             console.log(parseInt($(this).val(), 10) + ' -> '+$(this).data('qty'));         
-            if (parseInt($(this).val(), 10) > parseInt($(this).data('qty'), 10) || parseInt($(this).val(), 10) <= 0 || parseInt($(this).val(), 10) == NaN || $(this).val() == '') {
+            if (parseFloat($(this).val()) > parseFloat($(this).data('qty')) || parseFloat($(this).val()) <= 0 || parseFloat($(this).val()) == NaN || $(this).val() == '') {
               $(this).val(0);
               //console.log($(this).data('lineid'));
               //System.selectedItems.push($(this).data('lineid'));
@@ -1964,20 +1964,20 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
               tot += 0.00;
              // console.log('zeroed');
               
-            }else if (parseInt($(this).val(), 10) == parseInt($(this).data('qty'), 10)) {
+            }else if (parseFloat($(this).val()) == parseFloat($(this).data('qty'))) {
               amt += $(this).data('amt');
               tax += $(this).data('tax');
               tot += $(this).data('tot');
               //console.log('equal' + $(this).data('tot'));
               System.selectedItems.push([$(this).data('lineid'), $(this).data('qty')]);
             }else{
-              var price = parseInt($(this).val(), 10) * parseFloat($(this).data('uprice'), 10);
-              var taxes = price * (parseFloat($(this).data('taxval'), 10)/100);
+              var price = parseFloat($(this).val()) * parseFloat($(this).data('uprice'));
+              var taxes = price * (parseFloat($(this).data('taxval'))/100);
               amt += price;
               tax += taxes;
               tot += (amt + tax);
               //console.log('subset' + (amt + tax));
-              System.selectedItems.push([$(this).data('lineid'), parseInt($(this).val(), 10)]);
+              System.selectedItems.push([$(this).data('lineid'), parseFloat($(this).val())]);
             }
           });
 

@@ -177,7 +177,7 @@
 						    echo 0;
 						    exit;
 						}
-						$this->postB2BBankTx($_POST['account1'], $_POST['account1'], $_POST['voucher'], $_POST['amount'], $_POST['descr']);
+						$this->postB2BBankTx($_POST['account1'], $_POST['account2'], $_POST['voucher'], $_POST['amount'], $_POST['descr']);
 					}else{
 						echo 0;
 					}				
@@ -440,9 +440,9 @@
 			}
 		}
 
-		public function postB2BBankTx($account1, $account1, $voucher, $amount, $descr)
+		public function postB2BBankTx($account1, $account2, $voucher, $amount, $descr)
 		{
-			$tx = GeneralTransaction::postB2BBankTx($account1, $account1, $voucher, $amount, $descr);
+			$tx = GeneralTransaction::postB2BBankTx($account1, $account2, $voucher, $amount, $descr);
 
 			if ($tx->post()) {
 				echo 1;

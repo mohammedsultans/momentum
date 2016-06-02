@@ -1209,7 +1209,7 @@ class CreditNoteLine
 		$this->invoiceId = $invid;
 		$this->itemName = $itemName;
 		$this->itemDesc = $itemDesc;
-		$this->quantity = intval($quantity);
+		$this->quantity = floatval($quantity);
 		$this->unitPrice = floatval($unitPrice);
 		$this->tax = floatval($tax);
 		//$var = '37152548';number_format($var / 100, 2, ".", "") == 371525.48 ;

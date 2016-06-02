@@ -809,7 +809,12 @@ class AccountEntry extends Artifact
 		$this->whenBooked = $whenBooked;
 		$this->amount = $amount;
 		$this->effect = $effect;
-		$this->transactionRatio = floatval(floatval($amount->amount)/floatval($transaction->amount->amount));
+		if (floatval($transaction->amount->amount) != 0) {
+			$this->transactionRatio = floatval(floatval($amount->amount)/floatval($transaction->amount->amount));
+		}else{
+			$this->transactionRatio = 1;
+		}
+		
 	}
 
 	public function post()
