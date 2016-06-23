@@ -15,7 +15,8 @@ define(["app", "apps/finance/show/show_controller"], function(System, showContro
         "bankTx" : "bankTx",
         "capital" : "capital",
         "expenses" : "expenses",
-        "crNote" : "crnote"
+        "crNote" : "crnote",
+        "cashCrNote" : "cashcrnote"
       }
     });
 

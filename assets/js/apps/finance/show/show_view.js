@@ -1,7 +1,7 @@
 define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.tpl", "tpl!apps/templates/payment.tpl", "tpl!apps/templates/ledgers.tpl", "tpl!apps/templates/accountschart.tpl", 
   "tpl!apps/templates/ledgerentries.tpl", "tpl!apps/templates/searchtx.tpl", "tpl!apps/templates/claims.tpl",  "tpl!apps/templates/expenses.tpl", 
-  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "tpl!apps/templates/crnote.tpl", "backbone.syphon"], 
-	function(System, qinvoiceTpl, ginvoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl, crNoteTpl){
+  "tpl!apps/templates/banktx.tpl", "tpl!apps/templates/capital.tpl", "tpl!apps/templates/clienttx.tpl", "tpl!apps/templates/crnote.tpl", "tpl!apps/templates/crnotecash.tpl", "backbone.syphon"], 
+	function(System, qinvoiceTpl, ginvoiceTpl, paymentTpl, ledgersTpl, chartTpl, ledgerTxTpl, findTxTpl, claimsTpl, expensesTpl, bankTxTpl, capitalTpl, findClientTxTpl, crNoteTpl, cashCrNoteTpl){
   System.module('FinanceApp.Show.View', function(View, System, Backbone, Marionette, $, _){   
 
     View.Payment = Marionette.ItemView.extend({      
@@ -1956,40 +1956,43 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
           });*/
 
           $('input.adjusted').each(function(){   
-            console.log(parseInt($(this).val(), 10) + ' -> '+$(this).data('qty'));         
-            if (parseFloat($(this).val()) > parseFloat($(this).data('qty')) || parseFloat($(this).val()) <= 0 || parseFloat($(this).val()) == NaN || $(this).val() == '') {
-              $(this).val(0);
-              //console.log($(this).data('lineid'));
-              //System.selectedItems.push($(this).data('lineid'));
-              amt += 0.00;
-              tax += 0.00;
-              tot += 0.00;
-             // console.log('zeroed');
-              
-            }else if (parseFloat($(this).val()) == parseFloat($(this).data('qty'))) {
-              amt += $(this).data('amt');
-              tax += $(this).data('tax');
-              tot += $(this).data('tot');
-              //console.log('equal' + $(this).data('tot'));
-              System.selectedItems.push([$(this).data('lineid'), $(this).data('qty')]);
-            }else{
-              var price = parseFloat($(this).val()) * parseFloat($(this).data('uprice'));
-              var taxes = price * (parseFloat($(this).data('taxval'))/100);
-              amt += price;
-              tax += taxes;
-              tot += (amt + tax);
-              //console.log('subset' + (amt + tax));
-              System.selectedItems.push([$(this).data('lineid'), parseFloat($(this).val())]);
-            }
+            //console.log(parseInt($(this).val(), 10) + ' -> '+$(this).data('qty'));
+            if ($(this).val() != '0.') {
+              if (parseFloat($(this).val()) > parseFloat($(this).data('qty')) || parseFloat($(this).val()) <= 0 || parseFloat($(this).val()) == NaN || $(this).val() == '') {
+                $(this).val(0);
+                //console.log($(this).data('lineid'));
+                //System.selectedItems.push($(this).data('lineid'));
+                amt += 0.00;
+                tax += 0.00;
+                tot += 0.00;
+               // console.log('zeroed');
+                
+              }else if (parseFloat($(this).val()) == parseFloat($(this).data('qty'))) {
+                amt += $(this).data('amt');
+                tax += $(this).data('tax');
+                tot += $(this).data('tot');
+                //console.log('equal' + $(this).data('tot'));
+                System.selectedItems.push([$(this).data('lineid'), $(this).data('qty')]);
+              }else{
+                var price = parseFloat($(this).val()) * parseFloat($(this).data('uprice'));
+                var taxes = price * (parseFloat($(this).data('taxval'))/100);
+                amt += price;
+                tax += taxes;
+                tot += amt + tax;
+                //console.log('subset' + (amt + tax));
+                System.selectedItems.push([$(this).data('lineid'), parseFloat($(this).val())]);
+              }
+            };      
+            
           });
 
           $('#amount').val((amt).formatMoney(2, '.', ','));
           $('#taxes').val((tax).formatMoney(2, '.', ','));
-          $('#total').val((tot).formatMoney(2, '.', ','));
+          $('#total').val((amt + tax).formatMoney(2, '.', ','));
 
           $('#amount').data('famt', amt);
           $('#taxes').data('ftax', tax);
-          $('#total').data('ftot', tot);
+          $('#total').data('ftot', amt + tax);
 
         },
 
@@ -2010,6 +2013,185 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
             this.trigger("post", data);
           }else{
             swal("Missing Details!", "Ensure you have client, scope and invoice items!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        cancelCredit: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+        },
+
+        onSuccess: function(voucher) { 
+
+          swal("Success!", "The credit note has been posted.", "success");
+          //window.open("report.php?id=2&voucher=" + voucher);
+          var rform = document.createElement("form");
+          rform.target = "_blank";
+          rform.method = "POST"; // or "post" if appropriate
+          rform.action = "crnote.php";
+
+          voucher['user'] = System.username;
+          var vouch = document.createElement("input");
+          vouch.name = "voucher";
+          vouch.value = JSON.stringify(voucher);
+          rform.appendChild(vouch);
+
+          document.body.appendChild(rform);
+
+          rform.submit();
+
+          rform.parentNode.removeChild(rform);          
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Quotation generation failed! Try again later.", "error");
+          $('button').prop({disabled: false});
+        }
+    });
+
+    View.CashCRNote = Marionette.ItemView.extend({      
+
+        template: cashCrNoteTpl,
+
+        events: {
+          "click .igenerate": "generateCreditNote",
+          "click .idiscard": "cancelCredit",
+          "change #clients": "fetchInvoices",
+          "change #invoices": "getDetails",
+          //"keyup input.adjusted": "updateTotals",
+        },
+
+        onShow: function(){                  
+          $('.loading').hide();
+          this.setup();
+        },
+
+        setup: function(){
+          var ul = $('#clients');
+          ul.empty();
+         
+          $.get(System.coreRoot + '/service/crm/index.php?clients', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-institution">Select Customer...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-institution" value="'+elem['id']+'">'+elem['name']+'<span style="font-size: 1px"> ['+elem['details']+']</span></option>');
+              tpl.appendTo(ul);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          var uly = $('#invoices');
+          uly.empty();
+          var ulz = $('tbody');
+          ulz.empty();
+          $('form input').val('');
+          $('form textarea').val('');
+          $('button').prop({disabled: false});
+        },
+      
+        fetchInvoices: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var uly = $('#invoices');
+          uly.empty();
+          var ulz = $('tbody');
+          ulz.empty();
+          $('#amount').val((0).formatMoney(2, '.', ','));
+          $('#taxes').val((0).formatMoney(2, '.', ','));
+          $('#total').val((0).formatMoney(2, '.', ','));
+          var data = Backbone.Syphon.serialize(this);
+          data['client'] = parseInt(data['client'], 10);
+          System.cache.invoices = [];
+          
+          if (data['client']) {
+            var ul = $('#invoices');
+            ul.empty();
+            $.get(System.coreRoot + '/service/finance/index.php?invoices&clientid='+data.client, function(result) {
+              var m = JSON.parse(result);
+              var tp = $('<option data-icon="fa fa-archive">Select Invoice</option>');
+              tp.appendTo(ul);
+              
+              m.forEach(function(elem){
+                var tpl = $('<option data-icon="fa fa-archive" value="'+elem.id+'">INV-'+elem.id+' [Amount: Ksh. '+(elem.total.amount).formatMoney(2, '.', ',')+']</option>');
+                tpl.appendTo(ul);
+                System.cache.invoices[elem.id] = elem;
+              });
+              
+              setTimeout(function() {
+                  $('.selectpicker').selectpicker('refresh');
+              }, 300);
+            });
+
+          }else{
+            swal("Error!", "Select a client first!", "error");
+          }
+        },
+
+        getDetails: function(e) {
+          var ul = $('tbody');
+          ul.empty();
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize(this);
+          data['invoice'] = parseInt(data['invoice'], 10);
+          
+          if (data['invoice']) {            
+            System.cache.invoices.forEach(function(invoice){
+              if (invoice.id == data['invoice']) {
+                invoice.lineItems.forEach(function(item){
+                  var amt = (item.quantity * item.unitPrice);
+                  var tax = amt * (item.tax/100);
+                  var tot = amt = (amt + tax);
+                  /*var tpl = $('<tr><td>'+item.itemName+'<br><span style="font-style:italic; font-size:11px">'+item.itemDesc+'</span></td>'+
+                      '<td>'+item.quantity+'</td><td><form class="form-horizontal" style="margin:0"><div class="form-group"><p class="viid" style="display: none;">'+item.lineId+'</p>'+
+                  '<input type="text" data-lineid="'+item.lineId+'" data-qty="'+item.quantity+'" data-uprice="'+item.unitPrice+'" data-taxval="'+item.tax+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" class="form-control adjusted" name="adjusted" value="'+item.quantity+'" style="width:80px"></div></div></form></td><td>'+item.unitPrice+'</td>    <td>Ksh. '+(tot).formatMoney(2, '.', ',')+'</td></tr>');
+                      //'<td><div class="checkbox checkbox-primary" style="margin:0"><input id="checkbox'+item.lineId+'" data-lineid="'+item.lineId+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" type="checkbox" class="chkbx" checked><label for="checkbox'+item.lineId+'"></label></div></td></tr>');
+                  tpl.appendTo(ul);*/
+                });
+
+                $('#amount').val((invoice.amount.amount).formatMoney(2, '.', ','));
+                $('#taxes').val((invoice.taxamt.amount).formatMoney(2, '.', ','));
+                $('#invcred').val((invoice.credit.amount).formatMoney(2, '.', ','));
+                $('#total').val((invoice.total.amount - invoice.credit.amount).formatMoney(2, '.', ','));
+
+                $('#amount').data('famt', invoice.amount.amount);
+                $('#taxes').data('ftax', invoice.taxamt.amount);
+                $('#invcred').data('ctot', invoice.credit.amount);
+                $('#total').data('ftot', invoice.total.amount - invoice.credit.amount);
+              };
+            });
+              
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          }else{
+            swal("Error!", "Select an invoice!", "error");
+          }          
+        },
+
+        generateCreditNote: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frmi1")[0]);
+          data.client = parseInt(data.client, 10);
+
+          //$("tbody").find('input[name=view]:checked').each(function (chkbx) {
+            //data.itms.push($(this).attr('id'));
+          //});
+          if (data.client && parseInt(data.invoice, 10) && data.credit > 0 && data.descr){
+            //alert(JSON.stringify(data));
+            this.trigger("post", data);
+          }else{
+            swal("Missing Details!", "Ensure you have client, invoice and credit amount!", "warning");
             $('button').prop({disabled: false});
           }
         },

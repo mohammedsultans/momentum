@@ -48,6 +48,17 @@
 						echo 0;
 					}
 				
+				}elseif($operation == 'issueCashCrNote'){
+					if(isset($_POST['client']) && isset($_POST['invoice']) && isset($_POST['descr']) && isset($_POST['credit'])){
+						$clientid = $_POST['client'];
+						$invoice = $_POST['invoice'];
+						$credit = $_POST['credit'];
+						$descr = $_POST['descr'];
+						$this->issueCashCrNote($clientid, $invoice, $credit, $descr);
+					}else{
+						echo 0;
+					}
+				
 				}elseif($operation == 'receivePayment'){
 					if(isset($_POST['client']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['category']) && isset($_POST['voucher'])){
 						if ($_POST['mode'] != 101) {
@@ -308,6 +319,19 @@
 		public function issueCrNote($clientid, $invoice, $items, $descr)
 		{
 			$crnote = SalesTX::GenerateCreditNote($clientid, $invoice, $items, $descr);			
+
+			$voucher = $crnote->post();
+
+			if ($voucher) {
+				echo json_encode($voucher);
+			}else{
+				echo 0;
+			}
+		}
+
+		public function issueCashCrNote($clientid, $invoice, $credit, $descr)
+		{
+			$crnote = SalesTX::GenerateCashCreditNote($clientid, $invoice, $credit, $descr);			
 
 			$voucher = $crnote->post();
 

@@ -299,6 +299,29 @@ define(["app", "apps/finance/show/show_view"], function(System, View){
             }
           });
         });
+      }, 
+
+      cashcrnote: function(a){ 
+        var view = new View.CashCRNote();
+
+        System.contentRegion.show(view);
+
+        view.on('post', function(data) {
+          data['operation'] = 'issueCashCrNote';
+          $.post(System.coreRoot + '/service/finance/index.php', data, function(result) {
+            if (result != 0) {
+              var res = JSON.parse(result);
+              //alert(JSON.stringify(res));
+              if (res['transactionId']) {
+                view.triggerMethod("success", res);
+              }else{
+                view.triggerMethod("error");
+              }              
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
       },     
     };
   });
