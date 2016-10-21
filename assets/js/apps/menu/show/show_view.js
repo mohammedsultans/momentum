@@ -71,6 +71,13 @@ define(["app", "tpl!apps/templates/menu.tpl", "tpl!apps/templates/empty.tpl"],
             }
           });
 
+          $('.nav > li > ul > li > a').on('click', function(){
+            $('.sidebar').addClass('hidden');
+            $('.content.main').animate({
+              'marginLeft' : 0
+            }, 250);  
+          });
+
           $('#content').on('click', function(){
               wide = $(document).width();
               if (wide > 600) { width = 250; widthneg = -250;}else{width = '50%'; widthneg = '-50%';}

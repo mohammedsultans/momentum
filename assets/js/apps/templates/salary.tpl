@@ -52,7 +52,16 @@
                 <div class="col-sm-10">
                   <div class="input-group">
                     <div class="input-group-addon"><i class="">Ksh.</i></div>
-                    <input type="text" class="form-control" name="amount" id="amount" disabled="disables">
+                    <input type="text" class="form-control" name="due" id="amount" disabled="disable">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label form-label">Paying<span class="color10">*</span></label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <div class="input-group-addon"><i class="">Ksh.</i></div>
+                    <input type="text" class="form-control" name="amount" id="paying">
                   </div>
                 </div>
               </div>

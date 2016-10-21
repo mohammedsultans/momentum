@@ -71,8 +71,10 @@ class Client extends Party
         	if (!empty($statement) && count($statement) > 0) {
         		return false;
         	}else{*/
-        		$sql = 'DELETE FROM clients WHERE id = '.intval($id).' AND balance > 0';
-        		$res =  DatabaseHandler::Execute($sql);
+        		$sql = 'UPDATE clients SET status = 0 WHERE id = '.intval($id).' AND balance > 0';
+	        	DatabaseHandler::Execute($sql);
+        		//$sql = 'DELETE FROM clients WHERE id = '.intval($id).' AND balance > 0';
+        		//$res =  DatabaseHandler::Execute($sql);
         		return true;
         	//}
         	
@@ -83,7 +85,7 @@ class Client extends Party
 
     public static function GetAllClients()
     {
-        $sql = 'SELECT * FROM clients WHERE type = "Client"';
+        $sql = 'SELECT * FROM clients WHERE type = "Client" AND status = 1';
         // Execute the query and return the results
         $res =  DatabaseHandler::GetAll($sql);
         $parties = array();
@@ -124,8 +126,8 @@ class Client extends Party
   	    	Logger::Log(get_class($this), 'Exists', 'A client with the name: '.$this->name.' and phone number:'.$this->telephone.' already exists');
   	    	return false;
   	    }else{
-  	    	$sql = 'INSERT INTO clients (type, name, telephone, idno, address, email, details) 
-  	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->idno.'", "'.$this->address.'", "'.$this->email.'", "'.$this->details.'")';
+  	    	$sql = 'INSERT INTO clients (type, name, telephone, idno, address, email, details, status) 
+  	        VALUES ("'.$this->type->name.'", "'.$this->name.'", "'.$this->telephone.'", "'.$this->idno.'", "'.$this->address.'", "'.$this->email.'", "'.$this->details.'", 1)';
   	        DatabaseHandler::Execute($sql);
   	        if ($this->balance->amount != 0) {
   	        	$sql = 'SELECT * FROM clients WHERE idno = "'.$this->idno.'"';
@@ -1441,6 +1443,8 @@ class CreditNote
 				$crnote->addLineItem(CreditNoteLine::Create($crnote->id, $invline->itemName, $invline->itemDesc, $item[1], $invline->unitPrice, $invline->tax));
 			}
 
+			$crnote->origInvoice = $invoice;
+
 			return $crnote;
 
 		} catch (Exception $e) {
@@ -1609,7 +1613,7 @@ class SalesVoucher
    		$extras->tax = $this->tax->amount;
    		$extras->discount = $this->discount;
    		$extras->credit = $this->credit->amount;
-   		$extras->total = $this->total->amount - $this->credit->amount;
+   		$extras->total = $this->total->amount;
    		$extras->advices = $this->advices;
    		$this->extras = $extras;
 
@@ -2130,6 +2134,8 @@ class SalesTX extends FinancialTransaction
 			$lamt = $item[1] * $invline->unitPrice;
 			$credit += $lamt + ($lamt * $invline->tax/100);
 		}
+
+		$inv = SalesInvoice::GetInvoice($invoice);
 
 		if ($inv->total->amount < ($inv->credit->amount + $credit)) {
 			return false;

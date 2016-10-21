@@ -622,7 +622,7 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
 
           if (ind >= 0) {
             var slip = System.payslips[ind];
-            $('#amount').val(slip.netpay);
+            $('#amount').val(slip.netpay - slip.paid);
           }else{
             swal("Error!", "Select a payslip first!", "error");
           }
@@ -638,8 +638,14 @@ define(["app", "tpl!apps/templates/employees.tpl", "tpl!apps/templates/employee.
           data['ledger'] = parseInt(data['ledger'], 10);
           
           if (data['employee'] && data['slip'] && data['amount'] != 0 && data['ledger'] && data['mode']) {
-              //alert(JSON.stringify(data));
-              this.trigger("post", data);
+              //alert(JSON.stringify(data)));
+              if (parseFloat(data['amount']) <= parseFloat(data['due'])) {
+                this.trigger("post", data);
+              }else{
+                swal("Incorrect Data!", "Ensure amount posted is less or equal to slip balance!", "error");
+                $('button').prop({disabled: false});
+              }
+              
           }else{
               swal("Missing Information!", "Ensure all fields are filled!", "info");
               $('button').prop({disabled: false});

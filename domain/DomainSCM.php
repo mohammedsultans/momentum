@@ -836,6 +836,43 @@ class PurchaseInvoice
 					
 				}
 			}
+
+			
+			$invbal = 0.00;
+			foreach ($invoices as $grn) {
+				$invbal += $grn->balance->amount;
+			}
+
+			$difference = $invbal - $party->balance->amount;
+			if ($difference > 0) {
+				$paidamt = 0.00;
+				foreach ($invoices as $grn) {
+					if(($difference - $paidamt) >= $grn->balance->amount){
+						$paidamt = $paidamt + $grn->balance->amount;
+						$grn->credit(floatval($grn->balance->amount));
+						$credgrn .= $grn->id.',';
+					}elseif (($difference - $paidamt) < $grn->balance->amount && ($difference - $paidamt) > 0.00) {
+						$grn->credit(floatval(($difference - $paidamt)));
+						$credgrn .= $grn->id.',';
+						$paidamt = $paidamt + ($difference - $paidamt);
+					}elseif ($difference == $paidamt) {
+						break;
+					}
+				}
+
+				$sql = 'SELECT * FROM purchase_invoices WHERE party_id = '.$supplierid.' AND balance > 0 AND status != 0';
+				$res =  DatabaseHandler::GetAll($sql);
+				$invoices = [];
+				foreach ($res as $item) {
+					if (!empty($item['date'])) {
+						$invoice = new PurchaseInvoice($item['id'], $item['project_id'], $item['orders'], $item['invno'], $item['description'], $item['date'], $item['status'], $party);
+						$invoice->initialize(floatval($item['balance']));
+						$invoices[] = $invoice;
+					}else{
+						
+					}
+				}
+			}
 			
 			return $invoices;
 			
@@ -1520,12 +1557,16 @@ class PaymentTX extends FinancialTransaction//without grn
 				
 				$paidamt = floatval(0.00);
 
+				$credgrn = '';
+
 				foreach ($grns as $grn) {
 					if(($amount - $paidamt) >= $grn->balance->amount){
 						$paidamt = $paidamt + $grn->balance->amount;
 						$grn->credit(floatval($grn->balance->amount));
+						$credgrn .= $grn->id.',';
 					}elseif (($amount - $paidamt) < $grn->balance->amount && ($amount - $paidamt) > 0.00) {
 						$grn->credit(floatval(($amount - $paidamt)));
+						$credgrn .= $grn->id.',';
 						$paidamt = $paidamt + ($amount - $paidamt);
 					}elseif ($amount == $paidamt) {
 						break;
@@ -1533,7 +1574,7 @@ class PaymentTX extends FinancialTransaction//without grn
 				}
 
 				$this->status = 1;
-				$this->updateStatus();
+				$this->updateParticulars($credgrn);
 				return $voucher;
 			}else{
 				return false;
@@ -1561,13 +1602,11 @@ class PaymentTX extends FinancialTransaction//without grn
 		return true;
 	}
 
-	private function updateStatus()
+	private function updateParticulars($grns)
 	{
 		try {
-
-			$sql = 'UPDATE payments SET status = '.$this->status.' WHERE id = '.$this->id;
-	 		DatabaseHandler::Execute($sql);	 		
-
+			$sql = 'UPDATE payments SET status = '.$this->status.', grns = "'.$grns.'" WHERE id = '.$this->id;
+	 		DatabaseHandler::Execute($sql);
 		} catch (Exception $e) {
 			return false;
 		}

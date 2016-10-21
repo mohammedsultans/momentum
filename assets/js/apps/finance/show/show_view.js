@@ -1901,6 +1901,7 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
         },
 
         listItems: function(e) {
+          var SELF = this;
           var ul = $('tbody');
           ul.empty();
           e.preventDefault();
@@ -1917,18 +1918,12 @@ define(["app", "tpl!apps/templates/qinvoice.tpl", "tpl!apps/templates/ginvoice.t
                   var tot = amt = (amt + tax);
                   var tpl = $('<tr><td>'+item.itemName+'<br><span style="font-style:italic; font-size:11px">'+item.itemDesc+'</span></td>'+
                       '<td>'+item.quantity+'</td><td><form class="form-horizontal" style="margin:0"><div class="form-group"><p class="viid" style="display: none;">'+item.lineId+'</p>'+
-                  '<input type="text" data-lineid="'+item.lineId+'" data-qty="'+item.quantity+'" data-uprice="'+item.unitPrice+'" data-taxval="'+item.tax+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" class="form-control adjusted" name="adjusted" value="'+item.quantity+'" style="width:80px"></div></div></form></td><td>'+item.unitPrice+'</td>    <td>Ksh. '+(tot).formatMoney(2, '.', ',')+'</td></tr>');
+                  '<input type="text" data-lineid="'+item.lineId+'" data-qty="'+item.quantity+'" data-uprice="'+item.unitPrice+'" data-taxval="'+item.tax+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" class="form-control adjusted" name="adjusted" value="0" style="width:80px"></div></div></form></td><td>'+item.unitPrice+'</td>    <td>Ksh. '+(tot).formatMoney(2, '.', ',')+'</td></tr>');
                       //'<td><div class="checkbox checkbox-primary" style="margin:0"><input id="checkbox'+item.lineId+'" data-lineid="'+item.lineId+'" data-amt="'+amt+'" data-tax="'+tax+'" data-tot="'+tot+'" type="checkbox" class="chkbx" checked><label for="checkbox'+item.lineId+'"></label></div></td></tr>');
                   tpl.appendTo(ul);
                 });
 
-                $('#amount').val((invoice.amount.amount).formatMoney(2, '.', ','));
-                $('#taxes').val((invoice.taxamt.amount).formatMoney(2, '.', ','));
-                $('#total').val((invoice.total.amount).formatMoney(2, '.', ','));
-
-                $('#amount').data('famt', invoice.amount.amount);
-                $('#taxes').data('ftax', invoice.taxamt.amount);
-                $('#total').data('ftot', invoice.total.amount);
+                SELF.updateTotals();
               };
             });
               

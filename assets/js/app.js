@@ -3,7 +3,9 @@ define(["marionette", "sweetalert"], function(Marionette){
 
   window.momentum = System;
 
-  System.coreRoot = "http://code.dev/momentum";
+  var coreURL = window.location.href.split(window.location.pathname);
+
+  System.coreRoot = coreURL[0]+"/momentum";
   System.cache = {};
 
   var checkLogin = function(callback) {

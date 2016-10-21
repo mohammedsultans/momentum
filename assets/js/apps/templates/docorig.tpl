@@ -19,11 +19,11 @@
 
   <!-- Start Page Header -->
   <div class="page-header">
-    <h1 class="title">Lands Document Origination</h1>
+    <h1 class="title">Document Origination</h1>
     <!-- Start Page Header Right Div -->
     <div class="right">
       <div class="btn-group" role="group" aria-label="...">
-        <a href="#docRegistry" class="btn btn-light" style="font-weight:600"><i class="fa fa-folder-o"></i>Lands Documents Registry</a>
+        <a href="#docRegistry" class="btn btn-light" style="font-weight:600"><i class="fa fa-folder-o"></i>Document Registry</a>
         <a href="#start" class="btn btn-light"><i class="fa fa-remove"></i></a>
       </div>
     </div>

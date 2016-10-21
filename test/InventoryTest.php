@@ -4,35 +4,123 @@ require_once('/../domain/LSOfficeDomain.php');
 
 class CRMTest extends PHPUnit_Framework_TestCase
 {
+    private $modid;
     public function setUp(){ }
     public function tearDown(){ }
 
-    public function testCreateStock() 
+    public static function setUpBeforeClass()
     {
         
     }
 
-    public function testUpdateStock() 
+    public static function tearDownAfterClass()
     {
         
+    }
+
+
+    public function testCreateCategory() 
+    {
+        ItemCategory::Create('Stationery');
+        $cat = ItemCategory::FindByName('Stationery');
+        $this->assertInstanceOf('ItemCategory', $cat);
+        $this->assertTrue($cat->name == 'Stationery');
+    }
+
+    public function testUpdateCategory() 
+    {
+        $cat = ItemCategory::FindByName('Stationery');
+        ItemCategory::Update($cat->id, 'Stationary');
+        $cat = ItemCategory::FindObject($cat->id);
+        $this->assertInstanceOf('ItemCategory', $cat);
+        $this->assertTrue($cat->name == 'Stationary');
+    }
+
+    public function testDeleteCategory() 
+    {
+        $cat = ItemCategory::FindByName('Stationary');
+        ItemCategory::Delete($cat->id);
+        $cat = ItemCategory::FindObject($cat->id);
+        $this->assertTrue($cat == null);
+    }
+
+    public function testCreateStock() 
+    {
+    	//API - Item::CreateStock($name, $margin, $vat, $category);
+    	//Test Validation
+        $item = Item::CreateStock('Test Stock Name', 50, 0, '', '');
+        $this->assertInstanceOf('Item', $item);
+        $this->assertTrue(filter_var($item->id, FILTER_VALIDATE_INT) == true);
+        $this->assertTrue($item->name == 'Test Stock Name');
+        $this->assertTrue($item->margin == 50);
+        $this->assertTrue($item->vat == 0);
+        $this->assertTrue($item->category == '');
+        $this->assertTrue($item->description == '');
+    }
+
+    public function testUpdateStock()
+    {
+        $item = Item::FindByName('Test Stock Name');
+        Item::UpdateStock($item->id, 'Test Stock Name 2', 55, 16.2, 'category', 'description');
+        $newitem = Item::FindObject($item->id);
+        $this->assertInstanceOf('Item', $newitem);
+        $this->assertTrue($newitem->id == $item->id);
+        $this->assertTrue($newitem->name == 'Test Stock Name 2');
+        $this->assertTrue($newitem->margin == 55);
+        $this->assertTrue($newitem->vat == 16.2);
+        $this->assertTrue($newitem->category == 'category');
+        $this->assertTrue($newitem->description == 'description');
     }
 
     public function testCreateService() 
     {
-        
+        $item = Item::CreateService('Test Service Name', 0, '', '');
+        $this->assertInstanceOf('Item', $item);
+        $this->assertTrue(filter_var($item->id, FILTER_VALIDATE_INT) == true);
+        $this->assertTrue($item->name == 'Test Service Name');
+        $this->assertTrue($item->vat == 0);
+        $this->assertTrue($item->category == '');
+        $this->assertTrue($item->description == '');
     }
 
     public function testUpdateService() 
     {
-        
+        $item = Item::FindByName('Test Service Name');
+        Item::UpdateService($item->id, 'Test Service Name 2', 16.2, 'category', 'description');
+        $newitem = Item::FindObject($item->id);
+        $this->assertInstanceOf('Item', $newitem);
+        $this->assertTrue($newitem->id == $item->id);
+        $this->assertTrue($newitem->name == 'Test Service Name 2');
+        $this->assertTrue($newitem->vat == 16.2);
+        $this->assertTrue($newitem->category == 'category');
+        $this->assertTrue($newitem->description == 'description');
     }
 
     public function testCreateAsset() 
     {
-        
+        $item = Item::CreateAsset('Test Asset Name', '', '', 120);
+        $this->assertInstanceOf('Item', $item);
+        $this->assertTrue(filter_var($item->id, FILTER_VALIDATE_INT) == true);
+        $this->assertTrue($item->name == 'Test Asset Name');
+        $this->assertTrue($item->category == '');
+        $this->assertTrue($item->description == '');
+        $this->assertTrue($item->assetAccount == 120);
     }
 
     public function testUpdateAsset() 
+    {
+        $item = Item::FindByName('Test Asset Name');
+        Item::UpdateAsset($item->id, 'Test Asset Name 2', 'category', 'description', 121);
+        $newitem = Item::FindObject($item->id);
+        $this->assertInstanceOf('Item', $newitem);
+        $this->assertTrue($newitem->id == $item->id);
+        $this->assertTrue($newitem->name == 'Test Asset Name 2');
+        $this->assertTrue($newitem->category == 'category');
+        $this->assertTrue($newitem->description == 'description');
+        $this->assertTrue($newitem->assetAccount == 121);
+    }
+
+    public function testDeleteItem() 
     {
         
     }

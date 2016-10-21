@@ -98,7 +98,7 @@
 						echo 0;
 					}				
 				}elseif($operation == 'paySalary'){
-					if(isset($_POST['employee']) && isset($_POST['slip']) && isset($_POST['ledger']) && isset($_POST['mode']) && isset($_POST['voucher'])){
+					if(isset($_POST['employee']) && isset($_POST['slip']) && isset($_POST['ledger']) && isset($_POST['mode']) && isset($_POST['amount']) && isset($_POST['voucher'])){
 						if ($_POST['ledger'] != 101) {
 							if (FinancialTransaction::VoucherInUse($_POST['voucher'])) {
 						      	echo 0;
@@ -110,7 +110,8 @@
 						$ledger = $_POST['ledger'];
 						$mode = $_POST['mode'];
 						$voucher = $_POST['voucher'];
-						$this->paySalary($empid, $slip, $ledger, $mode, $voucher);
+						$amount = $_POST['amount'];
+						$this->paySalary($empid, $slip, $ledger, $mode, $voucher, $amount);
 					}else{
 						echo 0;
 					}				
@@ -256,9 +257,9 @@
 			}
 		}
 
-		public function paySalary($empid, $slipid, $ledger, $mode, $voucher)
+		public function paySalary($empid, $slipid, $ledger, $mode, $voucher, $amount)
 		{
-			$tx = Payroll::PaySalary($empid, $slipid, $ledger, $mode, $voucher);			
+			$tx = Payroll::PaySalary($empid, $slipid, $ledger, $mode, $voucher, $amount);			
 
 			$voucher = $tx->post();
 

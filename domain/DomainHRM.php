@@ -506,7 +506,7 @@ class Payroll
 		
 		foreach ($employees as $employee) {
 
-			$slip = new PaySlip($employee, $month);
+			$slip = new PaySlip($employee, $month, 0);
 
 			try {
 				if ($payroll->status == "UNPROCESSED") {
@@ -524,7 +524,7 @@ class Payroll
 					}
 				}
 
-				$sql2 = 'SELECT * FROM advances_and_loans WHERE party_id = '.$employee->id.' and type = "Salary Advance" ORDER BY id DESC LIMIT 0,1';
+				$sql2 = 'SELECT * FROM advances_and_loans WHERE party_id = '.$employee->id.' AND month = "'.$month.'" and type = "Salary Advance" ORDER BY id DESC LIMIT 0,1';
 				$entry =  DatabaseHandler::GetRow($sql2);
 
 				if (isset($entry) && $entry['balance'] != 0) {
@@ -616,8 +616,8 @@ class Payroll
 			//return new PayrollTX($payment, 'Salary Payment');
 			$txtype = new BenefitAddition($ledger->ledgerId, $employee->id, 'Basic Salary');
 
-			$tx = PayrollTX::Initialize($entry, $txtype, 'payroll_entries');
-			$tx->post();
+			return PayrollTX::Initialize($entry, $txtype, 'payroll_entries');
+			//$tx->post();
 		} catch (Exception $e) {
 			Logger::Log('Payroll', 'Failed', 'Basic Salary for employee id: '.$employee->id.' for '.$month.'could not be posted');
 		}	
@@ -684,7 +684,7 @@ class Payroll
 		}
 	}
 
-	public static function PaySalary($empid, $slipid, $ledger, $mode, $voucher)
+	public static function PaySalary($empid, $slipid, $ledger, $mode, $voucher, $amount)
 	{
 		try {
 			$payslip = PaySlip::GetSlip($slipid);
@@ -692,14 +692,14 @@ class Payroll
 			$descr = "Salary remittance for ".$payslip->month."";
 
 			$sql = 'INSERT INTO payroll_entries (party_id, month, type, effect, amount, ledger_id, mode, voucher_no, description) VALUES 
-			('.$payslip->employee->id.', "'.$payslip->month.'", "Salary Payment", "dr", '.$payslip->netpay.', '.$ledger.', "'.$mode.'", "'.$voucher.'", "'.$descr.'")';
+			('.$payslip->employee->id.', "'.$payslip->month.'", "Salary Payment", "dr", '.$amount.', '.$ledger.', "'.$mode.'", "'.$voucher.'", "'.$descr.'")';
 	 		DatabaseHandler::Execute($sql);
 	 		
 	 		$sql2 = 'SELECT * FROM payroll_entries WHERE party_id = '.$empid.' ORDER BY id DESC LIMIT 0,1';
 			$entry =  DatabaseHandler::GetRow($sql2);
 
 			//return new PayrollTX($payment, 'Salary Payment');
-			$payslip->clearPayment();
+			$payslip->clearPayment($amount);
 
 			$txtype = new EmployeePayment($ledger, $payslip->employee->id, 'Salary Payment');
 
@@ -826,13 +826,14 @@ class PaySlip
 	public $netpay;
 	public $date;
 
-	function __construct($employee, $month)
+	function __construct($employee, $month, $paid)
 	{
 		$this->employee = $employee;
 		$this->salary = $employee->salary->amount;
 		$this->month = $month;
 		$date = new DateTime();
 		$this->date = $date->format('d/m/Y');
+		$this->paid = $paid;
 		//$this->includeEntry('Basic Salary', 'cr', $salary);
 	}
 
@@ -863,12 +864,23 @@ class PaySlip
 		}
 	}
 
-	public function clearPayment()
+	public function clearPayment($amount)
 	{
 		try {
-			$sql = 'UPDATE payslips SET status = 2 WHERE id = '.$this->id;
-			DatabaseHandler::Execute($sql);			
-			return true;
+			$sql = 'SELECT * FROM payslips WHERE id = '.$this->id;
+			$entries =  DatabaseHandler::GetRow($sql);
+			$amtpaid = $entries['paid'] + $amount;
+			if ($amtpaid < $entries['netpay']) {
+				$sql = 'UPDATE payslips SET status = 3, paid = '.$amtpaid.' WHERE id = '.$this->id;
+				DatabaseHandler::Execute($sql);			
+				return true;
+			} elseif ($amtpaid == $entries['netpay']) {
+				$sql = 'UPDATE payslips SET status = 2, paid = '.$amtpaid.' WHERE id = '.$this->id;
+				DatabaseHandler::Execute($sql);			
+				return true;
+			} else {
+				return false;
+			}
 		} catch (Exception $e) {
 			return false;
 		}
@@ -913,8 +925,8 @@ class PaySlip
 			$datetime = $date->format('d/m/Y H:i a');
 			$stamp = $date->format('YmdHis');
 
-			$sql = 'INSERT INTO payslips (party_id, datetime, month, netpay, stamp, status) VALUES 
-			('.$this->employee->id.', "'.$datetime.'", "'.$this->month.'", '.$this->netpay.', '.$stamp.', 1)';
+			$sql = 'INSERT INTO payslips (party_id, datetime, month, netpay, paid, stamp, status) VALUES 
+			('.$this->employee->id.', "'.$datetime.'", "'.$this->month.'", '.$this->netpay.', 0.00, '.$stamp.', 1)';
 	 		DatabaseHandler::Execute($sql);
 	 		Logger::Log('PaySlip', 'Passed', 'Payslip for employee id: '.$this->employee->id.' for '.$this->month.' successfully commited');
 			return true;
@@ -933,7 +945,7 @@ class PaySlip
 			$sql = 'SELECT * FROM payslips WHERE id = '.$id;
 			$entry =  DatabaseHandler::GetRow($sql);
 
-			$slip = new PaySlip(Employee::GetEmployee($entry['party_id']), $entry['month']);
+			$slip = new PaySlip(Employee::GetEmployee($entry['party_id']), $entry['month'], $entry['paid']);
 			$slip->populate($entry['id']);
 
 			return $slip;
@@ -945,11 +957,11 @@ class PaySlip
 	public static function GetUncleared($empid){
 		$results = [];
 		try {
-			$sql = 'SELECT * FROM payslips WHERE party_id = '.$empid.' AND status = 1';
+			$sql = 'SELECT * FROM payslips WHERE party_id = '.$empid.' AND status != 2';
 			$entries =  DatabaseHandler::GetAll($sql);
 
 			foreach ($entries as $entry) {
-				$slip = new PaySlip(Employee::GetEmployee($entry['party_id']), $entry['month']);
+				$slip = new PaySlip(Employee::GetEmployee($entry['party_id']), $entry['month'], $entry['paid']);
 				$slip->populate($entry['id']);
 				$results[] = $slip;
 			}

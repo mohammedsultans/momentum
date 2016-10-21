@@ -129,8 +129,19 @@ $voucher = json_decode($_POST['voucher']);
           <td></td>
           <td></td>
           <td></td>          
-          <td class="text-right">GRAND TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->extras->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
+          <td class="text-right">INVOICE TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo $voucher->extras->total; ?>).formatMoney(2, '.', ','));</script></h4></td>
         </tr>
+        <?php if (floatval($voucher->extras->credit) != 0.00){ ?>           
+        <tr>
+          <td class="text-left" style="font-size:14px;">
+            <b>CREDIT NOTES:</b> Ksh. <script>document.writeln((<?php echo $voucher->extras->credit; ?>).formatMoney(2, '.', ','));</script><br>
+          </td>
+          <td></td>
+          <td></td>
+          <td></td>          
+          <td class="text-right">GRAND TOTAL<h4 class="total">Ksh. <script>document.writeln((<?php echo ($voucher->extras->total - $voucher->extras->credit); ?>).formatMoney(2, '.', ','));</script></h4></td>
+        </tr>
+        <?php } ?>
       </tfoot>
       
     </table>

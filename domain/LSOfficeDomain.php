@@ -6,7 +6,7 @@ require_once DATA_DIR . 'error_handler.php';
 ErrorHandler::SetHandler();
 require_once DATA_DIR . 'database_handler.php';
 
-date_default_timezone_set('Africa/Nairobi');
+//date_default_timezone_set('Africa/Nairobi');
 
 require_once('Logger.php');
 //require_once('Session.php');

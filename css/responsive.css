@@ -30,7 +30,7 @@ smaller than 760
 ================================================================================= */
 @media screen and (max-width: 760px) {
 	.page-header .right{display: none;}
-	.sidebar{display: none; width: 100%;}
+	.sidebar{width: 100%;}
 	.presentation .list{float: left; margin-top: 20px;}
 	.applogo{display: none;}
 	.container-default, .container-widget{margin-left:-20px; margin-right: -20px;}

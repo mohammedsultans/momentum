@@ -31,7 +31,7 @@
                 clearInterval(timer);           
                 timer = setInterval(function(){
                     autoLogout();
-                }, 3000000);
+                }, 300000);
             }
             startTimer();
         </script>
@@ -42,6 +42,6 @@
         <div id="menu"></div>
         <div id="content" class="content main"></div>
         
-        <script data-main="assets/js/require_main.js?bust=v1" src="assets/js/vendor/require.js?bust=v1"></script>
+        <script data-main="assets/js/require_main.js?bust=v14" src="assets/js/vendor/require.js?bust=v11"></script>
     </body>
 </html>
