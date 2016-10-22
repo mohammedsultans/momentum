@@ -1,5 +1,5 @@
 <?php
-require_once('Inventory.php');
+//require_once('Inventory.php');
 //require_once('Services.php');
 //require_once('Quotation.php');
 //require_once('SalesOrder.php');

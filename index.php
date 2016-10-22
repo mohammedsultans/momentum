@@ -31,7 +31,7 @@
                 clearInterval(timer);           
                 timer = setInterval(function(){
                     autoLogout();
-                }, 300000);
+                }, 3000000);
             }
             startTimer();
         </script>

@@ -1,8 +1,663 @@
 define(["app", "tpl!apps/templates/supplier.tpl", "tpl!apps/templates/suppliers.tpl", "tpl!apps/templates/goodsreceived.tpl", "tpl!apps/templates/receiveorder.tpl",
-  "tpl!apps/templates/paysuppliergrn.tpl", "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl", "backbone.syphon"], 
-	function(System, supplierTpl, suppliersTpl, grnTpl, ordergrnTpl, paySupplierGRNTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl){
+  "tpl!apps/templates/paysuppliergrn.tpl", "tpl!apps/templates/paysupplier.tpl", "tpl!apps/templates/purchaseorder.tpl", "tpl!apps/templates/suppliertx.tpl",
+   "tpl!apps/templates/stock.tpl", "tpl!apps/templates/service.tpl", "tpl!apps/templates/asset.tpl", "tpl!apps/templates/items.tpl", "tpl!apps/templates/itemCategories.tpl", "backbone.syphon"], 
+	function(System, supplierTpl, suppliersTpl, grnTpl, ordergrnTpl, paySupplierGRNTpl, paySupplierTpl, purchOrderTpl, supplierTxTpl, stockTpl, serviceTpl, assetTpl, itemsTpl, itemCategoriesTpl){
   System.module('ProcurementApp.Show.View', function(View, System, Backbone, Marionette, $, _){
     
+    View.Items = Marionette.CompositeView.extend({
+
+      template: itemsTpl,
+
+      onShow: function(){
+        this.setup();
+      },
+
+      setup: function(){
+          var THAT = this;
+          var ul = $('tbody');
+          var scope = ['Buyable', 'Sellable', 'Buyable & Sellable'];
+          ul.empty();
+          $.get(System.coreRoot + '/service/inventory/index.php?allItems', function(result) {
+            var m = JSON.parse(result);
+            m.forEach(function(elem){
+              var tpl = $('<tr><td>'+elem['name']+'</td><td>'+elem['type']+'</td><td>'+scope[elem['scope'] - 1]+'</td><td>'+elem['category']['name']+'</td>'
+                +'<td><p class="xid" style="display: none;">'+elem['id']+'</p><a class="btn btn-small js-edit xcheck" href="#"><i class="fa fa-trash" style="margin:0;"></i></a></td></tr>');
+              tpl.appendTo(ul);
+            });
+
+            $('.xcheck').on('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var id = $(this).parent().find('.xid');
+              id = parseInt(id.text());
+              swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this item!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+              },
+              function(isConfirm){
+                if (isConfirm) {
+                  THAT.deleteRecord(id);                             
+                } else {
+                  swal("Cancelled", "Your record is safe :)", "success");
+                }
+              });
+              
+            });
+
+            setTimeout(function() {
+              $('#items').DataTable();
+              $('button').prop({disabled: false});
+            }, 700);
+            
+          });
+        },
+
+        deleteRecord: function(id) { 
+          this.trigger("del", id);
+        },
+
+        onDelete: function(e) { 
+          swal("Deleted!", "The item has been deleted.", "success");
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
+        }
+    });
+
+    View.ItemCategories = Marionette.ItemView.extend({      
+
+        template: itemCategoriesTpl,
+
+        events: {
+          "click .screate": "create",
+        },
+
+        onShow: function(){
+          this.setup();          
+        },
+
+        setup: function(){
+          var THAT = this;
+          var ul = $('tbody');
+          ul.empty();
+          $.get(System.coreRoot + '/service/inventory/index.php?itemCategories', function(result) {
+            var m = JSON.parse(result);
+            $('.scount').text(m.length);
+            m.forEach(function(elem){
+              var tpl = $('<tr><td>'+elem['name']+'</td><td><p class="sid" style="display: none;">'+elem['id']+'</p><a class="btn btn-danger sdel" href="#"><i class="fa fa-trash"></i></a></tr>');
+              tpl.appendTo(ul);
+            });
+
+            $('.sdel').off();
+            $('.sdel').on('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var id = parseInt($(this).parent().find('.sid').text(), 10);
+              swal({
+                title: "Are you sure?",
+                text: "You are about to delete this category!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+              },
+              function(isConfirm){
+                if (isConfirm) {
+                  THAT.trigger("deleteCategory", id);                             
+                } else {
+                  swal("Cancelled", "The category has not been deleted", "info");
+                }
+              });
+              
+            });
+          });
+        },
+
+        create: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize(this);
+          if (data['name'] != '') {
+            this.trigger("create", data);
+          }else{
+            swal("Error!", "Enter the document type!", "error");
+          }
+        },
+
+        onDelete: function(e) { 
+          swal("Deleted!", "The document type has been deleted.", "success");
+          this.setup();
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The document type has been created.", "success");
+          $('form input').val('');
+          this.setup();
+          //Open printable quote in separate window
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
+        }
+    });
+
+    View.Stock = Marionette.ItemView.extend({ 
+
+        template: stockTpl,
+
+        events: {
+          "click .nsave": "addObject",
+          "click .esave": "editObject",
+          "click .edelete": "deleteObject",
+          "change #items": "getObject"
+        },
+
+        onShow: function(){
+          this.setup();
+        },
+
+        setup: function(){
+          
+          var ul = $('#items');
+          var ula = $('#ncat');
+          var ulb = $('#ecat');
+          ul.empty();
+          ula.empty();
+          ulb.empty();
+          $.get(System.coreRoot + '/service/inventory/index.php?typeItems&type=Stock', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select item...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/inventory/index.php?itemCategories', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select category...</option>');
+            var tpb = $('<option data-icon="fa fa-archive">Select category...</option>');
+            tp.appendTo(ula);
+            tpb.appendTo(ulb);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tplb = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ula);
+              tplb.appendTo(ulb);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+          $('button').prop({disabled: false});
+        },
+
+        addObject: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frms1")[0]);
+          data.scope = parseInt(data.scope, 10)
+          data.margin = parseFloat(data.margin)
+          data.category = parseInt(data.category, 10)
+          data.vat = parseFloat(data.vat)
+
+          if (data.name != '' && !isNaN(data.scope) && !isNaN(data.margin) && !isNaN(data.category) && !isNaN(data.vat)) {
+            this.trigger("create", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all stock item particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+          
+        },
+
+        getObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          
+          var id = parseInt($('#items').find("option:selected").val(), 10);
+          $.get(System.coreRoot + '/service/inventory/index.php?item='+id, function(result) {
+            var object = JSON.parse(result);
+            $('#ename').val(object.name);
+            $('#escope option[value="'+object.scope+'"]').prop('selected', true);
+            $('#ecat option[value="'+object.category+'"]').prop('selected', true);
+            $('#emargin').val(object.margin);
+            $('#evat').val(object.vat);
+            $('#edesc').val(object.description);
+
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 150);
+            
+          });
+        },
+
+        editObject: function(e) {
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+
+          var data = Backbone.Syphon.serialize($("#frms2")[0]);
+          data.id = parseInt(data.id, 10)
+          data.scope = parseInt(data.scope, 10)
+          data.margin = parseFloat(data.margin)
+          data.category = parseInt(data.category, 10)
+          data.vat = parseFloat(data.vat)
+          if (!isNaN(data.id) && data.name != '' && !isNaN(data.scope) && !isNaN(data.margin) && !isNaN(data.category) && !isNaN(data.vat)) {
+            this.trigger("edit", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all stock item particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        deleteObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var id = parseInt($('#items').find("option:selected").val());
+          var THAT = this;
+          swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this item!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+              },
+              function(isConfirm){
+                if (isConfirm) {
+                  THAT.trigger("del", id);         
+                } else {
+                  swal("Cancelled", "Your item is safe :)", "info");
+                }
+              });
+          
+        },
+
+        onDelete: function(e) { 
+          swal("Deleted!", "Your item has been deleted.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The item has been saved.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
+        }
+    });
+
+    View.Service = Marionette.ItemView.extend({ 
+
+        template: serviceTpl,
+
+        events: {
+          "click .nsave": "addObject",
+          "click .esave": "editObject",
+          "click .edelete": "deleteObject",
+          "change #items": "getObject"
+        },
+
+        onShow: function(){
+          this.setup();
+        },
+
+        setup: function(){
+          
+          var ul = $('#items');
+          var ula = $('#ncat');
+          var ulb = $('#ecat');
+          ul.empty();
+          ula.empty();
+          ulb.empty();
+          $.get(System.coreRoot + '/service/inventory/index.php?typeItems&type=Service', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select item...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/inventory/index.php?itemCategories', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select category...</option>');
+            var tpb = $('<option data-icon="fa fa-archive">Select category...</option>');
+            tp.appendTo(ula);
+            tpb.appendTo(ulb);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tplb = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ula);
+              tplb.appendTo(ulb);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+          $('button').prop({disabled: false});
+        },
+
+        addObject: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frms1")[0]);
+          data.scope = parseInt(data.scope, 10)
+          data.category = parseInt(data.category, 10)
+          data.vat = parseFloat(data.vat)
+
+          if (data.name != '' && !isNaN(data.scope) && !isNaN(data.category) && !isNaN(data.vat)) {
+            this.trigger("create", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all service item particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+          
+        },
+
+        getObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          
+          var id = parseInt($('#items').find("option:selected").val(), 10);
+          $.get(System.coreRoot + '/service/inventory/index.php?item='+id, function(result) {
+            var object = JSON.parse(result);
+            $('#ename').val(object.name);
+            $('#escope option[value="'+object.scope+'"]').prop('selected', true);
+            $('#ecat option[value="'+object.category+'"]').prop('selected', true);
+            $('#evat').val(object.vat);
+            $('#edesc').val(object.description);
+
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 150);
+            
+          });
+        },
+
+        editObject: function(e) {
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+
+          var data = Backbone.Syphon.serialize($("#frms2")[0]);
+          data.id = parseInt(data.id, 10)
+          data.scope = parseInt(data.scope, 10)
+          data.category = parseInt(data.category, 10)
+          data.vat = parseFloat(data.vat)
+          if (!isNaN(data.id) && data.name != '' && !isNaN(data.scope) && !isNaN(data.category) && !isNaN(data.vat)) {
+            this.trigger("edit", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all service item particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        deleteObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var id = parseInt($('#items').find("option:selected").val());
+          var THAT = this;
+          swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this item!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+              },
+              function(isConfirm){
+                if (isConfirm) {
+                  THAT.trigger("del", id);         
+                } else {
+                  swal("Cancelled", "Your item is safe :)", "info");
+                }
+              });
+          
+        },
+
+        onDelete: function(e) { 
+          swal("Deleted!", "Your item has been deleted.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The item has been saved.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
+        }
+    });
+
+    View.Asset = Marionette.ItemView.extend({ 
+
+        template: assetTpl,
+
+        events: {
+          "click .nsave": "addObject",
+          "click .esave": "editObject",
+          "click .edelete": "deleteObject",
+          "change #items": "getObject"
+        },
+
+        onShow: function(){
+          this.setup();
+        },
+
+        setup: function(){
+          
+          var ul = $('#items');
+          var ula = $('#ncat');
+          var ulb = $('#ecat');
+          var ulc = $('#nledger');
+          var uld = $('#eledger');
+          ul.empty();
+          ula.empty();
+          ulb.empty();
+          ulc.empty();
+          uld.empty();
+          $.get(System.coreRoot + '/service/inventory/index.php?typeItems&type=Asset', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select item...</option>');
+            tp.appendTo(ul);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ul);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/inventory/index.php?itemCategories', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-archive">Select category...</option>');
+            var tpb = $('<option data-icon="fa fa-archive">Select category...</option>');
+            tp.appendTo(ula);
+            tpb.appendTo(ulb);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              var tplb = $('<option data-icon="fa fa-archive" value="'+elem['id']+'">'+elem['name']+'</option>');
+              tpl.appendTo(ula);
+              tplb.appendTo(ulb);
+            });
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+
+          $.get(System.coreRoot + '/service/finance/index.php?purchaseLedgers', function(result) {
+            var m = JSON.parse(result);
+            var tp = $('<option data-icon="fa fa-question-circle" value="0">Select Ledger...</option>');
+            var tpb = $('<option data-icon="fa fa-question-circle" value="0">Select Ledger...</option>');
+            tp.appendTo(ulc);
+            tpb.appendTo(uld);
+            
+            m.forEach(function(elem){
+              var tpl = $('<option data-icon="fa fa-question-circle" value="'+elem['id']+'">'+elem['name']+' ['+elem['type']+']</option>');
+              var tplb = $('<option data-icon="fa fa-question-circle" value="'+elem['id']+'">'+elem['name']+' ['+elem['type']+']</option>');
+              tpl.appendTo(ulc);
+              tplb.appendTo(uld);
+            });
+            
+            setTimeout(function() {
+                $('.selectpicker').selectpicker();
+                $('.selectpicker').selectpicker('refresh');
+            }, 300);
+          });
+          $('button').prop({disabled: false});
+        },
+
+        addObject: function(e) { 
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+          var data = Backbone.Syphon.serialize($("#frms1")[0]);
+          data.ledger = parseInt(data.ledger, 10)
+          data.category = parseInt(data.category, 10)
+
+          if (data.name != '' && !isNaN(data.ledger) && !isNaN(data.category)) {
+            this.trigger("create", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all asset particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+          
+        },
+
+        getObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          
+          var id = parseInt($('#items').find("option:selected").val(), 10);
+          $.get(System.coreRoot + '/service/inventory/index.php?item='+id, function(result) {
+            var object = JSON.parse(result);
+            $('#ename').val(object.name);
+            $('#eledger option[value="'+object.ledger+'"]').prop('selected', true);
+            $('#ecat option[value="'+object.category+'"]').prop('selected', true);
+            $('#edesc').val(object.description);
+
+            setTimeout(function() {
+              $('.selectpicker').selectpicker('refresh');
+            }, 150);
+            
+          });
+        },
+
+        editObject: function(e) {
+          $('button').prop({disabled: true});
+          e.preventDefault();
+          e.stopPropagation();
+
+          var data = Backbone.Syphon.serialize($("#frms2")[0]);
+          data.id = parseInt(data.id, 10)
+          data.ledger = parseInt(data.ledger, 10)
+          data.category = parseInt(data.category, 10)
+
+          if (!isNaN(data.id) && data.name != '' && !isNaN(data.ledger) && !isNaN(data.category)) {
+            this.trigger("edit", data);
+          }else{
+            swal("Missing Details!", "Ensure you have entered all asset particulars!", "warning");
+            $('button').prop({disabled: false});
+          }
+        },
+
+        deleteObject: function(e) { 
+          e.preventDefault();
+          e.stopPropagation();
+          var id = parseInt($('#items').find("option:selected").val());
+          var THAT = this;
+          swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this item!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                closeOnConfirm: false,
+                closeOnCancel: false
+              },
+              function(isConfirm){
+                if (isConfirm) {
+                  THAT.trigger("del", id);         
+                } else {
+                  swal("Cancelled", "Your item is safe :)", "info");
+                }
+              });
+          
+        },
+
+        onDelete: function(e) { 
+          swal("Deleted!", "Your item has been deleted.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onSuccess: function(e) { 
+          swal("Success!", "The item has been saved.", "success");
+          $('input').val('');
+          $('textarea').val('');
+          this.setup();
+        },
+
+        onError: function(e) { 
+          swal("Error!", "Transaction failed! Try again later.", "error");
+        }
+    });
+
     View.Suppliers = Marionette.CompositeView.extend({
 
       template: suppliersTpl,

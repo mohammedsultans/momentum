@@ -18,6 +18,7 @@ require_once('DomainCRM.php');
 require_once('DomainSCM.php');
 require_once('DomainPrjMgt.php');
 require_once('DomainHRM.php');
+require_once('DomainInventory.php');
 
 class OfficeMemo extends Artifact
 {

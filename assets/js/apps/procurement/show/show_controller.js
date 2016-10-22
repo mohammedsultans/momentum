@@ -1,6 +1,173 @@
 define(["app", "apps/procurement/show/show_view"], function(System, View){
   System.module('ProcurementApp.Show', function(Show, System, Backbone, Marionette, $, _){
     Show.Controller = {
+      viewItems: function(){ 
+        var view = new View.Items();
+        System.contentRegion.show(view);
+
+        view.on('del', function(id) {
+          var data = {};
+          data['operation'] = 'deleteItem';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
+      itemCategories: function(){ 
+        var view = new View.ItemCategories();
+        System.contentRegion.show(view);
+
+        view.on('deleteCategory', function(id) {
+          var data = {};
+          data['operation'] = 'deleteCategory';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+
+        view.on('create', function(data) {
+          data['operation'] = 'createCategory';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+      },
+
+      createStock: function(){ 
+        var view = new View.Stock();
+        System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'createStock';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('edit', function(data) {
+          data['operation'] = 'updateStock';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('del', function(id) {
+          var data = {};
+          data['operation'] = 'deleteItem';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
+      createService: function(){ 
+        var view = new View.Service();
+        System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'createService';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('edit', function(data) {
+          data['operation'] = 'updateService';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('del', function(id) {
+          var data = {};
+          data['operation'] = 'deleteItem';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
+      createAsset: function(){ 
+        var view = new View.Asset();
+        System.contentRegion.show(view);
+
+        view.on('create', function(data) {
+          data['operation'] = 'createAsset';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('edit', function(data) {
+          data['operation'] = 'updateAsset';
+            $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+              if (result == 1) {
+                view.triggerMethod("success");
+              }else{
+                view.triggerMethod("error");
+              }
+            });
+        });
+
+        view.on('del', function(id) {
+          var data = {};
+          data['operation'] = 'deleteItem';
+          data['id'] = id;
+          $.post(System.coreRoot + '/service/inventory/index.php', data, function(result) {
+            if (result == 1) {
+              view.triggerMethod("delete");
+            }else{
+              view.triggerMethod("error");
+            }
+          });
+        });
+      },
+
       addSupplier: function(a){ 
         var view = new View.Supplier();
         
